@@ -13,6 +13,8 @@ const Color kSecondaryColor = Color(0xFF38CEEB);
 const Color kBackgroundColor = Color(0xFFEEEDED);
 // Nền bề mặt chính của app
 const Color kSurfaceColor = Color(0xFFFDFDFD);
+// Màu nền trang profile
+const Color kProfileBackgroundColor = Color(0xFFC2ECFF);
 // Gradient nền chính của app
 const LinearGradient kBackgroundGradient = LinearGradient(
   colors: [Color(0xFFFFFFFF), Color(0xFFB2E0FF)],
