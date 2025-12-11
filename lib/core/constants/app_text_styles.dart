@@ -28,6 +28,14 @@ const TextStyle kBody = TextStyle(
   height: 1.5,
 );
 
+// Text style nổi bật
+const TextStyle kBodyEmphasized = TextStyle(
+  fontSize: 16,
+  fontWeight: FontWeight.w600,
+  color: kTextAccent,
+  height: 1.5,
+);
+
 /// Caption / auxiliary text
 const TextStyle kCaption = TextStyle(
   fontSize: 12,
