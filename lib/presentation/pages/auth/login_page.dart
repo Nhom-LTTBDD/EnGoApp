@@ -10,7 +10,7 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppHeader.logoOnly(),
+      appBar: AppHeader(title: 'EnGo App', elevation: 0.0),
       body: Container(
         width: double.infinity,
         decoration: BoxDecoration(gradient: kBackgroundGradient),
@@ -67,6 +67,7 @@ class LoginPage extends StatelessWidget {
                   AppButton(
                     text: 'Đăng nhập',
                     variant: AppButtonVariant.accent,
+                    size: AppButtonSize.large,
                     onPressed: () {
                       // Handle login action
                       Navigator.pushNamed(context, AppRoutes.home);

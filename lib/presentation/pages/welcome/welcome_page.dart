@@ -11,7 +11,7 @@ class WelcomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppHeader.logoOnly(),
+      appBar: AppHeader(title: 'EnGo App', elevation: 0.0),
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -83,7 +83,7 @@ class WelcomePage extends StatelessWidget {
                     Navigator.pushNamed(context, AppRoutes.login);
                   },
                   variant: AppButtonVariant.accent,
-                  size: AppButtonSize.large,
+                  size: AppButtonSize.xLarge,
                   isFullWidth: false,
                 ),
               ),

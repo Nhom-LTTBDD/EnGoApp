@@ -1,5 +1,6 @@
 // lib/presentation/pages/main/home_page.dart
 import 'package:flutter/material.dart';
+import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/core/constants/app_text_styles.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/routes/app_routes.dart';
@@ -13,10 +14,10 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const AppHeader.logoOnly(),
-      bottomNavigationBar: const NavBarBottom(),
-      body: Container(
+    return MainLayout(
+      title: 'EnGo App',
+      currentIndex: 0,
+      child: Container(
         width: double.infinity,
         decoration: const BoxDecoration(
           image: DecorationImage(
@@ -36,6 +37,8 @@ class HomePage extends StatelessWidget {
               onPressed: () {},
               variant: AppButtonVariant.borderSuccess,
               isFullWidth: false,
+              size: AppButtonSize.large,
+              width: 200,
             ),
             const SizedBox(height: 10),
             AppButton(
@@ -43,6 +46,8 @@ class HomePage extends StatelessWidget {
               onPressed: () {},
               variant: AppButtonVariant.borderWarning,
               isFullWidth: false,
+              size: AppButtonSize.large,
+              width: 200,
             ),
             const SizedBox(height: 10),
             AppButton(
@@ -50,6 +55,8 @@ class HomePage extends StatelessWidget {
               onPressed: () {},
               variant: AppButtonVariant.borderSpecial,
               isFullWidth: false,
+              size: AppButtonSize.large,
+              width: 200,
             ),
           ],
         ),

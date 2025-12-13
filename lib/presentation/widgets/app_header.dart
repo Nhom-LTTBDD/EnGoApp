@@ -32,9 +32,11 @@ import '../../core/constants/app_assets.dart';
 /// Simple header that shows only the app logo (no back button, no actions).
 /// Use: AppHeader.logoOnly();
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
+  final String title;
   final double elevation;
 
-  const AppHeader.logoOnly({Key? key, this.elevation = 0.0}) : super(key: key);
+  const AppHeader({Key? key, required this.title, this.elevation = 0.0})
+    : super(key: key);
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -45,14 +47,27 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: kPrimaryColor,
       elevation: elevation,
       automaticallyImplyLeading: false, // no back button
-      title: Container(
-        decoration: BoxDecoration(color: kPrimaryColor),
-        child: Image.asset(
-          kSwiftPng,
-          width: 35,
-          height: 35,
-          fit: BoxFit.contain,
-        ),
+      title: Row(
+        children: [
+          Container(
+            decoration: BoxDecoration(color: kPrimaryColor),
+            child: Image.asset(
+              kSwiftPng,
+              width: 35,
+              height: 35,
+              fit: BoxFit.contain,
+            ),
+          ),
+          SizedBox(width: 10),
+          Text(
+            title,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }

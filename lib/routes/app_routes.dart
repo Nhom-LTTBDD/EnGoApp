@@ -6,6 +6,7 @@ import '../presentation/pages/welcome/welcome_page.dart';
 import '../presentation/pages/auth/login_page.dart';
 import '../presentation/pages/auth/register_page.dart';
 import '../presentation/pages/main/home_page.dart';
+import '../presentation/pages/profile/profile_page.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -13,6 +14,7 @@ class AppRoutes {
   static const String login = '/login';
   static const String register = '/register';
   static const String home = '/home';
+  static const String profile = '/profile';
 }
 
 class RouteGenerator {
@@ -28,6 +30,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => RegisterPage());
       case AppRoutes.home:
         return MaterialPageRoute(builder: (_) => HomePage());
+      case AppRoutes.profile:
+        return MaterialPageRoute(builder: (_) => ProfilePage());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

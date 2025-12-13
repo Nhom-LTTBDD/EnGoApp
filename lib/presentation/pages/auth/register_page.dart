@@ -11,7 +11,7 @@ class RegisterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppHeader.logoOnly(),
+      appBar: const AppHeader(title: 'EnGo App', elevation: 0.0),
       body: Container(
         width: double.infinity,
         decoration: const BoxDecoration(gradient: kBackgroundGradient),
@@ -86,6 +86,7 @@ class RegisterPage extends StatelessWidget {
                   AppButton(
                     text: 'Đăng ký',
                     variant: AppButtonVariant.accent,
+                    size: AppButtonSize.large,
                     onPressed: () {
                       // TODO: implement register logic
                     },

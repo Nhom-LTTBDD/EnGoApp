@@ -22,7 +22,7 @@ class _SplashPageState extends State<SplashPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppHeader.logoOnly(),
+      appBar: AppHeader(title: 'EnGo App', elevation: 0.0),
       body: Center(
         child: Text(
           'Welcome to EnGo App',
