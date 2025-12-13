@@ -30,7 +30,7 @@ class ProfilePage extends StatelessWidget {
                 height: 150,
                 colorFilter: ColorFilter.mode(kPrimaryColor, BlendMode.srcIn),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 15),
               AppButton(
                 onPressed: () {},
                 icon: Icons.camera_alt,
@@ -39,7 +39,7 @@ class ProfilePage extends StatelessWidget {
                 isFullWidth: false,
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
@@ -95,7 +95,7 @@ class ProfilePage extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 15),
               AppButton(
                 text: 'Logout',
                 onPressed: () {},
@@ -115,7 +115,7 @@ class ProfilePage extends StatelessWidget {
                       color: kDanger,
                     ),
                   ),
-                  const SizedBox(width: 5),
+                  const SizedBox(width: 10),
                   SvgPicture.asset(kIconFire, width: 45, height: 55),
                 ],
               ),
@@ -161,7 +161,7 @@ class ProfilePage extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 15),
               AppButton(
                 onPressed: () {},
                 text: 'Xem tiến trình học',
