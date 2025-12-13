@@ -46,12 +46,13 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       elevation: elevation,
       automaticallyImplyLeading: false, // no back button
       title: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20.0),
-          color: Colors.white,
+        decoration: BoxDecoration(color: kPrimaryColor),
+        child: Image.asset(
+          kSwiftPng,
+          width: 35,
+          height: 35,
+          fit: BoxFit.contain,
         ),
-        padding: const EdgeInsets.all(8.0),
-        child: Image.asset(kLogoPng, width: 25, height: 25, fit: BoxFit.cover),
       ),
     );
   }

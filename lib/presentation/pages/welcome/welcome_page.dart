@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_text_styles.dart';
+import 'package:en_go_app/routes/app_routes.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_header.dart';
@@ -22,7 +23,7 @@ class WelcomePage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(kDovePng),
+              Image.asset(kSwiftWelcomePng, width: 200, height: 200),
               SizedBox(height: 20),
               Text('Welcome to EnGo App!', style: kH1),
               SizedBox(height: 10),
@@ -79,6 +80,7 @@ class WelcomePage extends StatelessWidget {
                   text: 'Get Started',
                   onPressed: () {
                     // Xử lý khi nhấn nút Get Started
+                    Navigator.pushNamed(context, AppRoutes.login);
                   },
                   variant: AppButtonVariant.accent,
                   size: AppButtonSize.large,

@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'EnGo App',
       theme: ThemeData(textTheme: GoogleFonts.poppinsTextTheme()),
+
       debugShowCheckedModeBanner: false,
       initialRoute: AppRoutes.splash,
       onGenerateRoute: RouteGenerator.generateRoute,

@@ -42,3 +42,17 @@ const TextStyle kCaption = TextStyle(
   fontWeight: FontWeight.w400,
   color: kTextAccent,
 );
+
+// Text style riêng cho tiêu đề login/register
+const TextStyle kFormTitle = TextStyle(
+  fontSize: 24,
+  fontWeight: FontWeight.w700,
+  color: kSecondaryColor,
+);
+
+// Text style nguy hiểm (alerts, errors)
+const TextStyle kDangerText = TextStyle(
+  fontSize: 14,
+  fontWeight: FontWeight.w500,
+  color: kDanger,
+);

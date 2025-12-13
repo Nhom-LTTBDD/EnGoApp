@@ -1,35 +1,39 @@
-/*
- * navbar_bottom.dart
- *
- * Chức năng:
- * - Thanh điều hướng dưới cùng (Bottom Navigation Bar) chứa các tab chính của app.
- * - Quản lý highlight tab hiện tại, hiển thị badge/indicator, hỗ trợ FAB notch nếu cần.
- *
- * Được sử dụng ở đâu:
- * - Scaffold chính của app (root page), trong MainShell / HomeScreen.
- *
- * API (props) gợi ý:
- * - final int currentIndex;
- * - final ValueChanged<int> onTap;
- * - final List<BottomNavigationBarItem> items; // hoặc custom model (icon, label, badge)
- * - final bool showFAB;
- * - final Color? backgroundColor;
- *
- * Lưu ý:
- * - Đặt trong SafeArea để tránh cắt trên các device có insets.
- * - Dùng semanticsLabel cho các icon để hỗ trợ screen reader.
- * - Nếu có badge động, chỉ render widget badge khi cần (avoid rebuilds).
- * - Nếu có notch, đảm bảo scaffold dùng FloatingActionButtonLocation.centerDocked.
- * - Test: kiểm tra onTap index, hiển thị đúng label/icon, xử lý disable state.
- *
- * Ví dụ dùng:
- * NavBarBottom(
- *   currentIndex: 0,
- *   items: [
- *     NavItem(icon: Icons.home, label: 'Home'),
- *     NavItem(icon: Icons.book, label: 'Lessons'),
- *     NavItem(icon: Icons.person, label: 'Profile'),
- *   ],
- *   onTap: (i) => pageController.jumpToPage(i),
- * )
- */
+// lib/presentation/widgets/navbar_bottom.dart
+import 'package:flutter/material.dart';
+import 'package:en_go_app/core/constants/app_colors.dart';
+
+/// Simple bottom nav that navigates directly to home/profile by name.
+/// Note: make sure '/home' and '/profile' are defined in your routes.
+class NavBarBottom extends StatelessWidget {
+  const NavBarBottom({Key? key}) : super(key: key);
+
+  int _currentIndexFromRoute(BuildContext context) {
+    final String? name = ModalRoute.of(context)?.settings.name;
+    if (name == '/profile' || name == 'profile') return 1;
+    return 0; // default to home
+  }
+
+  void _handleTap(BuildContext context, int index) {
+    final target = index == 0 ? '/home' : '/profile';
+    // use pushReplacementNamed to avoid stacking multiple roots
+    if (ModalRoute.of(context)?.settings.name != target) {
+      Navigator.pushReplacementNamed(context, target);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentIndex = _currentIndexFromRoute(context);
+    return BottomNavigationBar(
+      backgroundColor: kPrimaryColor,
+      currentIndex: currentIndex,
+      onTap: (i) => _handleTap(context, i),
+      selectedItemColor: Colors.white,
+      unselectedItemColor: Colors.white70,
+      items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+      ],
+    );
+  }
+}

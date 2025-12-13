@@ -4,7 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
 
 /// Button variants
-enum AppButtonVariant { primary, success, danger, ghost, accent }
+enum AppButtonVariant {
+  primary,
+  success,
+  danger,
+  ghost,
+  accent,
+  borderSuccess,
+  borderWarning,
+  borderSpecial,
+}
 
 /// Button sizes
 enum AppButtonSize { small, medium, large, xLarge }
@@ -18,6 +27,8 @@ class AppButtonStyle {
   final double borderRadius;
   final EdgeInsets padding;
   final double height;
+  final Color? borderColor;
+  final double? borderWidth;
 
   const AppButtonStyle({
     required this.backgroundColor,
@@ -26,8 +37,9 @@ class AppButtonStyle {
     required this.padding,
     required this.height,
     this.shadow,
-
     this.borderRadius = 12,
+    this.borderColor,
+    this.borderWidth = 1,
   });
 }
 
@@ -99,6 +111,51 @@ final Map<AppButtonVariant, AppButtonStyle> _buttonStyles = {
       BoxShadow(color: kSecondaryColor, blurRadius: 8, offset: Offset(0, 3)),
     ],
   ),
+  AppButtonVariant.borderSuccess: AppButtonStyle(
+    backgroundColor: Colors.white,
+    textColor: kSuccess,
+    padding: EdgeInsets.symmetric(horizontal: 20),
+    height: 48,
+    borderColor: kSuccess,
+    borderWidth: 3,
+    shadow: [
+      BoxShadow(
+        color: kSuccess.withOpacity(0.4),
+        blurRadius: 4,
+        offset: Offset(0, 2),
+      ),
+    ],
+  ),
+  AppButtonVariant.borderWarning: AppButtonStyle(
+    backgroundColor: Colors.white,
+    textColor: kWarning,
+    padding: EdgeInsets.symmetric(horizontal: 20),
+    height: 48,
+    borderColor: kWarning,
+    borderWidth: 3,
+    shadow: [
+      BoxShadow(
+        color: kWarning.withOpacity(0.4),
+        blurRadius: 4,
+        offset: Offset(0, 2),
+      ),
+    ],
+  ),
+  AppButtonVariant.borderSpecial: AppButtonStyle(
+    backgroundColor: Colors.white,
+    textColor: kSpecial,
+    padding: EdgeInsets.symmetric(horizontal: 20),
+    height: 48,
+    borderColor: kSpecial,
+    borderWidth: 3,
+    shadow: [
+      BoxShadow(
+        color: kSpecial.withOpacity(0.4),
+        blurRadius: 4,
+        offset: Offset(0, 2),
+      ),
+    ],
+  ),
 };
 
 /// MAIN BUTTON WIDGET
@@ -124,12 +181,15 @@ class AppButton extends StatelessWidget {
     final height = _heightBySize[size]!;
 
     return Container(
-      width: isFullWidth ? double.infinity : null,
+      width: isFullWidth ? double.infinity : 300,
       height: height,
       decoration: BoxDecoration(
         gradient: config.backgroundGradient,
         boxShadow: config.shadow,
         borderRadius: BorderRadius.circular(config.borderRadius),
+        border: config.borderColor != null
+            ? Border.all(color: config.borderColor!, width: config.borderWidth!)
+            : null,
         color: config.backgroundGradient == null
             ? config.backgroundColor
             : null,
