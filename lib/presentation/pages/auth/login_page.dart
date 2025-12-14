@@ -4,7 +4,6 @@ import 'package:en_go_app/presentation/layout/auth_layout.dart';
 import 'package:en_go_app/core/constants/app_text_styles.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/routes/app_routes.dart';
-import '../../widgets/app_header.dart';
 import '../../widgets/app_button.dart';
 
 class LoginPage extends StatelessWidget {

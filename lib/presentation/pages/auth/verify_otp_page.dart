@@ -1,10 +1,8 @@
 // lib/presentation/pages/auth/verify_otp_page.dart
 import 'package:flutter/material.dart';
 import 'package:en_go_app/presentation/layout/auth_layout.dart';
-import 'package:en_go_app/core/constants/app_text_styles.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
 import '../../../routes/app_routes.dart';
-import '../../widgets/app_header.dart';
 import '../../widgets/app_button.dart';
 
 class VerifyOtpPage extends StatelessWidget {

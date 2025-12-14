@@ -11,6 +11,8 @@ import '../presentation/pages/auth/reset_password_page.dart';
 import '../presentation/pages/auth/terms_page.dart';
 import '../presentation/pages/main/home_page.dart';
 import '../presentation/pages/profile/profile_page.dart';
+//Test
+import '../presentation/pages/main/test_page.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -23,6 +25,7 @@ class AppRoutes {
   static const String terms = '/terms';
   static const String home = '/home';
   static const String profile = '/profile';
+  static const String test = '/test'; //Test
 }
 
 class RouteGenerator {
@@ -48,6 +51,9 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => HomePage());
       case AppRoutes.profile:
         return MaterialPageRoute(builder: (_) => ProfilePage());
+      //case Test
+      case AppRoutes.test:
+        return MaterialPageRoute(builder: (_) => TestPage());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

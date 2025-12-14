@@ -43,7 +43,7 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 10),
             AppButton(
               text: 'Test',
-              onPressed: () {},
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.test),
               variant: AppButtonVariant.borderWarning,
               isFullWidth: false,
               size: AppButtonSize.large,
