@@ -5,7 +5,7 @@ import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/presentation/widgets/app_header.dart';
 
 class TestPage extends StatelessWidget {
-  const TestPage({Key? key}) : super(key: key);
+  const TestPage({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -6,7 +6,7 @@ import 'package:en_go_app/presentation/widgets/app_button.dart';
 import '../../../routes/app_routes.dart';
 
 class TermsPage extends StatelessWidget {
-  const TermsPage({Key? key}) : super(key: key);
+  const TermsPage({super.key});
 
   @override
   Widget build(BuildContext context) {

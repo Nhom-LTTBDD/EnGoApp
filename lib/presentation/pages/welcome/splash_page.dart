@@ -5,6 +5,8 @@ import '../welcome/welcome_page.dart';
 import '../../widgets/app_header.dart';
 
 class SplashPage extends StatefulWidget {
+  const SplashPage({super.key});
+
   @override
   _SplashPageState createState() => _SplashPageState();
 }

@@ -9,7 +9,7 @@ import 'package:en_go_app/core/constants/app_colors.dart';
 import '../../widgets/app_button.dart';
 
 class ProfilePage extends StatelessWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {

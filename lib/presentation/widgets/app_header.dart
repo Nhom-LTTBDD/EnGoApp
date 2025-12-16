@@ -35,8 +35,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final double elevation;
 
-  const AppHeader({Key? key, required this.title, this.elevation = 0.0})
-    : super(key: key);
+  const AppHeader({super.key, required this.title, this.elevation = 0.0});
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);

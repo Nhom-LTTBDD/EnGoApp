@@ -9,8 +9,7 @@ class AuthLayout extends StatelessWidget {
   final String title;
   final Widget child;
 
-  const AuthLayout({Key? key, required this.title, required this.child})
-    : super(key: key);
+  const AuthLayout({super.key, required this.title, required this.child});
 
   @override
   Widget build(BuildContext context) {

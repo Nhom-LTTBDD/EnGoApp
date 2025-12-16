@@ -7,6 +7,8 @@ import 'package:en_go_app/routes/app_routes.dart';
 import '../../widgets/app_button.dart';
 
 class LoginPage extends StatelessWidget {
+  const LoginPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return AuthLayout(

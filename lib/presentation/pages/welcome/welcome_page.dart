@@ -8,6 +8,8 @@ import '../../widgets/app_button.dart';
 import '../../widgets/app_header.dart';
 
 class WelcomePage extends StatelessWidget {
+  const WelcomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
