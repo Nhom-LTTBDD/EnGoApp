@@ -34,7 +34,7 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 20),
             AppButton(
               text: 'Vocabulary',
-              onPressed: () {},
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.vocab),
               variant: AppButtonVariant.borderSuccess,
               isFullWidth: false,
               size: AppButtonSize.large,

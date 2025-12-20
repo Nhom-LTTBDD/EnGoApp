@@ -14,6 +14,9 @@ import '../presentation/pages/profile/profile_page.dart';
 //Test
 import '../presentation/pages/main/test_page.dart';
 
+//Vocabulary
+import '../presentation/pages/vocabulary/vocabulary_page.dart';
+
 class AppRoutes {
   static const String splash = '/splash';
   static const String welcome = '/welcome';
@@ -26,6 +29,7 @@ class AppRoutes {
   static const String home = '/home';
   static const String profile = '/profile';
   static const String test = '/test'; //Test
+  static const String vocab = '/vocabulary'; //Vocabulary
 }
 
 class RouteGenerator {
@@ -54,6 +58,9 @@ class RouteGenerator {
       //case Test
       case AppRoutes.test:
         return MaterialPageRoute(builder: (_) => TestPage());
+      //case Vocab
+      case AppRoutes.vocab:
+        return MaterialPageRoute(builder: (_) => VocabPage());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(
