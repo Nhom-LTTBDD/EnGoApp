@@ -36,6 +36,18 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.0.0
   google_fonts: ^6.0.0
+
+  # Domain Layer Dependencies
+  equatable: ^2.0.5
+  dartz: ^0.10.1
+
+  # Data Layer Dependencies
+  http: ^1.1.0
+  shared_preferences: ^2.2.2
+
+  # Presentation Layer Dependencies
+  provider: ^6.1.1
+  get_it: ^7.6.4
 dev_dependencies:
   flutter_test:
     sdk: flutter

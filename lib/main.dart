@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'core/di/injection_container.dart' as di;
+import 'presentation/providers/auth/auth_provider.dart';
+import 'presentation/providers/profile/profile_provider.dart';
 import 'routes/app_routes.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize dependency injection
+  await di.init();
+
   runApp(const MyApp());
 }
 
@@ -12,13 +21,20 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'EnGo App',
-      theme: ThemeData(textTheme: GoogleFonts.poppinsTextTheme()),
-
-      debugShowCheckedModeBanner: false,
-      initialRoute: AppRoutes.splash,
-      onGenerateRoute: RouteGenerator.generateRoute,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => di.sl<AuthProvider>()..checkAuthStatus(),
+        ),
+        ChangeNotifierProvider(create: (_) => di.sl<ProfileProvider>()),
+      ],
+      child: MaterialApp(
+        title: 'EnGo App',
+        theme: ThemeData(textTheme: GoogleFonts.poppinsTextTheme()),
+        debugShowCheckedModeBanner: false,
+        initialRoute: AppRoutes.splash,
+        onGenerateRoute: RouteGenerator.generateRoute,
+      ),
     );
   }
 }
