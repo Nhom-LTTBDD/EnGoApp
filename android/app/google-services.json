@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "601431274476",
+    "project_id": "engoapp-91373",
+    "storage_bucket": "engoapp-91373.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:601431274476:android:a74936f9bca809353406c9",
+        "android_client_info": {
+          "package_name": "com.example.en_go_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNTqBKPYvsCWlDFqqHlWfwpPSH3JdNHpg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

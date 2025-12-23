@@ -1,8 +1,8 @@
 // lib/data/datasources/auth_remote_datasource.dart
-// Remote datasource cho Auth - Xử lý API calls
+// Remote datasource cho Auth - Xử lý Firebase Authentication
 
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/error/failure.dart';
 import '../../models/auth_result_model.dart';
 import '../../models/user_model.dart';
@@ -42,12 +42,12 @@ abstract class AuthRemoteDataSource {
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  final http.Client client;
-  final String baseUrl;
+  final firebase_auth.FirebaseAuth firebaseAuth;
+  final FirebaseFirestore firestore;
 
   AuthRemoteDataSourceImpl({
-    required this.client,
-    this.baseUrl = 'https://api.engo.com', // Thay đổi theo API thực tế
+    required this.firebaseAuth,
+    required this.firestore,
   });
 
   @override
@@ -56,19 +56,44 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String password,
   }) async {
     try {
-      final response = await client.post(
-        Uri.parse('$baseUrl/auth/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password}),
+      final credential = await firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
       );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return AuthResultModel.fromJson(data);
-      } else if (response.statusCode == 401) {
+      if (credential.user == null) {
+        throw const AuthFailure('Đăng nhập thất bại');
+      }
+
+      // Lấy thông tin user từ Firestore
+      final userDoc = await firestore
+          .collection('users')
+          .doc(credential.user!.uid)
+          .get();
+
+      final userData = userDoc.data();
+      if (userData == null) {
+        throw const AuthFailure('Không tìm thấy thông tin người dùng');
+      }
+
+      final user = UserModel.fromJson({
+        'id': credential.user!.uid,
+        'email': credential.user!.email,
+        ...userData,
+      });
+
+      final token = await credential.user!.getIdToken();
+
+      return AuthResultModel(user: user, token: token ?? '');
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found' || e.code == 'wrong-password') {
         throw const AuthFailure('Email hoặc mật khẩu không đúng');
+      } else if (e.code == 'invalid-email') {
+        throw const ValidationFailure('Email không hợp lệ');
+      } else if (e.code == 'user-disabled') {
+        throw const AuthFailure('Tài khoản đã bị vô hiệu hóa');
       } else {
-        throw ServerFailure('Lỗi server: ${response.statusCode}');
+        throw AuthFailure('Lỗi đăng nhập: ${e.message}');
       }
     } catch (e) {
       if (e is Failure) rethrow;
@@ -84,24 +109,50 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     String? birthDate,
   }) async {
     try {
-      final response = await client.post(
-        Uri.parse('$baseUrl/auth/register'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-          'name': name,
-          'birthDate': birthDate,
-        }),
+      final credential = await firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
       );
 
-      if (response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        return AuthResultModel.fromJson(data);
-      } else if (response.statusCode == 409) {
+      if (credential.user == null) {
+        throw const AuthFailure('Đăng ký thất bại');
+      }
+
+      // Tạo user document trong Firestore
+      final userData = {
+        'email': email,
+        'name': name,
+        'birthDate': birthDate,
+        'createdAt': FieldValue.serverTimestamp(),
+      };
+
+      await firestore
+          .collection('users')
+          .doc(credential.user!.uid)
+          .set(userData);
+
+      // Cập nhật display name
+      await credential.user!.updateDisplayName(name);
+
+      final user = UserModel(
+        id: credential.user!.uid,
+        email: email,
+        name: name,
+        birthDate: birthDate,
+      );
+
+      final token = await credential.user!.getIdToken();
+
+      return AuthResultModel(user: user, token: token ?? '');
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
         throw const ValidationFailure('Email đã được sử dụng');
+      } else if (e.code == 'weak-password') {
+        throw const ValidationFailure('Mật khẩu quá yếu (tối thiểu 6 ký tự)');
+      } else if (e.code == 'invalid-email') {
+        throw const ValidationFailure('Email không hợp lệ');
       } else {
-        throw ServerFailure('Lỗi server: ${response.statusCode}');
+        throw AuthFailure('Lỗi đăng ký: ${e.message}');
       }
     } catch (e) {
       if (e is Failure) rethrow;
@@ -112,40 +163,26 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<bool> logout(String token) async {
     try {
-      final response = await client.post(
-        Uri.parse('$baseUrl/auth/logout'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        throw ServerFailure('Lỗi server: ${response.statusCode}');
-      }
+      await firebaseAuth.signOut();
+      return true;
     } catch (e) {
       if (e is Failure) rethrow;
-      throw const NetworkFailure('Không thể kết nối đến server');
+      throw const NetworkFailure('Không thể đăng xuất');
     }
   }
 
   @override
   Future<bool> forgotPassword(String email) async {
     try {
-      final response = await client.post(
-        Uri.parse('$baseUrl/auth/forgot-password'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email}),
-      );
-
-      if (response.statusCode == 200) {
-        return true;
-      } else if (response.statusCode == 404) {
+      await firebaseAuth.sendPasswordResetEmail(email: email);
+      return true;
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
         throw const NotFoundFailure('Email không tồn tại');
+      } else if (e.code == 'invalid-email') {
+        throw const ValidationFailure('Email không hợp lệ');
       } else {
-        throw ServerFailure('Lỗi server: ${response.statusCode}');
+        throw AuthFailure('Lỗi: ${e.message}');
       }
     } catch (e) {
       if (e is Failure) rethrow;
@@ -155,24 +192,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<bool> verifyOTP({required String email, required String otp}) async {
-    try {
-      final response = await client.post(
-        Uri.parse('$baseUrl/auth/verify-otp'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'otp': otp}),
-      );
-
-      if (response.statusCode == 200) {
-        return true;
-      } else if (response.statusCode == 400) {
-        throw const ValidationFailure('Mã OTP không đúng hoặc đã hết hạn');
-      } else {
-        throw ServerFailure('Lỗi server: ${response.statusCode}');
-      }
-    } catch (e) {
-      if (e is Failure) rethrow;
-      throw const NetworkFailure('Không thể kết nối đến server');
-    }
+    // Firebase không sử dụng OTP theo cách truyền thống
+    // Thay vào đó, nó gửi email reset password trực tiếp
+    // Có thể implement custom OTP verification nếu cần
+    throw const AuthFailure(
+      'OTP verification không được hỗ trợ với Firebase Authentication. '
+      'Vui lòng sử dụng link reset password được gửi qua email.',
+    );
   }
 
   @override
@@ -180,42 +206,44 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String email,
     required String newPassword,
   }) async {
-    try {
-      final response = await client.post(
-        Uri.parse('$baseUrl/auth/reset-password'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'newPassword': newPassword}),
-      );
-
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        throw ServerFailure('Lỗi server: ${response.statusCode}');
-      }
-    } catch (e) {
-      if (e is Failure) rethrow;
-      throw const NetworkFailure('Không thể kết nối đến server');
-    }
+    // Firebase xử lý reset password qua email link
+    // Không thể trực tiếp reset password từ client
+    throw const AuthFailure(
+      'Reset password được xử lý qua email link. '
+      'Vui lòng kiểm tra email và làm theo hướng dẫn.',
+    );
   }
 
   @override
   Future<UserModel> getCurrentUser(String token) async {
     try {
-      final response = await client.get(
-        Uri.parse('$baseUrl/auth/me'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
+      final currentUser = firebaseAuth.currentUser;
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return UserModel.fromJson(data);
-      } else if (response.statusCode == 401) {
-        throw const AuthFailure('Token không hợp lệ');
+      if (currentUser == null) {
+        throw const AuthFailure('Người dùng chưa đăng nhập');
+      }
+
+      // Lấy thông tin user từ Firestore
+      final userDoc = await firestore
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+
+      final userData = userDoc.data();
+      if (userData == null) {
+        throw const AuthFailure('Không tìm thấy thông tin người dùng');
+      }
+
+      return UserModel.fromJson({
+        'id': currentUser.uid,
+        'email': currentUser.email,
+        ...userData,
+      });
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        throw const AuthFailure('Người dùng không tồn tại');
       } else {
-        throw ServerFailure('Lỗi server: ${response.statusCode}');
+        throw AuthFailure('Lỗi: ${e.message}');
       }
     } catch (e) {
       if (e is Failure) rethrow;
