@@ -61,7 +61,11 @@ class RouteGenerator {
       case AppRoutes.vocabByTopic:
         return MaterialPageRoute(builder: (_) => VocabByTopicPage());
       case AppRoutes.vocabMenu:
-        return MaterialPageRoute(builder: (_) => VocabMenuPage());
+        final args = settings.arguments as Map<String, dynamic>?;
+        final topicId = args?['topicId'] as String?;
+        return MaterialPageRoute(
+          builder: (_) => VocabMenuPage(topicId: topicId),
+        );
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

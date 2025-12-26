@@ -30,6 +30,14 @@ import '../../domain/usecase/profile/update_profile_usecase.dart';
 // Presentation Layer
 import '../../presentation/providers/auth/auth_provider.dart';
 import '../../presentation/providers/profile/profile_provider.dart';
+import '../../presentation/providers/vocabulary_provider.dart';
+
+// Vocabulary Domain
+import '../../domain/repository_interfaces/vocabulary_repository.dart';
+import '../../domain/usecase/get_vocabulary_cards.dart';
+
+// Vocabulary Data
+import '../../data/repositories/vocabulary_repository_impl.dart';
 
 final sl = GetIt.instance;
 
@@ -56,6 +64,8 @@ Future<void> init() async {
     ),
   );
 
+  sl.registerFactory(() => VocabularyProvider(getVocabularyCards: sl()));
+
   // =============================================================================
   // Use Cases - Auth
   // =============================================================================
@@ -73,6 +83,11 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdateAvatarUseCase(sl()));
 
   // =============================================================================
+  // Use Cases - Vocabulary
+  // =============================================================================
+  sl.registerLazySingleton(() => GetVocabularyCards(sl()));
+
+  // =============================================================================
   // Repositories
   // =============================================================================
   sl.registerLazySingleton<AuthRepository>(
@@ -85,6 +100,10 @@ Future<void> init() async {
       localDataSource: sl(),
       authLocalDataSource: sl(),
     ),
+  );
+
+  sl.registerLazySingleton<VocabularyRepository>(
+    () => VocabularyRepositoryImpl(),
   );
 
   // =============================================================================

@@ -51,8 +51,12 @@ class VocabByTopicPage extends StatelessWidget {
                             imageAsset:
                                 kBackgroundJpg, // Tạm thời dùng ảnh background
                             onTap: () {
-                              // TODO: Navigate to topic detail
-                              Navigator.pushNamed(context, AppRoutes.vocabMenu);
+                              // Navigate to topic detail with topicId
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.vocabMenu,
+                                arguments: {'topicId': 'topic_1'},
+                              );
                             },
                           ),
                           const SizedBox(height: spaceMd),
@@ -61,8 +65,12 @@ class VocabByTopicPage extends StatelessWidget {
                             imageAsset:
                                 kBackgroundJpg, // Tạm thời dùng ảnh eagle
                             onTap: () {
-                              // TODO: Navigate to topic detail
-                              Navigator.pushNamed(context, AppRoutes.vocabMenu);
+                              // Navigate to topic detail with topicId
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.vocabMenu,
+                                arguments: {'topicId': 'topic_2'},
+                              );
                             },
                           ),
                           const SizedBox(height: spaceMd),
@@ -71,8 +79,12 @@ class VocabByTopicPage extends StatelessWidget {
                             imageAsset:
                                 kBackgroundJpg, // Tạm thời dùng ảnh swift
                             onTap: () {
-                              // TODO: Navigate to topic detail
-                              Navigator.pushNamed(context, AppRoutes.vocabMenu);
+                              // Navigate to topic detail with topicId
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.vocabMenu,
+                                arguments: {'topicId': 'topic_3'},
+                              );
                             },
                           ),
                           const SizedBox(height: spaceMd),
@@ -81,8 +93,12 @@ class VocabByTopicPage extends StatelessWidget {
                             imageAsset:
                                 kBackgroundJpg, // Tạm thời dùng ảnh background
                             onTap: () {
-                              // TODO: Navigate to topic detail
-                              Navigator.pushNamed(context, AppRoutes.vocabMenu);
+                              // Navigate to topic detail with topicId
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.vocabMenu,
+                                arguments: {'topicId': 'topic_4'},
+                              );
                             },
                           ),
                           const SizedBox(height: spaceMd),
@@ -91,8 +107,12 @@ class VocabByTopicPage extends StatelessWidget {
                             imageAsset:
                                 kBackgroundJpg, // Tạm thời dùng ảnh eagle
                             onTap: () {
-                              // TODO: Navigate to topic detail
-                              Navigator.pushNamed(context, AppRoutes.vocabMenu);
+                              // Navigate to topic detail with topicId
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.vocabMenu,
+                                arguments: {'topicId': 'topic_5'},
+                              );
                             },
                           ),
                           const SizedBox(height: spaceMd), // Padding bottom
