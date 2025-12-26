@@ -5,10 +5,12 @@ import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/core/constants/app_spacing.dart';
 import 'package:en_go_app/core/constants/app_text_styles.dart';
-import '../../widgets/vocab_menu_item.dart';
 import '../../providers/vocabulary_provider.dart';
-import '../../../domain/entities/vocabulary_card.dart';
-import 'dart:math' as math;
+import '../../widgets/vocabulary/vocabulary_card_list.dart';
+import '../../widgets/vocabulary/dots_indicator.dart';
+import '../../widgets/vocabulary/profile_section.dart';
+import '../../widgets/vocabulary/vocab_menu_items.dart';
+import '../../widgets/vocabulary/vocab_page_header.dart';
 
 class VocabMenuPage extends StatefulWidget {
   final String? topicId;
@@ -30,7 +32,8 @@ class _VocabMenuPageState extends State<VocabMenuPage>
     super.initState();
     _pageController = PageController(
       initialPage: 0,
-      viewportFraction: 0.85, // Để thấy một phần card bên cạnh
+      viewportFraction:
+          0.85, // Giảm xuống 0.8 để tăng khoảng cách giữa các card
     );
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 10),
@@ -64,6 +67,45 @@ class _VocabMenuPageState extends State<VocabMenuPage>
     } else {
       _animationController.reverse();
     }
+  }
+
+  void _handleEditVocabularySet() {
+    // TODO: Navigate to edit vocabulary set page
+    print('Edit vocabulary set');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Chức năng sửa bộ từ đang phát triển')),
+    );
+  }
+
+  void _handleDeleteVocabularySet() {
+    // Show confirmation dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Xóa bộ từ'),
+          content: const Text('Bạn có chắc chắn muốn xóa bộ từ này không?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Hủy'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // TODO: Implement delete functionality
+                print('Delete vocabulary set confirmed');
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Đã xóa bộ từ')));
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Xóa'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -141,65 +183,29 @@ class _VocabMenuPageState extends State<VocabMenuPage>
                   child: ListView(
                     padding: const EdgeInsets.symmetric(horizontal: spaceMd),
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            padding: const EdgeInsets.only(right: 25),
-                            icon: const Icon(
-                              Icons.arrow_back_rounded,
-                              color: kIconBackColor,
-                              size: 30,
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                          IconButton(
-                            padding: const EdgeInsets.only(left: 25),
-                            icon: const Icon(
-                              Icons.more_vert,
-                              color: kIconBackColor,
-                              size: 30,
-                            ),
-                            onPressed: () {
-                              print('Navigate more');
-                            },
-                          ),
-                        ],
+                      // Header with back and more buttons
+                      VocabPageHeader(
+                        onEdit: _handleEditVocabularySet,
+                        onDelete: _handleDeleteVocabularySet,
                       ),
 
                       // Card "Từ vựng" với dots - có thể lật và lướt ngang
-                      SizedBox(
-                        height: 200,
-                        child: PageView.builder(
-                          controller: _pageController,
-                          onPageChanged: (index) {
-                            vocabularyProvider.setCurrentCardIndex(index);
-                            // Reset animation state
-                            _animationController.reset();
-                          },
-                          itemCount: vocabularyCards.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                              ),
-                              child: _buildVocabularyCard(
-                                context,
-                                vocabularyCards[index],
-                                index,
-                                vocabularyProvider,
-                              ),
-                            );
-                          },
-                        ),
+                      VocabularyCardList(
+                        pageController: _pageController,
+                        vocabularyCards: vocabularyCards,
+                        provider: vocabularyProvider,
+                        flipAnimation: _flipAnimation,
+                        animationController: _animationController,
+                        onFlipCard: _flipCard,
                       ),
 
                       const SizedBox(height: 16),
 
-                      // Dots indicator cho PageView - giới hạn 4 dots
-                      _buildDotsIndicator(vocabularyProvider),
+                      // Dots indicator cho PageView
+                      DotsIndicator(
+                        totalDots: vocabularyCards.length,
+                        activeDotIndex: vocabularyProvider.getDotIndex(),
+                      ),
 
                       const SizedBox(height: spaceLg),
 
@@ -216,12 +222,12 @@ class _VocabMenuPageState extends State<VocabMenuPage>
                       const SizedBox(height: spaceMd),
 
                       // Profile section
-                      _buildProfileSection(vocabularyCards.length),
+                      ProfileSection(cardCount: vocabularyCards.length),
 
                       const SizedBox(height: spaceLg),
 
                       // Menu items
-                      _buildMenuItems(),
+                      VocabMenuItems(topicId: widget.topicId),
                     ],
                   ),
                 ),
@@ -230,200 +236,6 @@ class _VocabMenuPageState extends State<VocabMenuPage>
           ),
         );
       },
-    );
-  }
-
-  Widget _buildVocabularyCard(
-    BuildContext context,
-    VocabularyCard card,
-    int index,
-    VocabularyProvider provider,
-  ) {
-    return GestureDetector(
-      onTap: () => _flipCard(),
-      child: AnimatedBuilder(
-        animation: _flipAnimation,
-        builder: (context, child) {
-          final isShowingFront = _flipAnimation.value < 0.5;
-
-          return Transform(
-            alignment: Alignment.center,
-            transform: Matrix4.identity()
-              ..setEntry(3, 2, 0.001)
-              ..rotateX(_flipAnimation.value * math.pi),
-            child: Container(
-              width: double.infinity,
-              height: 200,
-              decoration: BoxDecoration(
-                color: kSurfaceColor,
-                borderRadius: kRadiusMedium,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Stack(
-                children: [
-                  // Content area - Front or Back
-                  Center(
-                    child: Transform(
-                      alignment: Alignment.center,
-                      transform: Matrix4.identity()
-                        ..rotateX(isShowingFront ? 0 : math.pi),
-                      child: isShowingFront
-                          ? Text(
-                              card.vietnamese,
-                              style: kFlashcardText,
-                              textAlign: TextAlign.center,
-                            )
-                          : Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  card.english,
-                                  style: kFlashcardText,
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  card.meaning,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                    ),
-                  ),
-                  // Expand button (bottom right) - chỉ hiện ở mặt trước
-                  if (isShowingFront)
-                    Positioned(
-                      bottom: 4,
-                      right: 0,
-                      child: TextButton(
-                        onPressed: () =>
-                            print('Expand vocabulary card ${index + 1}'),
-                        child: const SizedBox(
-                          width: 32,
-                          height: 32,
-                          child: Icon(
-                            Icons.fullscreen,
-                            size: 30,
-                            color: kFullscreenButtonColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildDotsIndicator(VocabularyProvider provider) {
-    final vocabularyCards = provider.vocabularyCards;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(
-        vocabularyCards.length > 4 ? 4 : vocabularyCards.length,
-        (index) {
-          final dotIndex = provider.getDotIndex();
-          final isActive = dotIndex == index;
-
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            width: isActive ? 12 : 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: isActive ? kTextPrimary : Colors.grey.shade300,
-              shape: BoxShape.circle,
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildProfileSection(int cardCount) {
-    return Row(
-      children: [
-        // Avatar
-        Container(
-          width: 40,
-          height: 40,
-          decoration: const BoxDecoration(
-            color: kSecondaryColor,
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.person, color: Colors.white, size: 24),
-        ),
-        const SizedBox(width: spaceMd),
-        // Name and terms count
-        Text('Name', style: TextStyle(fontSize: 14, color: kTextThird)),
-        const SizedBox(width: 45),
-        Text(
-          '$cardCount thuật ngữ',
-          style: const TextStyle(
-            fontSize: 14,
-            color: kTextPrimary,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMenuItems() {
-    return Column(
-      children: [
-        VocabMenuItem(
-          icon: Icons.library_books_outlined,
-          backgroundColor: kSurfaceColor,
-          title: 'Thẻ ghi nhớ',
-          iconColor: kIconFlashcardColor,
-          onTap: () {
-            print('Navigate to Flash Cards');
-          },
-        ),
-        VocabMenuItem(
-          icon: Icons.school_rounded,
-          backgroundColor: kSurfaceColor,
-          title: 'Học',
-          iconColor: kIconFlashcardColor,
-          onTap: () {
-            print('Navigate to Learn');
-          },
-        ),
-        VocabMenuItem(
-          icon: Icons.quiz,
-          backgroundColor: kSurfaceColor,
-          title: 'Kiểm tra',
-          iconColor: kIconFlashcardColor,
-          onTap: () {
-            print('Navigate to Test');
-          },
-        ),
-        VocabMenuItem(
-          icon: Icons.extension,
-          backgroundColor: kSurfaceColor,
-          title: 'Ghép thẻ',
-          iconColor: kIconFlashcardColor,
-          onTap: () {
-            print('Navigate to Match');
-          },
-        ),
-      ],
     );
   }
 }

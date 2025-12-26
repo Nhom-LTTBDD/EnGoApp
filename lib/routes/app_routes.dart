@@ -16,6 +16,7 @@ import '../presentation/pages/main/test_page.dart';
 import '../presentation/pages/vocabulary/vocabulary_page.dart';
 import '../presentation/pages/vocabulary/vocab_by_topic_page.dart';
 import '../presentation/pages/vocabulary/vocab_menu_page.dart';
+import '../presentation/pages/vocabulary/flashcard_page.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -31,6 +32,7 @@ class AppRoutes {
   static const String vocabByTopic =
       '/vocabulary/by-topic'; //Vocabulary by topic
   static const String vocabMenu = '/vocabulary/menu'; //Vocabulary menu
+  static const String flashcard = '/vocabulary/flashcard'; //Flashcard page
 }
 
 class RouteGenerator {
@@ -65,6 +67,12 @@ class RouteGenerator {
         final topicId = args?['topicId'] as String?;
         return MaterialPageRoute(
           builder: (_) => VocabMenuPage(topicId: topicId),
+        );
+      case AppRoutes.flashcard:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final topicId = args?['topicId'] as String?;
+        return MaterialPageRoute(
+          builder: (_) => FlashcardPage(topicId: topicId),
         );
       default:
         return MaterialPageRoute(
