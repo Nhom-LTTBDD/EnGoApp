@@ -192,13 +192,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<bool> verifyOTP({required String email, required String otp}) async {
-    // Firebase không sử dụng OTP theo cách truyền thống
-    // Thay vào đó, nó gửi email reset password trực tiếp
-    // Có thể implement custom OTP verification nếu cần
-    throw const AuthFailure(
-      'OTP verification không được hỗ trợ với Firebase Authentication. '
-      'Vui lòng sử dụng link reset password được gửi qua email.',
-    );
+    // Không cần implement vì đã xóa OTP flow
+    throw UnimplementedError('OTP verification đã được loại bỏ');
   }
 
   @override
@@ -206,12 +201,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String email,
     required String newPassword,
   }) async {
-    // Firebase xử lý reset password qua email link
-    // Không thể trực tiếp reset password từ client
-    throw const AuthFailure(
-      'Reset password được xử lý qua email link. '
-      'Vui lòng kiểm tra email và làm theo hướng dẫn.',
-    );
+    // Không cần implement vì Firebase xử lý qua email
+    throw UnimplementedError('Reset password được xử lý qua email link');
   }
 
   @override
