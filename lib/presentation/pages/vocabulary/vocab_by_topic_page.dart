@@ -19,77 +19,84 @@ class VocabByTopicPage extends StatelessWidget {
         decoration: const BoxDecoration(color: kBackgroundColor),
         child: Column(
           children: [
-            // Subtitle section
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                horizontal: spaceMd,
-                vertical: spaceMd,
-              ),
-              color: Colors.white,
-              child: const Text(
-                'Bộ từ vựng',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: kTextPrimary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
             // List topics
             Expanded(
               child: Container(
                 color: kBackgroundColor,
-                padding: const EdgeInsets.all(spaceMd),
                 child: ListView(
+                  padding: EdgeInsets.zero,
                   children: [
-                    const SizedBox(height: spaceSm),
-                    TopicCard(
-                      title: 'Tên Chủ Đề',
-                      imageAsset:
-                          kBackgroundJpg, // Tạm thời dùng ảnh background
-                      onTap: () {
-                        // TODO: Navigate to topic detail
-                        print('Navigate to topic detail');
-                      },
+                    // Subtitle section - sẽ scroll cùng list
+                    Container(
+                      width: double.infinity,
+                      height: 80,
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'Bộ từ vựng',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                          color: kTextPrimary,
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: spaceMd),
-                    TopicCard(
-                      title: 'Tên Chủ Đề',
-                      imageAsset: kBackgroundJpg, // Tạm thời dùng ảnh eagle
-                      onTap: () {
-                        // TODO: Navigate to topic detail
-                        print('Navigate to topic detail');
-                      },
-                    ),
-                    const SizedBox(height: spaceMd),
-                    TopicCard(
-                      title: 'Tên Chủ Đề',
-                      imageAsset: kBackgroundJpg, // Tạm thời dùng ảnh swift
-                      onTap: () {
-                        // TODO: Navigate to topic detail
-                        print('Navigate to topic detail');
-                      },
-                    ),
-                    const SizedBox(height: spaceMd),
-                    TopicCard(
-                      title: 'Tên Chủ Đề',
-                      imageAsset:
-                          kBackgroundJpg, // Tạm thời dùng ảnh background
-                      onTap: () {
-                        // TODO: Navigate to topic detail
-                        print('Navigate to topic detail');
-                      },
-                    ),
-                    const SizedBox(height: spaceMd),
-                    TopicCard(
-                      title: 'Tên Chủ Đề',
-                      imageAsset: kBackgroundJpg, // Tạm thời dùng ảnh eagle
-                      onTap: () {
-                        // TODO: Navigate to topic detail
-                        print('Navigate to topic detail');
-                      },
+                    // Cards trong padding container
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: spaceMd),
+                      child: Column(
+                        children: [
+                          TopicCard(
+                            title: 'Tên Chủ Đề',
+                            imageAsset:
+                                kBackgroundJpg, // Tạm thời dùng ảnh background
+                            onTap: () {
+                              // TODO: Navigate to topic detail
+                              print('Navigate to topic detail');
+                            },
+                          ),
+                          const SizedBox(height: spaceMd),
+                          TopicCard(
+                            title: 'Tên Chủ Đề',
+                            imageAsset:
+                                kBackgroundJpg, // Tạm thời dùng ảnh eagle
+                            onTap: () {
+                              // TODO: Navigate to topic detail
+                              print('Navigate to topic detail');
+                            },
+                          ),
+                          const SizedBox(height: spaceMd),
+                          TopicCard(
+                            title: 'Tên Chủ Đề',
+                            imageAsset:
+                                kBackgroundJpg, // Tạm thời dùng ảnh swift
+                            onTap: () {
+                              // TODO: Navigate to topic detail
+                              print('Navigate to topic detail');
+                            },
+                          ),
+                          const SizedBox(height: spaceMd),
+                          TopicCard(
+                            title: 'Tên Chủ Đề',
+                            imageAsset:
+                                kBackgroundJpg, // Tạm thời dùng ảnh background
+                            onTap: () {
+                              // TODO: Navigate to topic detail
+                              print('Navigate to topic detail');
+                            },
+                          ),
+                          const SizedBox(height: spaceMd),
+                          TopicCard(
+                            title: 'Tên Chủ Đề',
+                            imageAsset:
+                                kBackgroundJpg, // Tạm thời dùng ảnh eagle
+                            onTap: () {
+                              // TODO: Navigate to topic detail
+                              print('Navigate to topic detail');
+                            },
+                          ),
+                          const SizedBox(height: spaceMd), // Padding bottom
+                        ],
+                      ),
                     ),
                   ],
                 ),
