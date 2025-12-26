@@ -23,8 +23,6 @@ import '../../domain/usecase/auth/get_current_user_usecase.dart';
 import '../../domain/usecase/auth/login_usecase.dart';
 import '../../domain/usecase/auth/logout_usecase.dart';
 import '../../domain/usecase/auth/register_usecase.dart';
-import '../../domain/usecase/auth/reset_password_usecase.dart';
-import '../../domain/usecase/auth/verify_otp_usecase.dart';
 import '../../domain/usecase/profile/get_user_profile_usecase.dart';
 import '../../domain/usecase/profile/update_avatar_usecase.dart';
 import '../../domain/usecase/profile/update_profile_usecase.dart';
@@ -46,8 +44,6 @@ Future<void> init() async {
       registerUseCase: sl(),
       logoutUseCase: sl(),
       forgotPasswordUseCase: sl(),
-      verifyOTPUseCase: sl(),
-      resetPasswordUseCase: sl(),
       getCurrentUserUseCase: sl(),
     ),
   );
@@ -67,8 +63,6 @@ Future<void> init() async {
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
   sl.registerLazySingleton(() => ForgotPasswordUseCase(sl()));
-  sl.registerLazySingleton(() => VerifyOTPUseCase(sl()));
-  sl.registerLazySingleton(() => ResetPasswordUseCase(sl()));
   sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
 
   // =============================================================================

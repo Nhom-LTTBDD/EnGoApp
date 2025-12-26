@@ -6,8 +6,6 @@ import '../presentation/pages/welcome/welcome_page.dart';
 import '../presentation/pages/auth/login_page.dart';
 import '../presentation/pages/auth/register_page.dart';
 import '../presentation/pages/auth/forgot_password_page.dart';
-import '../presentation/pages/auth/verify_otp_page.dart';
-import '../presentation/pages/auth/reset_password_page.dart';
 import '../presentation/pages/auth/terms_page.dart';
 import '../presentation/pages/main/home_page.dart';
 import '../presentation/pages/profile/profile_page.dart';
@@ -23,8 +21,6 @@ class AppRoutes {
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
-  static const String verifyOtp = '/verify-otp';
-  static const String resetPassword = '/reset-password';
   static const String terms = '/terms';
   static const String home = '/home';
   static const String profile = '/profile';
@@ -45,10 +41,6 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => RegisterPage());
       case AppRoutes.forgotPassword:
         return MaterialPageRoute(builder: (_) => ForgotPasswordPage());
-      case AppRoutes.verifyOtp:
-        return MaterialPageRoute(builder: (_) => VerifyOtpPage());
-      case AppRoutes.resetPassword:
-        return MaterialPageRoute(builder: (_) => ResetPasswordPage());
       case AppRoutes.terms:
         return MaterialPageRoute(builder: (_) => TermsPage());
       case AppRoutes.home:

@@ -39,25 +39,5 @@ class AuthError extends AuthState {
   List<Object?> get props => [message];
 }
 
-/// Đã gửi OTP
-class OTPSent extends AuthState {
-  final String email;
-
-  OTPSent(this.email);
-
-  @override
-  List<Object?> get props => [email];
-}
-
-/// OTP đã xác thực
-class OTPVerified extends AuthState {
-  final String email;
-
-  OTPVerified(this.email);
-
-  @override
-  List<Object?> get props => [email];
-}
-
-/// Mật khẩu đã được reset
+/// Email reset password đã được gửi
 class PasswordReset extends AuthState {}

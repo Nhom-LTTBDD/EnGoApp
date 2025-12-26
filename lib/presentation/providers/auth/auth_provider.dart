@@ -8,8 +8,6 @@ import '../../../domain/usecase/auth/get_current_user_usecase.dart';
 import '../../../domain/usecase/auth/login_usecase.dart';
 import '../../../domain/usecase/auth/logout_usecase.dart';
 import '../../../domain/usecase/auth/register_usecase.dart';
-import '../../../domain/usecase/auth/reset_password_usecase.dart';
-import '../../../domain/usecase/auth/verify_otp_usecase.dart';
 import 'auth_state.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -17,8 +15,6 @@ class AuthProvider extends ChangeNotifier {
   final RegisterUseCase registerUseCase;
   final LogoutUseCase logoutUseCase;
   final ForgotPasswordUseCase forgotPasswordUseCase;
-  final VerifyOTPUseCase verifyOTPUseCase;
-  final ResetPasswordUseCase resetPasswordUseCase;
   final GetCurrentUserUseCase getCurrentUserUseCase;
 
   AuthState _state = AuthInitial();
@@ -29,8 +25,6 @@ class AuthProvider extends ChangeNotifier {
     required this.registerUseCase,
     required this.logoutUseCase,
     required this.forgotPasswordUseCase,
-    required this.verifyOTPUseCase,
-    required this.resetPasswordUseCase,
     required this.getCurrentUserUseCase,
   });
 
@@ -104,43 +98,12 @@ class AuthProvider extends ChangeNotifier {
     );
   }
 
-  /// Quên mật khẩu - Gửi OTP
+  /// Quên mật khẩu - Gửi email reset password
   Future<void> forgotPassword(String email) async {
     _setState(AuthLoading());
 
     final result = await forgotPasswordUseCase(
       ForgotPasswordParams(email: email),
-    );
-
-    result.fold(
-      (failure) => _setState(AuthError(failure.message)),
-      (_) => _setState(OTPSent(email)),
-    );
-  }
-
-  /// Xác thực OTP
-  Future<void> verifyOTP({required String email, required String otp}) async {
-    _setState(AuthLoading());
-
-    final result = await verifyOTPUseCase(
-      VerifyOTPParams(email: email, otp: otp),
-    );
-
-    result.fold(
-      (failure) => _setState(AuthError(failure.message)),
-      (_) => _setState(OTPVerified(email)),
-    );
-  }
-
-  /// Đặt lại mật khẩu
-  Future<void> resetPassword({
-    required String email,
-    required String newPassword,
-  }) async {
-    _setState(AuthLoading());
-
-    final result = await resetPasswordUseCase(
-      ResetPasswordParams(email: email, newPassword: newPassword),
     );
 
     result.fold(
