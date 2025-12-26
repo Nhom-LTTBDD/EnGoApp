@@ -1,4 +1,5 @@
 // lib/presentation/pages/vocabulary/vocab_by_topic_page.dart
+import 'package:en_go_app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
@@ -51,7 +52,7 @@ class VocabByTopicPage extends StatelessWidget {
                                 kBackgroundJpg, // Tạm thời dùng ảnh background
                             onTap: () {
                               // TODO: Navigate to topic detail
-                              print('Navigate to topic detail');
+                              Navigator.pushNamed(context, AppRoutes.vocabMenu);
                             },
                           ),
                           const SizedBox(height: spaceMd),
@@ -61,7 +62,7 @@ class VocabByTopicPage extends StatelessWidget {
                                 kBackgroundJpg, // Tạm thời dùng ảnh eagle
                             onTap: () {
                               // TODO: Navigate to topic detail
-                              print('Navigate to topic detail');
+                              Navigator.pushNamed(context, AppRoutes.vocabMenu);
                             },
                           ),
                           const SizedBox(height: spaceMd),
@@ -71,7 +72,7 @@ class VocabByTopicPage extends StatelessWidget {
                                 kBackgroundJpg, // Tạm thời dùng ảnh swift
                             onTap: () {
                               // TODO: Navigate to topic detail
-                              print('Navigate to topic detail');
+                              Navigator.pushNamed(context, AppRoutes.vocabMenu);
                             },
                           ),
                           const SizedBox(height: spaceMd),
@@ -81,7 +82,7 @@ class VocabByTopicPage extends StatelessWidget {
                                 kBackgroundJpg, // Tạm thời dùng ảnh background
                             onTap: () {
                               // TODO: Navigate to topic detail
-                              print('Navigate to topic detail');
+                              Navigator.pushNamed(context, AppRoutes.vocabMenu);
                             },
                           ),
                           const SizedBox(height: spaceMd),
@@ -91,7 +92,7 @@ class VocabByTopicPage extends StatelessWidget {
                                 kBackgroundJpg, // Tạm thời dùng ảnh eagle
                             onTap: () {
                               // TODO: Navigate to topic detail
-                              print('Navigate to topic detail');
+                              Navigator.pushNamed(context, AppRoutes.vocabMenu);
                             },
                           ),
                           const SizedBox(height: spaceMd), // Padding bottom

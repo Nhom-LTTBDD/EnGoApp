@@ -43,6 +43,12 @@ const LinearGradient kLogoGradient = LinearGradient(
   end: Alignment.bottomRight,
 );
 
+// màu icon menu flashcard
+const Color kIconFlashcardColor = Color(0xFF299CB2);
+
+//Màu icon back
+const Color kIconBackColor = Color(0xFF6F6F6F);
+
 // Gradient cup vàng
 const LinearGradient kGoldCupGradient = LinearGradient(
   colors: [Color(0xFF36AAAC), Color(0xFFEAAD15)],
@@ -63,10 +69,14 @@ const Color kPrimaryButtonColor = Color(0xFF2F6BB2);
 // Button success
 const Color kSuccessButtonColor = Color(0xFF27AE60);
 
+//Màu nút fullscreen
+const Color kFullscreenButtonColor = Color.fromARGB(255, 120, 120, 120);
+
 // Màu text
 // Màu text: primary text, secondary text, disabled, accent, link.
 const Color kTextPrimary = Color(0xFF000000);
 const Color kTextSecondary = Color(0xFFFFFFFF);
+const Color kTextThird = Color(0xFF3F3C3C);
 const Color kTextDisabled = Color(0xFFA8A8A8);
 const Color kTextAccent = Color(0xFF5A92CD);
 const Color kLinkTextColor = Color(0xFF5638EB);
