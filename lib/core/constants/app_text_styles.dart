@@ -56,3 +56,12 @@ const TextStyle kDangerText = TextStyle(
   fontWeight: FontWeight.w500,
   color: kDanger,
 );
+
+// Text style flashcard
+
+const TextStyle kFlashcardText = TextStyle(
+  fontSize: 22,
+  fontWeight: FontWeight.normal,
+  color: kTextPrimary,
+  fontFamily: 'Poppins',
+);

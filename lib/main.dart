@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'core/di/injection_container.dart' as di;
 import 'presentation/providers/auth/auth_provider.dart';
 import 'presentation/providers/profile/profile_provider.dart';
+import 'presentation/providers/vocabulary_provider.dart';
 import 'routes/app_routes.dart';
 
 void main() async {
@@ -32,6 +33,7 @@ class MyApp extends StatelessWidget {
           create: (_) => di.sl<AuthProvider>()..checkAuthStatus(),
         ),
         ChangeNotifierProvider(create: (_) => di.sl<ProfileProvider>()),
+        ChangeNotifierProvider(create: (_) => di.sl<VocabularyProvider>()),
       ],
       child: MaterialApp(
         title: 'EnGo App',

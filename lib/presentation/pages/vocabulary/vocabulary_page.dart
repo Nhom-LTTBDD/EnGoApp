@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
+import 'package:en_go_app/routes/app_routes.dart';
 import '../../widgets/app_button.dart';
 
 class VocabPage extends StatelessWidget {
@@ -29,7 +30,9 @@ class VocabPage extends StatelessWidget {
             const SizedBox(height: 10),
             AppButton(
               text: 'Bộ từ của bạn',
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.vocabByTopic);
+              },
               variant: AppButtonVariant.borderWarning,
               isFullWidth: false,
               size: AppButtonSize.xsLarge,
