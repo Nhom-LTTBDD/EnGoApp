@@ -49,10 +49,15 @@ dependencies:
   firebase_core: ^3.8.1
   firebase_auth: ^5.3.4
   cloud_firestore: ^5.5.2
+  firebase_storage: ^12.3.6
 
   # Presentation Layer Dependencies
   provider: ^6.1.1
   get_it: ^7.6.4
+
+  # Utilities
+  intl: ^0.19.0
+  image_picker: ^1.0.7
 dev_dependencies:
   flutter_test:
     sdk: flutter

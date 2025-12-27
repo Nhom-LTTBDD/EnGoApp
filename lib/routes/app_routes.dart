@@ -9,6 +9,7 @@ import '../presentation/pages/auth/forgot_password_page.dart';
 import '../presentation/pages/auth/terms_page.dart';
 import '../presentation/pages/main/home_page.dart';
 import '../presentation/pages/profile/profile_page.dart';
+import '../presentation/pages/profile/edit_profile_page.dart';
 //Test
 import '../presentation/pages/main/test_page.dart';
 
@@ -24,6 +25,7 @@ class AppRoutes {
   static const String terms = '/terms';
   static const String home = '/home';
   static const String profile = '/profile';
+  static const String editProfile = '/edit-profile';
   static const String test = '/test'; //Test
   static const String vocab = '/vocabulary'; //Vocabulary
 }
@@ -47,6 +49,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => HomePage());
       case AppRoutes.profile:
         return MaterialPageRoute(builder: (_) => ProfilePage());
+      case AppRoutes.editProfile:
+        return MaterialPageRoute(builder: (_) => EditProfilePage());
       //case Test
       case AppRoutes.test:
         return MaterialPageRoute(builder: (_) => TestPage());

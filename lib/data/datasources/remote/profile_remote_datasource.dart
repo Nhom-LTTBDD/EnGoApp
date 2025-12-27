@@ -1,130 +1,134 @@
 // lib/data/datasources/profile_remote_datasource.dart
-// Remote datasource cho Profile - Xử lý API calls
+// Remote datasource cho Profile - Xử lý Firebase Firestore
 
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../../../core/error/failure.dart';
 import '../../models/user_model.dart';
 
 abstract class ProfileRemoteDataSource {
-  /// Lấy thông tin profile từ server
-  Future<UserModel> getUserProfile(String token);
+  /// Lấy thông tin profile từ Firestore
+  Future<UserModel> getUserProfile(String userId);
 
   /// Cập nhật thông tin profile
   Future<UserModel> updateProfile({
-    required String token,
+    required String userId,
     required String name,
     String? birthDate,
   });
 
   /// Upload và cập nhật avatar
   Future<String> updateAvatar({
-    required String token,
+    required String userId,
     required String imagePath,
   });
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
-  final http.Client client;
-  final String baseUrl;
+  final firebase_auth.FirebaseAuth firebaseAuth;
+  final FirebaseFirestore firestore;
+  final FirebaseStorage storage;
 
   ProfileRemoteDataSourceImpl({
-    required this.client,
-    this.baseUrl = 'https://api.engo.com', // Thay đổi theo API thực tế
+    required this.firebaseAuth,
+    required this.firestore,
+    required this.storage,
   });
 
   @override
-  Future<UserModel> getUserProfile(String token) async {
+  Future<UserModel> getUserProfile(String userId) async {
     try {
-      final response = await client.get(
-        Uri.parse('$baseUrl/profile'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
+      final userDoc = await firestore.collection('users').doc(userId).get();
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return UserModel.fromJson(data);
-      } else if (response.statusCode == 401) {
-        throw const AuthFailure('Token không hợp lệ');
-      } else {
-        throw ServerFailure('Lỗi server: ${response.statusCode}');
+      if (!userDoc.exists) {
+        throw const AuthFailure('Không tìm thấy thông tin người dùng');
       }
+
+      final userData = userDoc.data();
+      if (userData == null) {
+        throw const AuthFailure('Dữ liệu người dùng không hợp lệ');
+      }
+
+      return UserModel.fromJson({'id': userId, ...userData});
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      throw AuthFailure('Lỗi Firebase: ${e.message}');
     } catch (e) {
       if (e is Failure) rethrow;
-      throw const NetworkFailure('Không thể kết nối đến server');
+      throw const NetworkFailure('Không thể lấy thông tin profile');
     }
   }
 
   @override
   Future<UserModel> updateProfile({
-    required String token,
+    required String userId,
     required String name,
     String? birthDate,
   }) async {
     try {
-      final response = await client.put(
-        Uri.parse('$baseUrl/profile'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({'name': name, 'birthDate': birthDate}),
-      );
+      final updateData = <String, dynamic>{
+        'name': name,
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return UserModel.fromJson(data);
-      } else if (response.statusCode == 401) {
-        throw const AuthFailure('Token không hợp lệ');
-      } else if (response.statusCode == 400) {
-        throw const ValidationFailure('Dữ liệu không hợp lệ');
-      } else {
-        throw ServerFailure('Lỗi server: ${response.statusCode}');
+      if (birthDate != null) {
+        updateData['birthDate'] = birthDate;
       }
+
+      await firestore.collection('users').doc(userId).update(updateData);
+
+      // Cập nhật display name trong Firebase Auth
+      await firebaseAuth.currentUser?.updateDisplayName(name);
+
+      // Lấy lại profile đã cập nhật
+      return await getUserProfile(userId);
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      throw AuthFailure('Lỗi Firebase: ${e.message}');
     } catch (e) {
       if (e is Failure) rethrow;
-      throw const NetworkFailure('Không thể kết nối đến server');
+      throw const NetworkFailure('Không thể cập nhật profile');
     }
   }
 
   @override
   Future<String> updateAvatar({
-    required String token,
+    required String userId,
     required String imagePath,
   }) async {
     try {
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse('$baseUrl/profile/avatar'),
+      final file = File(imagePath);
+      if (!await file.exists()) {
+        throw const ValidationFailure('File không tồn tại');
+      }
+
+      // Upload file lên Firebase Storage
+      final storageRef = storage.ref().child('avatars/$userId.jpg');
+      final uploadTask = await storageRef.putFile(
+        file,
+        SettableMetadata(contentType: 'image/jpeg'),
       );
 
-      // Thêm headers
-      request.headers['Authorization'] = 'Bearer $token';
+      // Lấy download URL
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
 
-      // Thêm file
-      final file = await http.MultipartFile.fromPath('avatar', imagePath);
-      request.files.add(file);
+      // Cập nhật avatarUrl trong Firestore
+      await firestore.collection('users').doc(userId).update({
+        'avatarUrl': downloadUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
 
-      // Gửi request
-      final streamedResponse = await client.send(request);
-      final response = await http.Response.fromStream(streamedResponse);
+      // Cập nhật photoURL trong Firebase Auth
+      await firebaseAuth.currentUser?.updatePhotoURL(downloadUrl);
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['avatarUrl'] as String;
-      } else if (response.statusCode == 401) {
-        throw const AuthFailure('Token không hợp lệ');
-      } else if (response.statusCode == 400) {
-        throw const ValidationFailure('File không hợp lệ');
-      } else {
-        throw ServerFailure('Lỗi server: ${response.statusCode}');
-      }
+      return downloadUrl;
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      throw AuthFailure('Lỗi Firebase: ${e.message}');
+    } on FirebaseException catch (e) {
+      throw ServerFailure('Lỗi upload ảnh: ${e.message}');
     } catch (e) {
       if (e is Failure) rethrow;
-      throw const NetworkFailure('Không thể kết nối đến server');
+      throw const NetworkFailure('Không thể upload avatar');
     }
   }
 }
