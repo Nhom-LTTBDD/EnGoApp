@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
-import 'package:en_go_app/core/constants/app_text_styles.dart';
 import '../../providers/profile/profile_provider.dart';
 import '../../providers/profile/profile_state.dart';
 import '../../widgets/app_button.dart';

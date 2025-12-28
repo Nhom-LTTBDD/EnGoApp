@@ -1,7 +1,6 @@
 // lib/presentation/pages/welcome/splash_page.dart
 import 'package:flutter/material.dart';
 import '../../../routes/app_routes.dart';
-import '../welcome/welcome_page.dart';
 import '../../widgets/app_header.dart';
 
 class SplashPage extends StatefulWidget {
