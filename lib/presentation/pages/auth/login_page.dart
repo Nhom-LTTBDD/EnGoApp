@@ -20,11 +20,16 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -74,13 +79,8 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ],
             ),
-            width: 300,
-            padding: const EdgeInsets.only(
-              top: 30,
-              bottom: 30,
-              left: 20,
-              right: 20,
-            ),
+            constraints: const BoxConstraints(maxWidth: 400),
+            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
             child: Form(
               key: _formKey,
               child: Column(
@@ -88,16 +88,21 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   TextFormField(
                     controller: _emailController,
+                    focusNode: _emailFocusNode,
+                    autofocus: true,
                     decoration: const InputDecoration(
                       labelText: 'Email',
+                      prefixIcon: Icon(Icons.email_outlined),
                       floatingLabelStyle: TextStyle(color: kPrimaryColor),
                       border: OutlineInputBorder(),
                       focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: kPrimaryColor),
+                        borderSide: BorderSide(color: kPrimaryColor, width: 2),
                       ),
                     ),
                     keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
                     enabled: !isLoading,
+                    onFieldSubmitted: (_) => _passwordFocusNode.requestFocus(),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Vui lòng nhập email';
@@ -108,19 +113,35 @@ class _LoginPageState extends State<LoginPage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
                   TextFormField(
                     controller: _passwordController,
-                    decoration: const InputDecoration(
+                    focusNode: _passwordFocusNode,
+                    decoration: InputDecoration(
                       labelText: 'Mật khẩu',
-                      floatingLabelStyle: TextStyle(color: kPrimaryColor),
-                      border: OutlineInputBorder(),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: kPrimaryColor),
+                      prefixIcon: const Icon(Icons.lock_outlined),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
+                      floatingLabelStyle: const TextStyle(color: kPrimaryColor),
+                      border: const OutlineInputBorder(),
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: kPrimaryColor, width: 2),
                       ),
                     ),
-                    obscureText: true,
+                    obscureText: _obscurePassword,
+                    textInputAction: TextInputAction.done,
                     enabled: !isLoading,
+                    onFieldSubmitted: (_) => _handleLogin(context),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Vui lòng nhập mật khẩu';
@@ -131,14 +152,23 @@ class _LoginPageState extends State<LoginPage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 20),
-                  AppButton(
-                    text: isLoading ? 'Đang xử lý...' : 'Đăng nhập',
-                    variant: AppButtonVariant.accent,
-                    size: AppButtonSize.large,
-                    onPressed: isLoading ? null : () => _handleLogin(context),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: AppButton(
+                      text: isLoading ? 'Đang đăng nhập...' : 'Đăng nhập',
+                      variant: AppButtonVariant.accent,
+                      size: AppButtonSize.large,
+                      onPressed: isLoading ? null : () => _handleLogin(context),
+                    ),
                   ),
-                  const SizedBox(height: 25),
+                  if (isLoading) ...[
+                    const SizedBox(height: 16),
+                    const Center(
+                      child: CircularProgressIndicator(color: kPrimaryColor),
+                    ),
+                  ],
+                  const SizedBox(height: 24),
                   TextButton(
                     onPressed: isLoading
                         ? null
@@ -150,7 +180,7 @@ class _LoginPageState extends State<LoginPage> {
                           },
                     child: Text('Quên mật khẩu?', style: kDangerText),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
                   TextButton(
                     onPressed: isLoading
                         ? null
@@ -160,6 +190,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: Column(
                       children: [
                         Text('Bạn chưa có tài khoản? ', style: kBody),
+                        const SizedBox(height: 4),
                         Text('Đăng ký', style: kBodyEmphasized),
                       ],
                     ),

@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 // Data Layer
 import '../../data/datasources/local/auth_local_datasource.dart';
@@ -115,8 +116,9 @@ Future<void> init() async {
 
   sl.registerLazySingleton<ProfileRemoteDataSource>(
     () => ProfileRemoteDataSourceImpl(
-      client: sl(),
-      baseUrl: 'https://api.engo.com', // Thay đổi theo API thực tế
+      firebaseAuth: sl(),
+      firestore: sl(),
+      storage: sl(),
     ),
   );
 
@@ -142,4 +144,5 @@ Future<void> init() async {
   // Firebase services
   sl.registerLazySingleton(() => FirebaseAuth.instance);
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
+  sl.registerLazySingleton(() => FirebaseStorage.instance);
 }

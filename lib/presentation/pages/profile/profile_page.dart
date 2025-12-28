@@ -54,6 +54,36 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  /// Lấy chữ cái đầu của tên để làm avatar
+  String _getInitials(String name) {
+    final parts = name.trim().split(' ');
+    if (parts.isEmpty) return 'U';
+
+    if (parts.length == 1) {
+      return parts[0][0].toUpperCase();
+    } else {
+      // Lấy chữ cái đầu của 2 từ đầu tiên
+      return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
+    }
+  }
+
+  /// Tạo màu avatar dựa trên tên
+  Color _getAvatarColor(String name) {
+    final colors = [
+      const Color(0xFF2196F3), // Blue
+      const Color(0xFF4CAF50), // Green
+      const Color(0xFFFF9800), // Orange
+      const Color(0xFF9C27B0), // Purple
+      const Color(0xFFE91E63), // Pink
+      const Color(0xFF00BCD4), // Cyan
+      const Color(0xFFFF5722), // Deep Orange
+      const Color(0xFF3F51B5), // Indigo
+    ];
+
+    final index = name.hashCode.abs() % colors.length;
+    return colors[index];
+  }
+
   @override
   Widget build(BuildContext context) {
     return MainLayout(
@@ -106,35 +136,30 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Avatar
-                  user?.avatarUrl != null
-                      ? CircleAvatar(
-                          radius: 75,
-                          backgroundImage: NetworkImage(user!.avatarUrl!),
-                        )
-                      : SvgPicture.asset(
-                          kIconUser,
-                          width: 150,
-                          height: 150,
-                          colorFilter: const ColorFilter.mode(
-                            kPrimaryColor,
-                            BlendMode.srcIn,
-                          ),
+                  // Avatar mặc định với chữ cái đầu
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: kPrimaryColor.withOpacity(0.3),
+                          blurRadius: 15,
+                          spreadRadius: 3,
                         ),
-                  const SizedBox(height: 15),
-                  AppButton(
-                    onPressed: () {
-                      // TODO: Implement avatar picker
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Chức năng đang phát triển'),
+                      ],
+                    ),
+                    child: CircleAvatar(
+                      radius: 75,
+                      backgroundColor: _getAvatarColor(user?.name ?? 'U'),
+                      child: Text(
+                        _getInitials(user?.name ?? 'User'),
+                        style: const TextStyle(
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
-                      );
-                    },
-                    icon: Icons.camera_alt,
-                    variant: AppButtonVariant.primary,
-                    size: AppButtonSize.small,
-                    isFullWidth: false,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 30),
 
@@ -189,12 +214,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         AppButton(
                           icon: Icons.edit,
                           onPressed: () {
-                            // TODO: Navigate to edit profile page
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Chức năng đang phát triển'),
-                              ),
-                            );
+                            Navigator.pushNamed(context, AppRoutes.editProfile);
                           },
                           variant: AppButtonVariant.borderSuccess,
                           size: AppButtonSize.small,

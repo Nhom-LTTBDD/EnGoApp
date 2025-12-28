@@ -23,9 +23,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
   @override
   Future<Either<Failure, User>> getUserProfile() async {
     try {
-      // Lấy token
-      final token = await authLocalDataSource.getToken();
-      if (token == null) {
+      // Lấy user hiện tại từ local storage
+      final currentUser = await authLocalDataSource.getUser();
+      if (currentUser == null) {
         return const Left(AuthFailure('Chưa đăng nhập'));
       }
 
@@ -35,8 +35,8 @@ class ProfileRepositoryImpl implements ProfileRepository {
         return Right(cachedProfile);
       }
 
-      // Nếu không có cache, gọi API
-      final profile = await remoteDataSource.getUserProfile(token);
+      // Nếu không có cache, lấy từ Firestore
+      final profile = await remoteDataSource.getUserProfile(currentUser.id);
 
       // Lưu vào cache
       await localDataSource.cacheProfile(profile);
@@ -55,15 +55,15 @@ class ProfileRepositoryImpl implements ProfileRepository {
     String? birthDate,
   }) async {
     try {
-      // Lấy token
-      final token = await authLocalDataSource.getToken();
-      if (token == null) {
+      // Lấy user hiện tại
+      final currentUser = await authLocalDataSource.getUser();
+      if (currentUser == null) {
         return const Left(AuthFailure('Chưa đăng nhập'));
       }
 
-      // Gọi API cập nhật
+      // Gọi Firestore để cập nhật
       final updatedProfile = await remoteDataSource.updateProfile(
-        token: token,
+        userId: currentUser.id,
         name: name,
         birthDate: birthDate,
       );
@@ -87,15 +87,15 @@ class ProfileRepositoryImpl implements ProfileRepository {
   @override
   Future<Either<Failure, String>> updateAvatar(String imagePath) async {
     try {
-      // Lấy token
-      final token = await authLocalDataSource.getToken();
-      if (token == null) {
+      // Lấy user hiện tại
+      final currentUser = await authLocalDataSource.getUser();
+      if (currentUser == null) {
         return const Left(AuthFailure('Chưa đăng nhập'));
       }
 
-      // Gọi API upload avatar
+      // Gọi Firebase Storage để upload avatar
       final avatarUrl = await remoteDataSource.updateAvatar(
-        token: token,
+        userId: currentUser.id,
         imagePath: imagePath,
       );
 
