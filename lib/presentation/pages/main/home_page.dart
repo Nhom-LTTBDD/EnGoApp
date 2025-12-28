@@ -2,12 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/core/constants/app_text_styles.dart';
-import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/routes/app_routes.dart';
 import '../../../core/constants/app_assets.dart';
-import '../../widgets/app_header.dart';
 import '../../widgets/app_button.dart';
-import '../../widgets/navbar_bottom.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

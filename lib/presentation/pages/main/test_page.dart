@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/core/constants/app_text_styles.dart';
-import 'package:en_go_app/core/constants/app_colors.dart';
-import 'package:en_go_app/presentation/widgets/app_header.dart';
 
 class TestPage extends StatelessWidget {
   const TestPage({super.key});
