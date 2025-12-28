@@ -1,4 +1,5 @@
 // lib/presentation/widgets/vocabulary/vocabulary_card_list.dart
+import 'package:en_go_app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import '../../../domain/entities/vocabulary_card.dart';
 import '../../providers/vocabulary_provider.dart';
@@ -9,18 +10,14 @@ class VocabularyCardList extends StatefulWidget {
   final PageController pageController;
   final List<VocabularyCard> vocabularyCards;
   final VocabularyProvider provider;
-  final Animation<double> flipAnimation;
-  final AnimationController animationController;
-  final VoidCallback onFlipCard;
+  final String? topicId; // Thêm topicId parameter
 
   const VocabularyCardList({
     super.key,
     required this.pageController,
     required this.vocabularyCards,
     required this.provider,
-    required this.flipAnimation,
-    required this.animationController,
-    required this.onFlipCard,
+    this.topicId, // Thêm vào constructor
   });
 
   @override
@@ -61,8 +58,7 @@ class _VocabularyCardListState extends State<VocabularyCardList> {
         controller: widget.pageController,
         onPageChanged: (index) {
           widget.provider.setCurrentCardIndex(index);
-          // Reset animation state
-          widget.animationController.reset();
+          // Animation sẽ được quản lý tự động bởi từng card
         },
         itemCount: widget.vocabularyCards.length,
         itemBuilder: (context, index) {
@@ -94,9 +90,15 @@ class _VocabularyCardListState extends State<VocabularyCardList> {
         child: VocabularyCardWidget(
           card: widget.vocabularyCards[index],
           index: index,
-          flipAnimation: widget.flipAnimation,
-          onTap: widget.onFlipCard,
-          onExpand: () => print('Expand vocabulary card ${index + 1}'),
+          onExpand: () {
+            Navigator.pushNamed(
+              context,
+              AppRoutes.flashcard,
+              arguments: {
+                'topicId': widget.topicId ?? '1', // Truyền topicId xuống
+              },
+            );
+          },
         ),
       ),
     );

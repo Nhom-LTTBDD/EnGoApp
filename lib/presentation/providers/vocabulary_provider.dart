@@ -16,6 +16,7 @@ class VocabularyProvider extends ChangeNotifier {
   int _currentCardIndex = 0;
   int _previousCardIndex = 0;
   bool _isCardFlipped = false;
+  Map<int, bool> _cardFlipStates = {};
 
   // Getters
   List<VocabularyCard> get vocabularyCards => _vocabularyCards;
@@ -24,6 +25,11 @@ class VocabularyProvider extends ChangeNotifier {
   int get currentCardIndex => _currentCardIndex;
   int get previousCardIndex => _previousCardIndex;
   bool get isCardFlipped => _isCardFlipped;
+
+  // Get flip state for specific card index
+  bool isCardFlippedAtIndex(int index) {
+    return _cardFlipStates[index] ?? false;
+  }
 
   // Computed properties
   VocabularyCard? get currentCard {
@@ -47,6 +53,7 @@ class VocabularyProvider extends ChangeNotifier {
       _currentCardIndex = 0;
       _previousCardIndex = 0;
       _isCardFlipped = false;
+      _cardFlipStates = {}; // Reset all card flip states
       notifyListeners();
     } catch (e) {
       _setError(e.toString());
@@ -66,6 +73,12 @@ class VocabularyProvider extends ChangeNotifier {
 
   void flipCard() {
     _isCardFlipped = !_isCardFlipped;
+    notifyListeners();
+  }
+
+  // Flip specific card by index
+  void flipCardAtIndex(int index) {
+    _cardFlipStates[index] = !(_cardFlipStates[index] ?? false);
     notifyListeners();
   }
 

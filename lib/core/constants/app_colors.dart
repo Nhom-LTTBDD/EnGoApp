@@ -72,6 +72,9 @@ const Color kSuccessButtonColor = Color(0xFF27AE60);
 //Màu nút fullscreen
 const Color kFullscreenButtonColor = Color.fromARGB(255, 120, 120, 120);
 
+//Màu outline
+const Color kOutlineColor = Color(0xFFC7C3C3);
+
 // Màu text
 // Màu text: primary text, secondary text, disabled, accent, link.
 const Color kTextPrimary = Color(0xFF000000);

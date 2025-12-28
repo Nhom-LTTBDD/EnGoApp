@@ -21,10 +21,7 @@ class VocabMenuPage extends StatefulWidget {
   State<VocabMenuPage> createState() => _VocabMenuPageState();
 }
 
-class _VocabMenuPageState extends State<VocabMenuPage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _flipAnimation;
+class _VocabMenuPageState extends State<VocabMenuPage> {
   late PageController _pageController;
 
   @override
@@ -34,13 +31,6 @@ class _VocabMenuPageState extends State<VocabMenuPage>
       initialPage: 0,
       viewportFraction:
           0.85, // Giảm xuống 0.8 để tăng khoảng cách giữa các card
-    );
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 10),
-      vsync: this,
-    );
-    _flipAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.linear),
     );
 
     // Load vocabulary cards when page initializes
@@ -53,20 +43,8 @@ class _VocabMenuPageState extends State<VocabMenuPage>
 
   @override
   void dispose() {
-    _animationController.dispose();
     _pageController.dispose();
     super.dispose();
-  }
-
-  void _flipCard() {
-    final provider = context.read<VocabularyProvider>();
-    provider.flipCard();
-
-    if (provider.isCardFlipped) {
-      _animationController.forward();
-    } else {
-      _animationController.reverse();
-    }
   }
 
   void _handleEditVocabularySet() {
@@ -194,9 +172,7 @@ class _VocabMenuPageState extends State<VocabMenuPage>
                         pageController: _pageController,
                         vocabularyCards: vocabularyCards,
                         provider: vocabularyProvider,
-                        flipAnimation: _flipAnimation,
-                        animationController: _animationController,
-                        onFlipCard: _flipCard,
+                        topicId: widget.topicId, // Truyền topicId
                       ),
 
                       const SizedBox(height: 16),
