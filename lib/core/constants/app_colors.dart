@@ -86,9 +86,12 @@ const Color kLinkTextColor = Color(0xFF5638EB);
 
 // Màu trạng thái
 const Color kSuccess = Color(0xFF27AE60);
+const Color kSuccessColor = Color(0xFF27AE60); // Alias for consistency
 const Color kWarning = Color(0xFFF2C94C);
+const Color kWarningColor = Color(0xFFF2C94C); // Alias for consistency
 const Color kDanger = Color(0xFFCC1212);
 const Color kSpecial = Color(0xFFD44CF2);
+const Color kAccentColor = Color(0xFFD44CF2); // Alias for consistency
 
 /// Example Material swatch for theming (optional).
 const MaterialColor kPrimarySwatch = MaterialColor(0xFF0A84FF, <int, Color>{
