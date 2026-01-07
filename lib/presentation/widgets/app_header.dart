@@ -55,6 +55,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
               width: 35,
               height: 35,
               fit: BoxFit.contain,
+              cacheWidth: 70, // Cache at 2x for performance
+              filterQuality: FilterQuality.low,
             ),
           ),
           SizedBox(width: 10),

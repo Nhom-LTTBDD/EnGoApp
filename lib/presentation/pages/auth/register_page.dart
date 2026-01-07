@@ -138,11 +138,11 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Form(
               key: _formKey,
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   TextFormField(
                     controller: _nameController,
                     focusNode: _nameFocusNode,
-                    autofocus: true,
                     decoration: const InputDecoration(
                       labelText: 'Họ và tên',
                       prefixIcon: Icon(Icons.person_outlined),
@@ -154,6 +154,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     textInputAction: TextInputAction.next,
                     enabled: !isLoading,
+                    readOnly: false,
+                    enableInteractiveSelection: true,
+                    onTap: () {
+                      _nameFocusNode.requestFocus();
+                    },
                     onFieldSubmitted: (_) => _emailFocusNode.requestFocus(),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -178,6 +183,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
                     enabled: !isLoading,
+                    readOnly: false,
+                    enableInteractiveSelection: true,
+                    onTap: () {
+                      _emailFocusNode.requestFocus();
+                    },
                     onFieldSubmitted: (_) => _passwordFocusNode.requestFocus(),
                     validator: (value) {
                       if (value == null || value.isEmpty) {

@@ -1,7 +1,6 @@
 // lib/presentation/pages/welcome/splash_page.dart
 import 'package:flutter/material.dart';
 import '../../../routes/app_routes.dart';
-import '../../widgets/app_header.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -16,18 +15,33 @@ class _SplashPageState extends State<SplashPage> {
     super.initState();
     // Simulate some initialization work
     Future.delayed(Duration(seconds: 2), () {
-      Navigator.pushReplacementNamed(context, AppRoutes.welcome);
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, AppRoutes.welcome);
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppHeader(title: 'EnGo App', elevation: 0.0),
+      backgroundColor: Colors.white,
       body: Center(
-        child: Text(
-          'Welcome to EnGo App',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.school, size: 100, color: Colors.blue),
+            SizedBox(height: 20),
+            Text(
+              'EnGo App',
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
+            ),
+            SizedBox(height: 20),
+            CircularProgressIndicator(),
+          ],
         ),
       ),
     );
