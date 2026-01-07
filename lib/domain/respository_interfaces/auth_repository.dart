@@ -66,4 +66,9 @@ abstract class AuthRepository {
   ///
   /// Returns: User nếu đã đăng nhập, null nếu chưa đăng nhập
   Future<Either<Failure, User?>> getCurrentUser();
+
+  /// Đăng nhập bằng Google
+  ///
+  /// Returns: AuthResult nếu thành công, Failure nếu thất bại
+  Future<Either<Failure, AuthResult>> signInWithGoogle();
 }

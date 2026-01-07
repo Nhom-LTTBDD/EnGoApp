@@ -8,6 +8,7 @@ import '../../../domain/usecase/auth/get_current_user_usecase.dart';
 import '../../../domain/usecase/auth/login_usecase.dart';
 import '../../../domain/usecase/auth/logout_usecase.dart';
 import '../../../domain/usecase/auth/register_usecase.dart';
+import '../../../domain/usecase/auth/google_sign_in_usecase.dart';
 import 'auth_state.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -16,6 +17,7 @@ class AuthProvider extends ChangeNotifier {
   final LogoutUseCase logoutUseCase;
   final ForgotPasswordUseCase forgotPasswordUseCase;
   final GetCurrentUserUseCase getCurrentUserUseCase;
+  final GoogleSignInUseCase googleSignInUseCase;
 
   AuthState _state = AuthInitial();
   AuthState get state => _state;
@@ -26,6 +28,7 @@ class AuthProvider extends ChangeNotifier {
     required this.logoutUseCase,
     required this.forgotPasswordUseCase,
     required this.getCurrentUserUseCase,
+    required this.googleSignInUseCase,
   });
 
   void _setState(AuthState newState) {
@@ -115,5 +118,17 @@ class AuthProvider extends ChangeNotifier {
   /// Reset về trạng thái initial
   void reset() {
     _setState(AuthInitial());
+  }
+
+  /// Đăng nhập bằng Google
+  Future<void> signInWithGoogle() async {
+    _setState(AuthLoading());
+
+    final result = await googleSignInUseCase(NoParams());
+
+    result.fold(
+      (failure) => _setState(AuthError(failure.message)),
+      (authResult) => _setState(Authenticated(authResult.user)),
+    );
   }
 }
