@@ -170,4 +170,24 @@ class AuthRepositoryImpl implements AuthRepository {
       );
     }
   }
+
+  @override
+  Future<Either<Failure, AuthResult>> signInWithGoogle() async {
+    try {
+      // Gọi remote datasource để đăng nhập Google
+      final result = await remoteDataSource.signInWithGoogle();
+
+      // Lưu token và user vào local storage
+      await localDataSource.saveToken(result.token);
+      await localDataSource.saveUser(UserModel.fromEntity(result.user));
+
+      return Right(result);
+    } on Failure catch (failure) {
+      return Left(failure);
+    } catch (e) {
+      return const Left(
+        UnknownFailure('Lỗi không xác định khi đăng nhập Google'),
+      );
+    }
+  }
 }

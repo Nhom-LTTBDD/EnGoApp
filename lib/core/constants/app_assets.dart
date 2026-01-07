@@ -13,3 +13,4 @@ const String kIconUser = '$_iconsDir/ic_user.svg';
 const String kIconSearch = '$_iconsDir/ic_search.svg';
 const String kIconFire = '$_iconsDir/ic_fire.svg';
 const String kIconBookOpen = '$_iconsDir/ic_book_open.svg';
+const String kIconGoogle = '$_iconsDir/ic_google.svg';

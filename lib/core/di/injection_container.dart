@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 // Data Layer
 import '../../data/datasources/local/auth_local_datasource.dart';
@@ -24,6 +25,7 @@ import '../../domain/usecase/auth/get_current_user_usecase.dart';
 import '../../domain/usecase/auth/login_usecase.dart';
 import '../../domain/usecase/auth/logout_usecase.dart';
 import '../../domain/usecase/auth/register_usecase.dart';
+import '../../domain/usecase/auth/google_sign_in_usecase.dart';
 import '../../domain/usecase/profile/get_user_profile_usecase.dart';
 import '../../domain/usecase/profile/update_avatar_usecase.dart';
 import '../../domain/usecase/profile/update_profile_usecase.dart';
@@ -54,6 +56,7 @@ Future<void> init() async {
       logoutUseCase: sl(),
       forgotPasswordUseCase: sl(),
       getCurrentUserUseCase: sl(),
+      googleSignInUseCase: sl(),
     ),
   );
 
@@ -75,6 +78,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
   sl.registerLazySingleton(() => ForgotPasswordUseCase(sl()));
   sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
+  sl.registerLazySingleton(() => GoogleSignInUseCase(sl()));
 
   // =============================================================================
   // Use Cases - Profile
@@ -111,7 +115,11 @@ Future<void> init() async {
   // Data Sources - Remote
   // =============================================================================
   sl.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(firebaseAuth: sl(), firestore: sl()),
+    () => AuthRemoteDataSourceImpl(
+      firebaseAuth: sl(),
+      firestore: sl(),
+      googleSignIn: sl(),
+    ),
   );
 
   sl.registerLazySingleton<ProfileRemoteDataSource>(
@@ -145,4 +153,5 @@ Future<void> init() async {
   sl.registerLazySingleton(() => FirebaseAuth.instance);
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
   sl.registerLazySingleton(() => FirebaseStorage.instance);
+  sl.registerLazySingleton(() => GoogleSignIn());
 }

@@ -3,6 +3,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../../core/error/failure.dart';
 import '../../models/auth_result_model.dart';
 import '../../models/user_model.dart';
@@ -39,16 +40,21 @@ abstract class AuthRemoteDataSource {
 
   /// Lấy thông tin user từ server
   Future<UserModel> getCurrentUser(String token);
+
+  /// Đăng nhập bằng Google
+  Future<AuthResultModel> signInWithGoogle();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final firebase_auth.FirebaseAuth firebaseAuth;
   final FirebaseFirestore firestore;
+  final GoogleSignIn googleSignIn;
 
   AuthRemoteDataSourceImpl({
     required this.firebaseAuth,
     required this.firestore,
-  });
+    GoogleSignIn? googleSignIn,
+  }) : googleSignIn = googleSignIn ?? GoogleSignIn();
 
   @override
   Future<AuthResultModel> login({
@@ -239,6 +245,86 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       if (e is Failure) rethrow;
       throw const NetworkFailure('Không thể kết nối đến server');
+    }
+  }
+
+  @override
+  Future<AuthResultModel> signInWithGoogle() async {
+    try {
+      // Trigger the authentication flow
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+      if (googleUser == null) {
+        throw const AuthFailure('Đăng nhập Google bị hủy');
+      }
+
+      // Obtain the auth details from the request
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      // Create a new credential
+      final credential = firebase_auth.GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Sign in to Firebase with the Google credential
+      final userCredential = await firebaseAuth.signInWithCredential(
+        credential,
+      );
+
+      if (userCredential.user == null) {
+        throw const AuthFailure('Đăng nhập Google thất bại');
+      }
+
+      final user = userCredential.user!;
+
+      // Check if user exists in Firestore
+      final userDoc = await firestore.collection('users').doc(user.uid).get();
+
+      if (!userDoc.exists) {
+        // Create new user document
+        final userData = {
+          'email': user.email,
+          'name': user.displayName ?? 'User',
+          'photoUrl': user.photoURL,
+          'createdAt': FieldValue.serverTimestamp(),
+        };
+
+        await firestore.collection('users').doc(user.uid).set(userData);
+      }
+
+      // Get user data
+      final updatedUserDoc = await firestore
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      final userData = updatedUserDoc.data() ?? {};
+
+      final userModel = UserModel.fromJson({
+        'id': user.uid,
+        'email': user.email,
+        'name': user.displayName ?? userData['name'] ?? 'User',
+        'photoUrl': user.photoURL ?? userData['photoUrl'],
+        ...userData,
+      });
+
+      final token = await user.getIdToken();
+
+      return AuthResultModel(user: userModel, token: token ?? '');
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      if (e.code == 'account-exists-with-different-credential') {
+        throw const AuthFailure(
+          'Tài khoản đã tồn tại với phương thức đăng nhập khác',
+        );
+      } else if (e.code == 'invalid-credential') {
+        throw const AuthFailure('Thông tin xác thực không hợp lệ');
+      } else {
+        throw AuthFailure('Lỗi đăng nhập Google: ${e.message}');
+      }
+    } catch (e) {
+      if (e is Failure) rethrow;
+      throw const NetworkFailure('Không thể kết nối đến Google');
     }
   }
 }

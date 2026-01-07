@@ -169,6 +169,48 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ],
                   const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: Colors.grey)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text('Hoặc', style: kBody),
+                      ),
+                      Expanded(child: Divider(color: Colors.grey)),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      icon: Image.asset(
+                        'assets/icons/ic_google.png',
+                        height: 24,
+                        width: 24,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(Icons.g_mobiledata, size: 24);
+                        },
+                      ),
+                      label: Text(
+                        'Đăng nhập với Google',
+                        style: kBodyEmphasized.copyWith(fontSize: 16),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 14),
+                        side: BorderSide(color: Colors.grey.shade300),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              final authProvider = context.read<AuthProvider>();
+                              authProvider.signInWithGoogle();
+                            },
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                   TextButton(
                     onPressed: isLoading
                         ? null
