@@ -13,6 +13,8 @@ import '../presentation/pages/main/home_page.dart';
 import '../presentation/pages/profile/profile_page.dart';
 //Test
 import '../presentation/pages/main/test_page.dart';
+import '../presentation/pages/main/tests/ielts_page.dart';
+import '../presentation/pages/main/tests/toeic_page.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -26,6 +28,8 @@ class AppRoutes {
   static const String home = '/home';
   static const String profile = '/profile';
   static const String test = '/test'; //Test
+  static const String ielts = '/ielts';
+  static const String toeic = '/toeic';
 }
 
 class RouteGenerator {
@@ -54,6 +58,10 @@ class RouteGenerator {
       //case Test
       case AppRoutes.test:
         return MaterialPageRoute(builder: (_) => TestPage());
+      case AppRoutes.ielts:
+        return MaterialPageRoute(builder: (_) => IeltsPage());
+      case AppRoutes.toeic:
+        return MaterialPageRoute(builder: (_) => ToeicPage());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(
