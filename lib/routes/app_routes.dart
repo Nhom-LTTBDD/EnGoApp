@@ -75,10 +75,7 @@ class RouteGenerator {
         final testId = args?['testId'] as int? ?? 1;
         final testName = args?['testName'] as String? ?? 'TOEIC Test';
         return MaterialPageRoute(
-          builder: (_) => ToeicDetailPage(
-            testId: testId,
-            testName: testName,
-          ),
+          builder: (_) => ToeicDetailPage(testId: testId, testName: testName),
         );
       //case Vocab
       case AppRoutes.vocab:
