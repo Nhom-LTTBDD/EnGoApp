@@ -6,7 +6,7 @@ import 'package:en_go_app/core/constants/app_colors.dart';
 /// Bottom nav that determines current index from route (can be overridden)
 /// and performs navigation here (index -> route). Keeps existing colors.
 class NavBarBottom extends StatelessWidget {
-  const NavBarBottom({Key? key, this.currentIndex}) : super(key: key);
+  const NavBarBottom({super.key, this.currentIndex});
 
   /// Optional override from caller
   final int? currentIndex;
@@ -17,6 +17,8 @@ class NavBarBottom extends StatelessWidget {
         return 0;
       case AppRoutes.profile:
         return 1;
+      case AppRoutes.vocab:
+        return -1;
       default:
         return 0;
     }
@@ -39,10 +41,13 @@ class NavBarBottom extends StatelessWidget {
     final routeName = ModalRoute.of(context)?.settings.name;
     final idx = currentIndex ?? _getCurrentIndex(routeName);
 
+    // Không highlight khi idx = -1
+    final displayIndex = idx == -1 ? null : idx;
+
     return BottomNavigationBar(
       backgroundColor: kPrimaryColor,
-      currentIndex: idx,
-      selectedItemColor: Colors.white,
+      currentIndex: displayIndex ?? 0,
+      selectedItemColor: displayIndex != null ? Colors.white : Colors.white70,
       unselectedItemColor: Colors.white70,
       onTap: (i) => _onTap(context, i, idx),
       items: const [

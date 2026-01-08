@@ -6,15 +6,12 @@ import '../presentation/pages/welcome/welcome_page.dart';
 import '../presentation/pages/auth/login_page.dart';
 import '../presentation/pages/auth/register_page.dart';
 import '../presentation/pages/auth/forgot_password_page.dart';
-import '../presentation/pages/auth/verify_otp_page.dart';
-import '../presentation/pages/auth/reset_password_page.dart';
 import '../presentation/pages/auth/terms_page.dart';
 import '../presentation/pages/main/home_page.dart';
 import '../presentation/pages/profile/profile_page.dart';
+import '../presentation/pages/profile/edit_profile_page.dart';
 //Test
-import '../presentation/pages/test/test_page.dart';
-import '../presentation/pages/test/ielts_page.dart';
-import '../presentation/pages/test/toeic_page.dart';
+import '../presentation/pages/main/test_page.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -22,14 +19,11 @@ class AppRoutes {
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
-  static const String verifyOtp = '/verify-otp';
-  static const String resetPassword = '/reset-password';
   static const String terms = '/terms';
   static const String home = '/home';
   static const String profile = '/profile';
+  static const String editProfile = '/edit-profile';
   static const String test = '/test'; //Test
-  static const String ielts = '/ielts';
-  static const String toeic = '/toeic';
 }
 
 class RouteGenerator {
@@ -45,23 +39,17 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => RegisterPage());
       case AppRoutes.forgotPassword:
         return MaterialPageRoute(builder: (_) => ForgotPasswordPage());
-      case AppRoutes.verifyOtp:
-        return MaterialPageRoute(builder: (_) => VerifyOtpPage());
-      case AppRoutes.resetPassword:
-        return MaterialPageRoute(builder: (_) => ResetPasswordPage());
       case AppRoutes.terms:
         return MaterialPageRoute(builder: (_) => TermsPage());
       case AppRoutes.home:
         return MaterialPageRoute(builder: (_) => HomePage());
       case AppRoutes.profile:
         return MaterialPageRoute(builder: (_) => ProfilePage());
+      case AppRoutes.editProfile:
+        return MaterialPageRoute(builder: (_) => EditProfilePage());
       //case Test
       case AppRoutes.test:
         return MaterialPageRoute(builder: (_) => TestPage());
-      case AppRoutes.ielts:
-        return MaterialPageRoute(builder: (_) => IeltsPage());
-      case AppRoutes.toeic:
-        return MaterialPageRoute(builder: (_) => ToeicPage());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

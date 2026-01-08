@@ -9,23 +9,37 @@ class AuthLayout extends StatelessWidget {
   final String title;
   final Widget child;
 
-  const AuthLayout({Key? key, required this.title, required this.child})
-    : super(key: key);
+  const AuthLayout({super.key, required this.title, required this.child});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppHeader(title: 'EnGo App', elevation: 0.0),
+      resizeToAvoidBottomInset: true,
+      appBar: AppHeader(title: 'EnGo App', elevation: 0),
       body: Container(
         width: double.infinity,
         decoration: const BoxDecoration(gradient: kBackgroundGradient),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(title, style: kFormTitle),
-            const SizedBox(height: 20),
-            child,
-          ],
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(title, style: kFormTitle),
+                        const SizedBox(height: 20),
+                        child,
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

@@ -16,7 +16,7 @@ enum AppButtonVariant {
 }
 
 /// Button sizes
-enum AppButtonSize { small, medium, large, xLarge }
+enum AppButtonSize { small, medium, large, xLarge, xsLarge }
 
 /// cài đặt kiểu dáng nút bấm
 class AppButtonStyle {
@@ -47,6 +47,7 @@ final Map<AppButtonSize, double> _heightBySize = {
   AppButtonSize.medium: 36,
   AppButtonSize.large: 44,
   AppButtonSize.xLarge: 52,
+  AppButtonSize.xsLarge: 70,
 };
 
 /// cài đặt kiểu dáng cho từng variant nút bấm

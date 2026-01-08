@@ -1,120 +1,122 @@
-# EnGo app
-## Nhóm 5 
-## Thành viên:
+# EnGo App
 
-## Cây thư mục:
-lib/
-│
-├── core/
-│   ├── constants/
-│   │    ├── app_colors.dart         # Khai báo màu dùng trong toàn app
-│   │    ├── app_text_styles.dart    # Quy định font, size, weight
-│   │    ├── app_spacing.dart        # Padding, margin, radius
-│   │    ├── app_assets.dart         # Link icon, hình ảnh
-│   │    └── api_endpoints.dart      # Khai báo endpoint API (nếu dùng)
-│   │
-│   ├── utils/
-│   │    ├── validators.dart         # Validate email, password...
-│   │    ├── formatters.dart         # Format ngày, số, thời gian
-│   │    ├── logger.dart             # Ghi log debug
-│   │    └── helpers.dart            # Hàm hỗ trợ nhỏ khác
-│   │
-│   ├── error/
-│   │    ├── failure.dart            # Định nghĩa lỗi chung
-│   │    ├── exceptions.dart         # Exception từ datasource
-│   │    └── error_mapper.dart       # Map exception → failure
-│   │
-│   └── theme/
-│        ├── light_theme.dart        # Theme sáng (màu, text, widget style)
-│        ├── dark_theme.dart         # Theme tối
-│        └── theme_provider.dart     # Provider/BLoC quản lý theme
-│
-├── data/
-│   ├── models/
-│   │    ├── user_model.dart         # Model User (từ JSON)
-│   │    ├── vocabulary_model.dart   # Model từ vựng
-│   │    ├── lesson_model.dart       # Model bài học
-│   │    ├── test_model.dart         # Model bài thi
-│   │    └── grammar_model.dart      # Model ngữ pháp
-│   │
-│   ├── repositories/
-│   │    ├── user_repository_impl.dart        # Implement interface domain
-│   │    ├── vocabulary_repository_impl.dart
-│   │    ├── lesson_repository_impl.dart
-│   │    └── test_repository_impl.dart
-│   │
-│   └── datasources/
-│        ├── local/
-│        │    ├── local_db_service.dart       # SQLite/hive
-│        │    └── local_cache.dart            # SharedPreferences
-│        │
-│        └── remote/
-│             ├── api_service.dart            # HTTP, Dio
-│             └── firebase_service.dart       # Firebase (nếu dùng)
-│
-├── domain/
-│   ├── entities/
-│   │    ├── user.dart                # Entity thuần
-│   │    ├── vocabulary.dart
-│   │    ├── lesson.dart
-│   │    └── test.dart
-│   │
-│   ├── usecases/
-│   │    ├── get_all_words.dart       # Mỗi usecase = 1 chức năng
-│   │    ├── add_word.dart
-│   │    ├── get_lessons.dart
-│   │    ├── login.dart
-│   │    └── get_tests.dart
-│   │
-│   └── repository_interfaces/
-│        ├── vocabulary_repository.dart
-│        ├── user_repository.dart
-│        ├── lesson_repository.dart
-│        └── test_repository.dart
-│
-├── presentation/
-│   ├── pages/
-│   │    ├── welcome/
-│   │    │     └── welcome_page.dart
-│   │    ├── auth/
-│   │    │     ├── login_page.dart
-│   │    │     ├── register_page.dart
-│   │    │     └── forgot_password_page.dart
-│   │    ├── vocabulary/
-│   │    │     ├── vocabulary_page.dart
-│   │    │     └── vocabulary_detail_page.dart
-│   │    ├── flashcard/
-│   │    │     ├── flashcard_page.dart
-│   │    │     └── flashcard_review_page.dart
-│   │    ├── quiz/
-│   │    │     └── quiz_page.dart
-│   │    ├── test/
-│   │    │     ├── toeic_test_page.dart
-│   │    │     └── ielts_test_page.dart
-│   │    ├── grammar/
-│   │    │     └── grammar_page.dart
-│   │    └── profile/
-│   │          └── profile_page.dart
-│   │
-│   ├── widgets/
-│   │    ├── app_button.dart          # Primary, secondary, disabled
-│   │    ├── app_input_field.dart
-│   │    ├── navbar_bottom.dart
-│   │    ├── app_header.dart
-│   │    ├── lesson_card.dart
-│   │    ├── vocabulary_card.dart
-│   │    ├── app_modal.dart
-│   │    └── app_progress_bar.dart
-│   │
-│   └── providers_or_blocs/
-│        ├── auth_provider.dart / auth_bloc.dart
-│        ├── vocabulary_provider.dart
-│        ├── flashcard_provider.dart
-│        ├── quiz_provider.dart
-│        └── test_provider.dart
-│
-├── routes/
-│   └── app_routes.dart               # Khai báo các route trong app
-│
-└── main.dart                         # File chạy chính
+**Nhóm 5**
 
+## Cây thư mục (chính)
+
+```
+en_go_app/
+├── android/                     # Android project
+├── ios/                         # iOS project
+├── linux/                       # Linux desktop support
+├── macos/                       # macOS desktop support
+├── windows/                     # Windows desktop support
+├── web/                         # Web assets
+├── assets/                      # Ảnh, icon, fonts
+├── build/                       # Build outputs
+├── test/                        # Unit/widget tests
+├── lib/                         # Source chính của Flutter app
+│   ├── main.dart                # Entrypoint
+│   ├── core/                    # Constants, utils, theme, error
+│   │   ├── constants/
+│   │   │   ├── app_colors.dart
+│   │   │   ├── app_text_styles.dart
+│   │   │   ├── app_spacing.dart
+│   │   │   ├── app_assets.dart
+│   │   │   └── firebase_collections.dart
+│   │   ├── utils/
+│   │   │   ├── validators.dart
+│   │   │   ├── formatters.dart
+│   │   │   ├── logger.dart
+│   │   │   └── helpers.dart
+│   │   ├── error/
+│   │   │   ├── failure.dart
+│   │   │   ├── exceptions.dart
+│   │   │   └── firebase_error_mapper.dart
+│   │   └── theme/
+│   │       ├── light_theme.dart
+│   │       ├── dark_theme.dart
+│   │       └── theme_provider.dart
+│   ├── data/                    # Models, datasources, repositories
+│   │   ├── models/
+│   │   │   ├── user_model.dart
+│   │   │   ├── vocabulary_model.dart
+│   │   │   ├── grammar_model.dart
+│   │   │   ├── lesson_model.dart
+│   │   │   ├── test_model.dart
+│   │   │   └── progress_model.dart
+│   │   ├── repositories/
+│   │   │   ├── auth_repository_impl.dart
+│   │   │   ├── vocabulary_repository_impl.dart
+│   │   │   ├── grammar_repository_impl.dart
+│   │   │   ├── lesson_repository_impl.dart
+│   │   │   └── test_repository_impl.dart
+│   │   └── datasources/
+│   │       ├── local/
+│   │       │   ├── local_cache.dart
+│   │       │   └── local_db_service.dart
+│   │       └── remote/
+│   │           └── firebase/
+│   │               ├── firebase_auth_service.dart
+│   │               ├── firestore_service.dart
+│   │               ├── firebase_storage_service.dart
+│   │               └── firebase_messaging_service.dart
+│   ├── domain/                  # Entities, usecases, interfaces
+│   │   ├── entities/
+│   │   │   ├── user.dart
+│   │   │   ├── vocabulary.dart
+│   │   │   ├── grammar.dart
+│   │   │   ├── lesson.dart
+│   │   │   ├── test.dart
+│   │   │   └── progress.dart
+│   │   ├── usecases/
+│   │   │   ├── auth/
+│   │   │   │   ├── login.dart
+│   │   │   │   ├── register.dart
+│   │   │   │   └── logout.dart
+│   │   │   ├── vocabulary/
+│   │   │   │   ├── get_all_words.dart
+│   │   │   │   ├── add_word.dart
+│   │   │   │   └── delete_word.dart
+│   │   │   ├── grammar/
+│   │   │   │   └── get_all_grammar.dart
+│   │   │   └── progress/
+│   │   │       └── update_progress.dart
+│   │   └── repository_interfaces/
+│   │       ├── auth_repository.dart
+│   │       ├── vocabulary_repository.dart
+│   │       ├── grammar_repository.dart
+│   │       ├── lesson_repository.dart
+│   │       └── test_repository.dart
+│   ├── presentation/            # UI: pages, widgets, providers
+│   │   ├── pages/
+│   │   │   ├── welcome/
+│   │   │   ├── auth/
+│   │   │   ├── vocabulary/
+│   │   │   ├── grammar/
+│   │   │   ├── flashcard/
+│   │   │   ├── quiz/
+│   │   │   ├── test/
+│   │   │   └── profile/
+│   │   ├── widgets/
+│   │   │   ├── app_button.dart
+│   │   │   ├── app_input_field.dart
+│   │   │   ├── navbar_bottom.dart
+│   │   │   ├── app_header.dart
+│   │   │   ├── lesson_card.dart
+│   │   │   └── app_modal.dart
+│   │   └── providers_or_blocs/
+│   │       ├── auth_bloc.dart
+│   │       ├── vocabulary_bloc.dart
+│   │       ├── grammar_bloc.dart
+│   │       ├── flashcard_bloc.dart
+│   │       └── progress_bloc.dart
+│   ├── routes/
+│   │   └── app_routes.dart
+│   └── firebase/
+│       ├── firebase_options.dart       # auto-generated
+│       ├── firebase_initializer.dart   # init firebase
+│       └── firebase_di.dart            # dependency injection
+├── .vscode/                      # VSCode configs (launch, settings)
+└── README.md
+```
