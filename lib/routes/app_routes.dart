@@ -12,9 +12,9 @@ import '../presentation/pages/auth/terms_page.dart';
 import '../presentation/pages/main/home_page.dart';
 import '../presentation/pages/profile/profile_page.dart';
 //Test
-import '../presentation/pages/main/test_page.dart';
-import '../presentation/pages/main/tests/ielts_page.dart';
-import '../presentation/pages/main/tests/toeic_page.dart';
+import '../presentation/pages/test/test_page.dart';
+import '../presentation/pages/test/ielts_page.dart';
+import '../presentation/pages/test/toeic_page.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
