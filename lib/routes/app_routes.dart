@@ -11,8 +11,10 @@ import '../presentation/pages/main/home_page.dart';
 import '../presentation/pages/profile/profile_page.dart';
 import '../presentation/pages/profile/edit_profile_page.dart';
 //Test
-import '../presentation/pages/main/test_page.dart';
-
+import '../presentation/pages/test/test_page.dart';
+import '../presentation/pages//test/ielts_page.dart';
+import '../presentation/pages/test/toeic_page.dart';
+import '../presentation/pages/test/toeic_detail_page.dart';
 //Vocabulary
 import '../presentation/pages/vocabulary/vocabulary_page.dart';
 import '../presentation/pages/vocabulary/vocab_by_topic_page.dart';
@@ -33,6 +35,9 @@ class AppRoutes {
   static const String profile = '/profile';
   static const String editProfile = '/edit-profile';
   static const String test = '/test'; //Test
+  static const String ielts = '/ielts';
+  static const String toeic = '/toeic';
+  static const String toeicDetail = '/toeic/detail';
   static const String vocab = '/vocabulary'; //Vocabulary
   static const String vocabByTopic =
       '/vocabulary/by-topic'; //Vocabulary by topic
@@ -66,6 +71,17 @@ class RouteGenerator {
       //case Test
       case AppRoutes.test:
         return MaterialPageRoute(builder: (_) => TestPage());
+      case AppRoutes.ielts:
+        return MaterialPageRoute(builder: (_) => IeltsPage());
+      case AppRoutes.toeic:
+        return MaterialPageRoute(builder: (_) => ToeicPage());
+      case AppRoutes.toeicDetail:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final testId = args?['testId'] as int? ?? 1;
+        final testName = args?['testName'] as String? ?? 'TOEIC Test';
+        return MaterialPageRoute(
+          builder: (_) => ToeicDetailPage(testId: testId, testName: testName),
+        );
       //case Vocab
       case AppRoutes.vocab:
         return MaterialPageRoute(builder: (_) => VocabPage());
