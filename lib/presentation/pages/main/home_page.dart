@@ -46,10 +46,9 @@ class HomePage extends StatelessWidget {
               size: AppButtonSize.large,
               width: 200,
             ),
-            const SizedBox(height: 10),
-            AppButton(
+            const SizedBox(height: 10),            AppButton(
               text: 'Grammar',
-              onPressed: () {},
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.grammar),
               variant: AppButtonVariant.borderSpecial,
               isFullWidth: false,
               size: AppButtonSize.large,
