@@ -247,11 +247,15 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
                                 'isFullTest': !isPracticeMode,
                                 'selectedParts': isPracticeMode
                                     ? selectedParts.toList()
-                                    : [1, 2], // Available parts from sample data
+                                    : [
+                                        1,
+                                        2,
+                                      ], // Available parts from sample data
                                 'timeLimit': selectedTime == 0
                                     ? null
                                     : selectedTime,
-                                'questions': ToeicSampleData.questions, // Pass real questions!
+                                'questions': ToeicSampleData
+                                    .questions, // Pass real questions!
                                 'test': widget.test, // Pass test object
                               },
                             );

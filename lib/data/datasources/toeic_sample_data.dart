@@ -23,7 +23,7 @@ class ToeicSampleData {
     final questionNum = index + 1;
     final questionId = 'test1_q${questionNum.toString().padLeft(3, '0')}';
     final audioFileName = '${questionNum.toString().padLeft(3, '0')}.mp3';
-    
+
     return ToeicQuestion(
       id: questionId,
       testId: 'test1',
@@ -40,7 +40,7 @@ class ToeicSampleData {
   });
 
   static int _getPartNumber(int questionNum) {
-    if (questionNum <= 6) return 1;  // Part 1: Photos
+    if (questionNum <= 6) return 1; // Part 1: Photos
     if (questionNum <= 31) return 2; // Part 2: Question-Response
     return 2;
   }
@@ -57,7 +57,7 @@ class ToeicSampleData {
     final base = (questionNum % 4) + 1;
     return [
       'Option A - Response ${base}A',
-      'Option B - Response ${base}B', 
+      'Option B - Response ${base}B',
       'Option C - Response ${base}C',
       'Option D - Response ${base}D',
     ];
