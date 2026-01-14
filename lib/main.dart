@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 import 'core/di/injection_container.dart' as di;
 import 'presentation/providers/auth/auth_provider.dart';
@@ -36,6 +37,13 @@ class _MyAppState extends State<MyApp> {
       // Initialize Firebase
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
+      );
+
+      // Configure Firestore for better performance
+      final firestore = FirebaseFirestore.instance;
+      firestore.settings = const Settings(
+        persistenceEnabled: true, // Enable offline persistence
+        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED, // Unlimited cache
       );
 
       // Initialize DI
@@ -83,8 +91,17 @@ class _MyAppState extends State<MyApp> {
     } // App initialized successfully
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => di.sl<AuthProvider>()),
         ChangeNotifierProvider(create: (_) => di.sl<ProfileProvider>()),
+        ChangeNotifierProxyProvider<ProfileProvider, AuthProvider>(
+          create: (_) => di.sl<AuthProvider>(),
+          update: (_, profileProvider, authProvider) {
+            // Setup callback để reset ProfileProvider khi logout
+            authProvider!.onLogout = profileProvider.reset;
+            // Setup callback để reset ProfileProvider khi login/register thành công
+            authProvider.onAuthSuccess = profileProvider.reset;
+            return authProvider;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => di.sl<VocabularyProvider>()),
         ChangeNotifierProvider(create: (_) => di.sl<GrammarProvider>()),
         ChangeNotifierProvider(create: (_) => ToeicTestProvider()),

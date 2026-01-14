@@ -22,6 +22,11 @@ class AuthProvider extends ChangeNotifier {
   AuthState _state = AuthInitial();
   AuthState get state => _state;
 
+  // Callback để reset profile khi logout
+  VoidCallback? onLogout;
+  // Callback để reset profile khi login/register thành công
+  VoidCallback? onAuthSuccess;
+
   AuthProvider({
     required this.loginUseCase,
     required this.registerUseCase,
@@ -29,6 +34,8 @@ class AuthProvider extends ChangeNotifier {
     required this.forgotPasswordUseCase,
     required this.getCurrentUserUseCase,
     required this.googleSignInUseCase,
+    this.onLogout,
+    this.onAuthSuccess,
   });
 
   void _setState(AuthState newState) {
@@ -51,6 +58,20 @@ class AuthProvider extends ChangeNotifier {
     });
   }
 
+  /// Kiểm tra session khi khởi động app (silent - không trigger loading state)
+  /// Dùng cho splash page để tránh setState during build
+  Future<void> checkAuthStatusSilent() async {
+    final result = await getCurrentUserUseCase(NoParams());
+
+    result.fold((failure) => _setState(Unauthenticated()), (user) {
+      if (user != null) {
+        _setState(Authenticated(user));
+      } else {
+        _setState(Unauthenticated());
+      }
+    });
+  }
+
   /// Đăng nhập
   Future<void> login({required String email, required String password}) async {
     _setState(AuthLoading());
@@ -59,10 +80,13 @@ class AuthProvider extends ChangeNotifier {
       LoginParams(email: email, password: password),
     );
 
-    result.fold(
-      (failure) => _setState(AuthError(failure.message)),
-      (authResult) => _setState(Authenticated(authResult.user)),
-    );
+    result.fold((failure) => _setState(AuthError(failure.message)), (
+      authResult,
+    ) {
+      // Reset ProfileProvider để load data mới
+      onAuthSuccess?.call();
+      _setState(Authenticated(authResult.user));
+    });
   }
 
   /// Đăng ký
@@ -83,10 +107,13 @@ class AuthProvider extends ChangeNotifier {
       ),
     );
 
-    result.fold(
-      (failure) => _setState(AuthError(failure.message)),
-      (authResult) => _setState(Authenticated(authResult.user)),
-    );
+    result.fold((failure) => _setState(AuthError(failure.message)), (
+      authResult,
+    ) {
+      // Reset ProfileProvider để load data mới
+      onAuthSuccess?.call();
+      _setState(Authenticated(authResult.user));
+    });
   }
 
   /// Đăng xuất
@@ -95,10 +122,11 @@ class AuthProvider extends ChangeNotifier {
 
     final result = await logoutUseCase(NoParams());
 
-    result.fold(
-      (failure) => _setState(AuthError(failure.message)),
-      (_) => _setState(Unauthenticated()),
-    );
+    result.fold((failure) => _setState(AuthError(failure.message)), (_) {
+      // Reset ProfileProvider khi logout
+      onLogout?.call();
+      _setState(Unauthenticated());
+    });
   }
 
   /// Quên mật khẩu - Gửi email reset password
@@ -126,9 +154,12 @@ class AuthProvider extends ChangeNotifier {
 
     final result = await googleSignInUseCase(NoParams());
 
-    result.fold(
-      (failure) => _setState(AuthError(failure.message)),
-      (authResult) => _setState(Authenticated(authResult.user)),
-    );
+    result.fold((failure) => _setState(AuthError(failure.message)), (
+      authResult,
+    ) {
+      // Reset ProfileProvider để load data mới
+      onAuthSuccess?.call();
+      _setState(Authenticated(authResult.user));
+    });
   }
 }

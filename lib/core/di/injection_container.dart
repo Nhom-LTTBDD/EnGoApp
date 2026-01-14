@@ -26,8 +26,9 @@ import '../../domain/usecase/auth/login_usecase.dart';
 import '../../domain/usecase/auth/logout_usecase.dart';
 import '../../domain/usecase/auth/register_usecase.dart';
 import '../../domain/usecase/auth/google_sign_in_usecase.dart';
+import '../../domain/usecase/profile/clear_profile_cache_usecase.dart';
 import '../../domain/usecase/profile/get_user_profile_usecase.dart';
-import '../../domain/usecase/profile/update_avatar_usecase.dart';
+import '../../domain/usecase/profile/update_avatar_color_usecase.dart';
 import '../../domain/usecase/profile/update_profile_usecase.dart';
 
 // Presentation Layer
@@ -73,7 +74,8 @@ Future<void> init() async {
     () => ProfileProvider(
       getUserProfileUseCase: sl(),
       updateProfileUseCase: sl(),
-      updateAvatarUseCase: sl(),
+      updateAvatarColorUseCase: sl(),
+      clearProfileCacheUseCase: sl(),
     ),
   );
 
@@ -102,7 +104,8 @@ Future<void> init() async {
   // =============================================================================
   sl.registerLazySingleton(() => GetUserProfileUseCase(sl()));
   sl.registerLazySingleton(() => UpdateProfileUseCase(sl()));
-  sl.registerLazySingleton(() => UpdateAvatarUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateAvatarColorUseCase(sl()));
+  sl.registerLazySingleton(() => ClearProfileCacheUseCase(sl()));
 
   // =============================================================================
   // Use Cases - Vocabulary
@@ -134,9 +137,7 @@ Future<void> init() async {
     () => VocabularyRepositoryImpl(),
   );
 
-  sl.registerLazySingleton<GrammarRepository>(
-    () => GrammarRepositoryImpl(),
-  );
+  sl.registerLazySingleton<GrammarRepository>(() => GrammarRepositoryImpl());
 
   // =============================================================================
   // Data Sources - Remote

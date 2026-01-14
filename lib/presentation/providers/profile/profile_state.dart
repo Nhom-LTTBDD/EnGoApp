@@ -39,19 +39,6 @@ class ProfileUpdated extends ProfileState {
   List<Object?> get props => [user];
 }
 
-/// Đang upload avatar
-class AvatarUploading extends ProfileState {}
-
-/// Avatar đã cập nhật
-class AvatarUpdated extends ProfileState {
-  final String avatarUrl;
-
-  AvatarUpdated(this.avatarUrl);
-
-  @override
-  List<Object?> get props => [avatarUrl];
-}
-
 /// Lỗi
 class ProfileError extends ProfileState {
   final String message;

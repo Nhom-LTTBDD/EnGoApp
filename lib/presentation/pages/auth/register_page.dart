@@ -30,6 +30,10 @@ class _RegisterPageState extends State<RegisterPage> {
   String _passwordStrength = '';
   double _passwordStrengthValue = 0.0;
   Color _passwordStrengthColor = Colors.grey;
+  bool _isProcessing = false; // Prevent multiple taps
+
+  // Track state để tránh xử lý duplicate
+  String? _lastProcessedState;
 
   @override
   void initState() {
@@ -86,14 +90,26 @@ class _RegisterPageState extends State<RegisterPage> {
     });
   }
 
-  void _handleRegister(BuildContext context) {
+  Future<void> _handleRegister(BuildContext context) async {
+    // Prevent multiple taps
+    if (_isProcessing) return;
+
     if (_formKey.currentState?.validate() ?? false) {
+      setState(() => _isProcessing = true);
+
+      // Unfocus để hide keyboard ngay lập tức
+      FocusScope.of(context).unfocus();
+
       final authProvider = context.read<AuthProvider>();
-      authProvider.register(
+      await authProvider.register(
         email: _emailController.text.trim(),
         password: _passwordController.text,
         name: _nameController.text.trim(),
       );
+
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
     }
   }
 
@@ -101,25 +117,43 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return AuthLayout(
       title: 'Đăng ký',
-      child: Consumer<AuthProvider>(
-        builder: (context, authProvider, _) {
+      child: Selector<AuthProvider, AuthState>(
+        selector: (_, provider) => provider.state,
+        shouldRebuild: (previous, current) => previous != current,
+        builder: (context, authState, _) {
           // Listen to auth state changes
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            final state = authProvider.state;
+            if (!mounted) return;
 
-            if (state is Authenticated) {
+            final stateKey =
+                '${authState.runtimeType}_${authState is AuthError ? authState.message : ""}';
+
+            // Chỉ xử lý nếu state chưa được xử lý
+            if (_lastProcessedState == stateKey) return;
+            _lastProcessedState = stateKey;
+
+            if (authState is Authenticated) {
+              // Reset state tracking trước khi navigate
+              _lastProcessedState = null;
+              context.read<AuthProvider>().reset();
               Navigator.pushReplacementNamed(context, AppRoutes.home);
-            } else if (state is AuthError) {
+            } else if (authState is AuthError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(state.message),
+                  content: Text(authState.message),
                   backgroundColor: kDanger,
+                  duration: const Duration(seconds: 3),
                 ),
               );
+              // Reset về initial state sau khi show error
+              setState(() => _isProcessing = false);
+              Future.delayed(const Duration(milliseconds: 100), () {
+                if (mounted) context.read<AuthProvider>().reset();
+              });
             }
           });
 
-          final isLoading = authProvider.state is AuthLoading;
+          final isLoading = authState is AuthLoading || _isProcessing;
 
           return Container(
             constraints: const BoxConstraints(maxWidth: 400),

@@ -10,6 +10,7 @@ class UserModel extends User {
     required super.name,
     super.birthDate,
     super.avatarUrl,
+    super.avatarColor,
   });
 
   /// Tạo UserModel từ JSON
@@ -20,6 +21,7 @@ class UserModel extends User {
       name: json['name'] as String,
       birthDate: json['birthDate'] as String?,
       avatarUrl: json['avatarUrl'] as String?,
+      avatarColor: json['avatarColor'] as String?,
     );
   }
 
@@ -31,6 +33,7 @@ class UserModel extends User {
       'name': name,
       'birthDate': birthDate,
       'avatarUrl': avatarUrl,
+      'avatarColor': avatarColor,
     };
   }
 
@@ -42,6 +45,7 @@ class UserModel extends User {
       name: user.name,
       birthDate: user.birthDate,
       avatarUrl: user.avatarUrl,
+      avatarColor: user.avatarColor,
     );
   }
 
@@ -53,6 +57,7 @@ class UserModel extends User {
     String? name,
     String? birthDate,
     String? avatarUrl,
+    String? avatarColor,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -60,6 +65,7 @@ class UserModel extends User {
       name: name ?? this.name,
       birthDate: birthDate ?? this.birthDate,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      avatarColor: avatarColor ?? this.avatarColor,
     );
   }
 }
