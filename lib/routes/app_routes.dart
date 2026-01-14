@@ -21,6 +21,9 @@ import '../presentation/pages/vocabulary/vocab_by_topic_page.dart';
 import '../presentation/pages/vocabulary/vocab_menu_page.dart';
 import '../presentation/pages/vocabulary/flashcard_page.dart';
 
+//Grammar
+import '../presentation/pages/grammar/grammar_page.dart';
+
 class AppRoutes {
   static const String splash = '/splash';
   static const String welcome = '/welcome';
@@ -40,6 +43,8 @@ class AppRoutes {
       '/vocabulary/by-topic'; //Vocabulary by topic
   static const String vocabMenu = '/vocabulary/menu'; //Vocabulary menu
   static const String flashcard = '/vocabulary/flashcard'; //Flashcard page
+    // Grammar routes
+  static const String grammar = '/grammar'; //Grammar main
 }
 
 class RouteGenerator {
@@ -75,10 +80,7 @@ class RouteGenerator {
         final testId = args?['testId'] as int? ?? 1;
         final testName = args?['testName'] as String? ?? 'TOEIC Test';
         return MaterialPageRoute(
-          builder: (_) => ToeicDetailPage(
-            testId: testId,
-            testName: testName,
-          ),
+          builder: (_) => ToeicDetailPage(testId: testId, testName: testName),
         );
       //case Vocab
       case AppRoutes.vocab:
@@ -92,11 +94,15 @@ class RouteGenerator {
           builder: (_) => VocabMenuPage(topicId: topicId),
         );
       case AppRoutes.flashcard:
-        final args = settings.arguments as Map<String, dynamic>?;
-        final topicId = args?['topicId'] as String?;
+        final args = settings.arguments as Map<String, dynamic>?;        final topicId = args?['topicId'] as String?;
         return MaterialPageRoute(
           builder: (_) => FlashcardPage(topicId: topicId),
         );
+        
+      // Grammar cases
+      case AppRoutes.grammar:
+        return MaterialPageRoute(builder: (_) => GrammarPage());
+      
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

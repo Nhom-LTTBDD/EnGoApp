@@ -16,9 +16,9 @@ class NavBarBottom extends StatelessWidget {
       case AppRoutes.home:
         return 0;
       case AppRoutes.profile:
-        return 1;
-      case AppRoutes.vocab:
-        return -1;
+        return 1;      case AppRoutes.vocab:
+      case AppRoutes.grammar:
+        return -1; // No bottom nav highlight for these pages
       default:
         return 0;
     }
@@ -41,8 +41,8 @@ class NavBarBottom extends StatelessWidget {
     final routeName = ModalRoute.of(context)?.settings.name;
     final idx = currentIndex ?? _getCurrentIndex(routeName);
 
-    // Không highlight khi idx = -1
-    final displayIndex = idx == -1 ? null : idx;
+    // Không highlight khi idx = -1 hoặc invalid
+    final displayIndex = (idx >= 0 && idx < 2) ? idx : null;
 
     return BottomNavigationBar(
       backgroundColor: kPrimaryColor,

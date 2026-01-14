@@ -66,8 +66,7 @@ class QuizMenuAction extends VocabularyMenuAction {
 class GrammarMenuAction extends VocabularyMenuAction {
   @override
   Future<void> execute(BuildContext context) async {
-    // Navigator.pushNamed(context, AppRoutes.grammar);
-    _showComingSoonDialog(context, 'Grammar');
+    Navigator.pushNamed(context, AppRoutes.grammar);
   }
 
   @override

@@ -35,6 +35,7 @@ import '../../domain/usecase/profile/update_profile_usecase.dart';
 import '../../presentation/providers/auth/auth_provider.dart';
 import '../../presentation/providers/profile/profile_provider.dart';
 import '../../presentation/providers/vocabulary_provider.dart';
+import '../../presentation/providers/grammar_provider.dart';
 
 // Vocabulary Domain
 import '../../domain/repository_interfaces/vocabulary_repository.dart';
@@ -42,6 +43,14 @@ import '../../domain/usecase/get_vocabulary_cards.dart';
 
 // Vocabulary Data
 import '../../data/repositories/vocabulary_repository_impl.dart';
+
+// Grammar Domain
+import '../../domain/repository_interfaces/grammar_repository.dart';
+import '../../domain/use_cases/get_grammar_topics_use_case.dart';
+import '../../domain/use_cases/get_grammar_lessons_use_case.dart';
+
+// Grammar Data
+import '../../data/repositories/grammar_repository_impl.dart';
 
 final sl = GetIt.instance;
 
@@ -71,6 +80,14 @@ Future<void> init() async {
   );
 
   sl.registerFactory(() => VocabularyProvider(getVocabularyCards: sl()));
+  // Grammar Provider
+  sl.registerFactory(
+    () => GrammarProvider(
+      getGrammarTopicsUseCase: sl(),
+      getGrammarLessonsUseCase: sl(),
+      grammarRepository: sl(),
+    ),
+  );
 
   // =============================================================================
   // Use Cases - Auth
@@ -96,6 +113,12 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetVocabularyCards(sl()));
 
   // =============================================================================
+  // Use Cases - Grammar
+  // =============================================================================
+  sl.registerLazySingleton(() => GetGrammarTopicsUseCase(sl()));
+  sl.registerLazySingleton(() => GetGrammarLessonsUseCase(sl()));
+
+  // =============================================================================
   // Repositories
   // =============================================================================
   sl.registerLazySingleton<AuthRepository>(
@@ -112,6 +135,10 @@ Future<void> init() async {
 
   sl.registerLazySingleton<VocabularyRepository>(
     () => VocabularyRepositoryImpl(),
+  );
+
+  sl.registerLazySingleton<GrammarRepository>(
+    () => GrammarRepositoryImpl(),
   );
 
   // =============================================================================
