@@ -22,6 +22,8 @@ class ProfileProvider extends ChangeNotifier {
   User? _currentUser;
   User? get currentUser => _currentUser;
 
+  bool _isLoading = false; // Track loading để tránh duplicate calls
+
   ProfileProvider({
     required this.getUserProfileUseCase,
     required this.updateProfileUseCase,
@@ -35,15 +37,29 @@ class ProfileProvider extends ChangeNotifier {
   }
 
   /// Lấy thông tin profile
-  Future<void> getUserProfile() async {
+  Future<void> getUserProfile({bool force = false}) async {
+    // Tránh duplicate calls nếu đang load và không force
+    if (_isLoading && !force) return;
+
+    // Nếu đã có data và không force, skip
+    if (_currentUser != null && !force && _state is! ProfileError) return;
+
+    _isLoading = true;
     _setState(ProfileLoading());
 
     final result = await getUserProfileUseCase(NoParams());
 
-    result.fold((failure) => _setState(ProfileError(failure.message)), (user) {
-      _currentUser = user;
-      _setState(ProfileLoaded(user));
-    });
+    result.fold(
+      (failure) {
+        _isLoading = false;
+        _setState(ProfileError(failure.message));
+      },
+      (user) {
+        _currentUser = user;
+        _isLoading = false;
+        _setState(ProfileLoaded(user));
+      },
+    );
   }
 
   /// Cập nhật thông tin profile
@@ -82,6 +98,7 @@ class ProfileProvider extends ChangeNotifier {
   /// Reset về trạng thái initial và xóa cache
   void reset() {
     _currentUser = null;
+    _isLoading = false;
     _setState(ProfileInitial());
     // Xóa cache profile để load data mới
     clearProfileCacheUseCase(NoParams());

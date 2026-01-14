@@ -58,6 +58,20 @@ class AuthProvider extends ChangeNotifier {
     });
   }
 
+  /// Kiểm tra session khi khởi động app (silent - không trigger loading state)
+  /// Dùng cho splash page để tránh setState during build
+  Future<void> checkAuthStatusSilent() async {
+    final result = await getCurrentUserUseCase(NoParams());
+
+    result.fold((failure) => _setState(Unauthenticated()), (user) {
+      if (user != null) {
+        _setState(Authenticated(user));
+      } else {
+        _setState(Unauthenticated());
+      }
+    });
+  }
+
   /// Đăng nhập
   Future<void> login({required String email, required String password}) async {
     _setState(AuthLoading());

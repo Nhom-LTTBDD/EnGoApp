@@ -40,10 +40,33 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<UserModel> getUserProfile(String userId) async {
     try {
-      final userDoc = await firestore.collection('users').doc(userId).get();
+      // Try cache first for faster load
+      final userDoc = await firestore
+          .collection('users')
+          .doc(userId)
+          .get(const GetOptions(source: Source.cache))
+          .timeout(
+            const Duration(milliseconds: 500),
+            onTimeout: () => firestore.collection('users').doc(userId).get(),
+          );
 
       if (!userDoc.exists) {
-        throw const AuthFailure('Không tìm thấy thông tin người dùng');
+        // If not in cache, fetch from server
+        final serverDoc = await firestore
+            .collection('users')
+            .doc(userId)
+            .get(const GetOptions(source: Source.server))
+            .timeout(const Duration(seconds: 5));
+
+        if (!serverDoc.exists) {
+          throw const AuthFailure('Không tìm thấy thông tin người dùng');
+        }
+
+        final userData = serverDoc.data();
+        if (userData == null) {
+          throw const AuthFailure('Dữ liệu người dùng không hợp lệ');
+        }
+        return UserModel.fromJson({'id': userId, ...userData});
       }
 
       final userData = userDoc.data();
@@ -76,7 +99,11 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         updateData['birthDate'] = birthDate;
       }
 
-      await firestore.collection('users').doc(userId).update(updateData);
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .update(updateData)
+          .timeout(const Duration(seconds: 5));
 
       // Cập nhật display name trong Firebase Auth
       await firebaseAuth.currentUser?.updateDisplayName(name);
