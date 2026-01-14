@@ -7,6 +7,7 @@ import 'presentation/providers/auth/auth_provider.dart';
 import 'presentation/providers/profile/profile_provider.dart';
 import 'presentation/providers/vocabulary_provider.dart';
 import 'presentation/providers/grammar_provider.dart';
+import 'presentation/providers/toeic_test_provider.dart';
 import 'routes/app_routes.dart';
 
 void main() {
@@ -79,13 +80,14 @@ class _MyAppState extends State<MyApp> {
         debugShowCheckedModeBanner: false,
         home: Scaffold(body: Center(child: Text('Initialization Error'))),
       );
-    }    // App initialized successfully
+    } // App initialized successfully
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => di.sl<AuthProvider>()),
         ChangeNotifierProvider(create: (_) => di.sl<ProfileProvider>()),
         ChangeNotifierProvider(create: (_) => di.sl<VocabularyProvider>()),
         ChangeNotifierProvider(create: (_) => di.sl<GrammarProvider>()),
+        ChangeNotifierProvider(create: (_) => ToeicTestProvider()),
       ],
       child: MaterialApp(
         title: 'EnGo App',

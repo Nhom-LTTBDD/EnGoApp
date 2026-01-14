@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/routes/app_routes.dart';
+import '../../../data/datasources/toeic_sample_data.dart';
 
 class ToeicPage extends StatelessWidget {
   const ToeicPage({Key? key}) : super(key: key);
@@ -113,17 +114,18 @@ class ToeicPage extends StatelessWidget {
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: 10,
+                itemCount: 1, // Chỉ hiển thị 1 test thật với data có sẵn
                 itemBuilder: (context, index) {
+                  final test = ToeicSampleData.practiceTest1;
                   return GestureDetector(
                     onTap: () {
                       Navigator.pushNamed(
                         context,
                         AppRoutes.toeicDetail,
                         arguments: {
-                          'testId': index + 1,
-                          'testName':
-                              '2024 Practice Set TOEIC Test ${index + 1}',
+                          'testId': test.id,
+                          'testName': test.name,
+                          'test': test, // Pass test object
                         },
                       );
                     },
@@ -164,7 +166,7 @@ class ToeicPage extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '2024 Practice Set TOEIC Test ${index + 1}',
+                                  test.name,
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -173,7 +175,7 @@ class ToeicPage extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 5),
                                 Text(
-                                  '7 Parts • 200 Questions',
+                                  '2 Parts • ${test.totalQuestions} Questions • ${test.duration} mins',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey[600],
