@@ -26,6 +26,7 @@ import '../../domain/usecase/auth/login_usecase.dart';
 import '../../domain/usecase/auth/logout_usecase.dart';
 import '../../domain/usecase/auth/register_usecase.dart';
 import '../../domain/usecase/auth/google_sign_in_usecase.dart';
+import '../../domain/usecase/profile/clear_profile_cache_usecase.dart';
 import '../../domain/usecase/profile/get_user_profile_usecase.dart';
 import '../../domain/usecase/profile/update_avatar_usecase.dart';
 import '../../domain/usecase/profile/update_profile_usecase.dart';
@@ -65,6 +66,7 @@ Future<void> init() async {
       getUserProfileUseCase: sl(),
       updateProfileUseCase: sl(),
       updateAvatarUseCase: sl(),
+      clearProfileCacheUseCase: sl(),
     ),
   );
 
@@ -86,6 +88,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetUserProfileUseCase(sl()));
   sl.registerLazySingleton(() => UpdateProfileUseCase(sl()));
   sl.registerLazySingleton(() => UpdateAvatarUseCase(sl()));
+  sl.registerLazySingleton(() => ClearProfileCacheUseCase(sl()));
 
   // =============================================================================
   // Use Cases - Vocabulary

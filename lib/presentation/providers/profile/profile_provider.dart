@@ -4,6 +4,7 @@
 import 'package:flutter/foundation.dart';
 import '../../../core/usecase/usecase.dart';
 import '../../../domain/entities/user.dart';
+import '../../../domain/usecase/profile/clear_profile_cache_usecase.dart';
 import '../../../domain/usecase/profile/get_user_profile_usecase.dart';
 import '../../../domain/usecase/profile/update_avatar_usecase.dart';
 import '../../../domain/usecase/profile/update_profile_usecase.dart';
@@ -13,6 +14,7 @@ class ProfileProvider extends ChangeNotifier {
   final GetUserProfileUseCase getUserProfileUseCase;
   final UpdateProfileUseCase updateProfileUseCase;
   final UpdateAvatarUseCase updateAvatarUseCase;
+  final ClearProfileCacheUseCase clearProfileCacheUseCase;
 
   ProfileState _state = ProfileInitial();
   ProfileState get state => _state;
@@ -24,6 +26,7 @@ class ProfileProvider extends ChangeNotifier {
     required this.getUserProfileUseCase,
     required this.updateProfileUseCase,
     required this.updateAvatarUseCase,
+    required this.clearProfileCacheUseCase,
   });
 
   void _setState(ProfileState newState) {
@@ -76,9 +79,11 @@ class ProfileProvider extends ChangeNotifier {
     });
   }
 
-  /// Reset về trạng thái initial
+  /// Reset về trạng thái initial và xóa cache
   void reset() {
     _currentUser = null;
     _setState(ProfileInitial());
+    // Xóa cache profile để load data mới
+    clearProfileCacheUseCase(NoParams());
   }
 }

@@ -31,6 +31,9 @@ class _RegisterPageState extends State<RegisterPage> {
   double _passwordStrengthValue = 0.0;
   Color _passwordStrengthColor = Colors.grey;
 
+  // Track state để tránh xử lý duplicate
+  String? _lastProcessedState;
+
   @override
   void initState() {
     super.initState();
@@ -105,17 +108,33 @@ class _RegisterPageState extends State<RegisterPage> {
         builder: (context, authProvider, _) {
           // Listen to auth state changes
           WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+
             final state = authProvider.state;
+            final stateKey =
+                '${state.runtimeType}_${state is AuthError ? state.message : ""}';
+
+            // Chỉ xử lý nếu state chưa được xử lý
+            if (_lastProcessedState == stateKey) return;
+            _lastProcessedState = stateKey;
 
             if (state is Authenticated) {
+              // Reset state tracking trước khi navigate
+              _lastProcessedState = null;
+              authProvider.reset();
               Navigator.pushReplacementNamed(context, AppRoutes.home);
             } else if (state is AuthError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.message),
                   backgroundColor: kDanger,
+                  duration: const Duration(seconds: 3),
                 ),
               );
+              // Reset về initial state sau khi show error
+              Future.delayed(const Duration(milliseconds: 100), () {
+                if (mounted) authProvider.reset();
+              });
             }
           });
 

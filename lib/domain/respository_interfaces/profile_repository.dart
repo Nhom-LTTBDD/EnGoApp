@@ -26,4 +26,9 @@ abstract class ProfileRepository {
   /// [imagePath] - Đường dẫn ảnh local
   /// Returns: URL avatar mới nếu thành công, Failure nếu thất bại
   Future<Either<Failure, String>> updateAvatar(String imagePath);
+
+  /// Xóa cache profile (dùng khi logout hoặc đổi user)
+  ///
+  /// Returns: Unit nếu thành công, Failure nếu thất bại
+  Future<Either<Failure, void>> clearCache();
 }

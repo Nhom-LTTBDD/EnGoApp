@@ -24,6 +24,9 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordFocusNode = FocusNode();
   bool _obscurePassword = true;
 
+  // Track state để tránh xử lý duplicate
+  String? _lastProcessedState;
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -51,17 +54,33 @@ class _LoginPageState extends State<LoginPage> {
         builder: (context, authProvider, _) {
           // Listen to auth state changes
           WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+
             final state = authProvider.state;
+            final stateKey =
+                '${state.runtimeType}_${state is AuthError ? state.message : ""}';
+
+            // Chỉ xử lý nếu state chưa được xử lý
+            if (_lastProcessedState == stateKey) return;
+            _lastProcessedState = stateKey;
 
             if (state is Authenticated) {
+              // Reset state tracking trước khi navigate
+              _lastProcessedState = null;
+              authProvider.reset();
               Navigator.pushReplacementNamed(context, AppRoutes.home);
             } else if (state is AuthError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.message),
                   backgroundColor: kDanger,
+                  duration: const Duration(seconds: 3),
                 ),
               );
+              // Reset về initial state sau khi show error
+              Future.delayed(const Duration(milliseconds: 100), () {
+                if (mounted) authProvider.reset();
+              });
             }
           });
 

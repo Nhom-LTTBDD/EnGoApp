@@ -83,8 +83,17 @@ class _MyAppState extends State<MyApp> {
     // App initialized successfully
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => di.sl<AuthProvider>()),
         ChangeNotifierProvider(create: (_) => di.sl<ProfileProvider>()),
+        ChangeNotifierProxyProvider<ProfileProvider, AuthProvider>(
+          create: (_) => di.sl<AuthProvider>(),
+          update: (_, profileProvider, authProvider) {
+            // Setup callback để reset ProfileProvider khi logout
+            authProvider!.onLogout = profileProvider.reset;
+            // Setup callback để reset ProfileProvider khi login/register thành công
+            authProvider.onAuthSuccess = profileProvider.reset;
+            return authProvider;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => di.sl<VocabularyProvider>()),
       ],
       child: MaterialApp(

@@ -116,4 +116,17 @@ class ProfileRepositoryImpl implements ProfileRepository {
       );
     }
   }
+
+  @override
+  Future<Either<Failure, void>> clearCache() async {
+    try {
+      // Xóa profile cache
+      await localDataSource.clearProfileCache();
+      return const Right(null);
+    } on Failure catch (failure) {
+      return Left(failure);
+    } catch (e) {
+      return const Left(UnknownFailure('Lỗi không xác định khi xóa cache'));
+    }
+  }
 }
