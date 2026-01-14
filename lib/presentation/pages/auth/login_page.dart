@@ -1,7 +1,9 @@
 // lib/presentation/pages/auth/login_page.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:en_go_app/presentation/layout/auth_layout.dart';
+import 'package:en_go_app/core/constants/app_assets.dart';
 import 'package:en_go_app/core/constants/app_text_styles.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/routes/app_routes.dart';
@@ -217,17 +219,15 @@ class _LoginPageState extends State<LoginPage> {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      icon: Image.asset(
-                        'assets/icons/ic_google.png',
-                        height: 24,
-                        width: 24,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(Icons.g_mobiledata, size: 24);
-                        },
+                      icon: SvgPicture.asset(
+                        kIconGoogle,
+                        width: 20,
+                        height: 20,
                       ),
                       label: Text(
-                        'Đăng nhập với Google',
-                        style: kBodyEmphasized.copyWith(fontSize: 16),
+                        isLoading
+                            ? 'Đang đăng nhập với Google...'
+                            : 'Đăng nhập với Google',
                       ),
                       style: OutlinedButton.styleFrom(
                         padding: EdgeInsets.symmetric(vertical: 14),
