@@ -6,14 +6,14 @@ import '../../../core/usecase/usecase.dart';
 import '../../../domain/entities/user.dart';
 import '../../../domain/usecase/profile/clear_profile_cache_usecase.dart';
 import '../../../domain/usecase/profile/get_user_profile_usecase.dart';
-import '../../../domain/usecase/profile/update_avatar_usecase.dart';
+import '../../../domain/usecase/profile/update_avatar_color_usecase.dart';
 import '../../../domain/usecase/profile/update_profile_usecase.dart';
 import 'profile_state.dart';
 
 class ProfileProvider extends ChangeNotifier {
   final GetUserProfileUseCase getUserProfileUseCase;
   final UpdateProfileUseCase updateProfileUseCase;
-  final UpdateAvatarUseCase updateAvatarUseCase;
+  final UpdateAvatarColorUseCase updateAvatarColorUseCase;
   final ClearProfileCacheUseCase clearProfileCacheUseCase;
 
   ProfileState _state = ProfileInitial();
@@ -27,7 +27,7 @@ class ProfileProvider extends ChangeNotifier {
   ProfileProvider({
     required this.getUserProfileUseCase,
     required this.updateProfileUseCase,
-    required this.updateAvatarUseCase,
+    required this.updateAvatarColorUseCase,
     required this.clearProfileCacheUseCase,
   });
 
@@ -76,22 +76,17 @@ class ProfileProvider extends ChangeNotifier {
     });
   }
 
-  /// Cập nhật avatar
-  Future<void> updateAvatar(String imagePath) async {
-    _setState(AvatarUploading());
+  /// Cập nhật màu avatar
+  Future<void> updateAvatarColor(String color) async {
+    _setState(ProfileUpdating());
 
-    final result = await updateAvatarUseCase(
-      UpdateAvatarParams(imagePath: imagePath),
+    final result = await updateAvatarColorUseCase(
+      UpdateAvatarColorParams(color: color),
     );
 
-    result.fold((failure) => _setState(ProfileError(failure.message)), (
-      avatarUrl,
-    ) {
-      // Cập nhật avatar trong currentUser
-      if (_currentUser != null) {
-        _currentUser = _currentUser!.copyWith(avatarUrl: avatarUrl);
-      }
-      _setState(AvatarUpdated(avatarUrl));
+    result.fold((failure) => _setState(ProfileError(failure.message)), (user) {
+      _currentUser = user;
+      _setState(ProfileUpdated(user));
     });
   }
 

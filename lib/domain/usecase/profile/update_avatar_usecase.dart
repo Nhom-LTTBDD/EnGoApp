@@ -1,6 +1,8 @@
 // lib/domain/usecase/profile/update_avatar_usecase.dart
 // Use case cập nhật avatar
+// DEPRECATED: Không sử dụng Firebase Storage nữa, chỉ dùng avatar chữ cái
 
+/*
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import '../../../core/error/failure.dart';
@@ -26,3 +28,4 @@ class UpdateAvatarParams extends Equatable {
   @override
   List<Object> get props => [imagePath];
 }
+*/

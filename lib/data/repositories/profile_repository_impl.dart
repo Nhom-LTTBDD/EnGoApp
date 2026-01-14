@@ -85,7 +85,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
-  Future<Either<Failure, String>> updateAvatar(String imagePath) async {
+  Future<Either<Failure, User>> updateAvatarColor(String color) async {
     try {
       // Lấy user hiện tại
       final currentUser = await authLocalDataSource.getUser();
@@ -93,26 +93,24 @@ class ProfileRepositoryImpl implements ProfileRepository {
         return const Left(AuthFailure('Chưa đăng nhập'));
       }
 
-      // Gọi Firebase Storage để upload avatar
-      final avatarUrl = await remoteDataSource.updateAvatar(
+      // Gọi Firestore để cập nhật
+      final updatedProfile = await remoteDataSource.updateAvatarColor(
         userId: currentUser.id,
-        imagePath: imagePath,
+        color: color,
       );
 
-      // Cập nhật cache với avatar mới
-      final cachedProfile = await localDataSource.getCachedProfile();
-      if (cachedProfile != null) {
-        final updatedProfile = cachedProfile.copyWith(avatarUrl: avatarUrl);
-        await localDataSource.cacheProfile(updatedProfile);
-        await authLocalDataSource.saveUser(updatedProfile);
-      }
+      // Cập nhật cache
+      await localDataSource.cacheProfile(updatedProfile);
 
-      return Right(avatarUrl);
+      // Cập nhật user trong auth local storage
+      await authLocalDataSource.saveUser(updatedProfile);
+
+      return Right(updatedProfile);
     } on Failure catch (failure) {
       return Left(failure);
     } catch (e) {
       return const Left(
-        UnknownFailure('Lỗi không xác định khi cập nhật avatar'),
+        UnknownFailure('Lỗi không xác định khi cập nhật màu avatar'),
       );
     }
   }

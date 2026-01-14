@@ -1,7 +1,6 @@
 // lib/data/datasources/profile_remote_datasource.dart
 // Remote datasource cho Profile - Xử lý Firebase Firestore
 
-import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -19,10 +18,10 @@ abstract class ProfileRemoteDataSource {
     String? birthDate,
   });
 
-  /// Upload và cập nhật avatar
-  Future<String> updateAvatar({
+  /// Cập nhật màu avatar
+  Future<UserModel> updateAvatarColor({
     required String userId,
-    required String imagePath,
+    required String color,
   });
 }
 
@@ -119,43 +118,27 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   }
 
   @override
-  Future<String> updateAvatar({
+  Future<UserModel> updateAvatarColor({
     required String userId,
-    required String imagePath,
+    required String color,
   }) async {
     try {
-      final file = File(imagePath);
-      if (!await file.exists()) {
-        throw const ValidationFailure('File không tồn tại');
-      }
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .update({
+            'avatarColor': color,
+            'updatedAt': FieldValue.serverTimestamp(),
+          })
+          .timeout(const Duration(seconds: 5));
 
-      // Upload file lên Firebase Storage
-      final storageRef = storage.ref().child('avatars/$userId.jpg');
-      final uploadTask = await storageRef.putFile(
-        file,
-        SettableMetadata(contentType: 'image/jpeg'),
-      );
-
-      // Lấy download URL
-      final downloadUrl = await uploadTask.ref.getDownloadURL();
-
-      // Cập nhật avatarUrl trong Firestore
-      await firestore.collection('users').doc(userId).update({
-        'avatarUrl': downloadUrl,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-
-      // Cập nhật photoURL trong Firebase Auth
-      await firebaseAuth.currentUser?.updatePhotoURL(downloadUrl);
-
-      return downloadUrl;
+      // Lấy lại profile đã cập nhật
+      return await getUserProfile(userId);
     } on firebase_auth.FirebaseAuthException catch (e) {
       throw AuthFailure('Lỗi Firebase: ${e.message}');
-    } on FirebaseException catch (e) {
-      throw ServerFailure('Lỗi upload ảnh: ${e.message}');
     } catch (e) {
       if (e is Failure) rethrow;
-      throw const NetworkFailure('Không thể upload avatar');
+      throw const NetworkFailure('Không thể cập nhật màu avatar');
     }
   }
 }

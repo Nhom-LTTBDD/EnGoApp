@@ -21,11 +21,11 @@ abstract class ProfileRepository {
     String? birthDate,
   });
 
-  /// Cập nhật avatar
+  /// Cập nhật màu avatar
   ///
-  /// [imagePath] - Đường dẫn ảnh local
-  /// Returns: URL avatar mới nếu thành công, Failure nếu thất bại
-  Future<Either<Failure, String>> updateAvatar(String imagePath);
+  /// [color] - Màu avatar (vd: 'blue', 'green', 'purple')
+  /// Returns: User đã cập nhật nếu thành công, Failure nếu thất bại
+  Future<Either<Failure, User>> updateAvatarColor(String color);
 
   /// Xóa cache profile (dùng khi logout hoặc đổi user)
   ///

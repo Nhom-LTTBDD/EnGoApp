@@ -9,6 +9,7 @@ class User extends Equatable {
   final String name;
   final String? birthDate;
   final String? avatarUrl;
+  final String? avatarColor; // Màu avatar tùy chỉnh (null = auto)
 
   const User({
     required this.id,
@@ -16,6 +17,7 @@ class User extends Equatable {
     required this.name,
     this.birthDate,
     this.avatarUrl,
+    this.avatarColor,
   });
 
   /// Copy với các giá trị mới
@@ -25,6 +27,7 @@ class User extends Equatable {
     String? name,
     String? birthDate,
     String? avatarUrl,
+    String? avatarColor,
   }) {
     return User(
       id: id ?? this.id,
@@ -32,9 +35,17 @@ class User extends Equatable {
       name: name ?? this.name,
       birthDate: birthDate ?? this.birthDate,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      avatarColor: avatarColor ?? this.avatarColor,
     );
   }
 
   @override
-  List<Object?> get props => [id, email, name, birthDate, avatarUrl];
+  List<Object?> get props => [
+    id,
+    email,
+    name,
+    birthDate,
+    avatarUrl,
+    avatarColor,
+  ];
 }

@@ -8,11 +8,13 @@ import 'package:en_go_app/core/constants/app_assets.dart';
 import 'package:en_go_app/core/constants/app_text_styles.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/routes/app_routes.dart';
+import '../../../domain/entities/user.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/auth_state.dart';
 import '../../providers/profile/profile_provider.dart';
 import '../../providers/profile/profile_state.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/avatar_color_picker_dialog.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -125,8 +127,15 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  /// Tạo màu avatar dựa trên tên
-  Color _getAvatarColor(String name) {
+  /// Tạo màu avatar dựa trên tên hoặc màu tùy chỉnh
+  Color _getAvatarColor(User? user) {
+    // Nếu user đã chọn màu custom
+    if (user?.avatarColor != null) {
+      return AvatarColorPickerDialog.getColorFromName(user!.avatarColor!);
+    }
+
+    // Fallback: màu auto theo hashCode
+    final name = user?.name ?? 'U';
     final colors = [
       const Color(0xFF2196F3), // Blue
       const Color(0xFF4CAF50), // Green
@@ -140,6 +149,21 @@ class _ProfilePageState extends State<ProfilePage> {
 
     final index = name.hashCode.abs() % colors.length;
     return colors[index];
+  }
+
+  void _showColorPicker(BuildContext context) {
+    final profileProvider = context.read<ProfileProvider>();
+    final currentColor = profileProvider.currentUser?.avatarColor;
+
+    showDialog(
+      context: context,
+      builder: (context) => AvatarColorPickerDialog(
+        currentColor: currentColor,
+        onColorSelected: (color) {
+          profileProvider.updateAvatarColor(color);
+        },
+      ),
+    );
   }
 
   @override
@@ -197,30 +221,61 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Avatar mặc định với chữ cái đầu
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: kPrimaryColor.withOpacity(0.3),
-                              blurRadius: 15,
-                              spreadRadius: 3,
+                      // Avatar mặc định với chữ cái đầu + button edit màu
+                      Stack(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: kPrimaryColor.withOpacity(0.3),
+                                  blurRadius: 15,
+                                  spreadRadius: 3,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: CircleAvatar(
-                          radius: 75,
-                          backgroundColor: _getAvatarColor(user?.name ?? 'U'),
-                          child: Text(
-                            _getInitials(user?.name ?? 'User'),
-                            style: const TextStyle(
-                              fontSize: 48,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                            child: CircleAvatar(
+                              radius: 75,
+                              backgroundColor: _getAvatarColor(user),
+                              child: Text(
+                                _getInitials(user?.name ?? 'User'),
+                                style: const TextStyle(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                          // Button chọn màu
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: GestureDetector(
+                              onTap: () => _showColorPicker(context),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 4,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.palette,
+                                  color: kPrimaryColor,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 30),
 
