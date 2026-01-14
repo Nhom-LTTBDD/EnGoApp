@@ -10,6 +10,7 @@ import 'presentation/providers/profile/profile_provider.dart';
 import 'presentation/providers/vocabulary_provider.dart';
 import 'presentation/providers/grammar_provider.dart';
 import 'presentation/providers/theme/theme_provider.dart';
+import 'presentation/providers/toeic_test_provider.dart';
 import 'routes/app_routes.dart';
 
 void main() {
@@ -106,6 +107,7 @@ class _MyAppState extends State<MyApp> {
         ),
         ChangeNotifierProvider(create: (_) => di.sl<VocabularyProvider>()),
         ChangeNotifierProvider(create: (_) => di.sl<GrammarProvider>()),
+        ChangeNotifierProvider(create: (_) => ToeicTestProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
