@@ -1,5 +1,6 @@
 // lib/presentation/providers/toeic_test_provider.dart
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../domain/entities/toeic_test_session.dart';
@@ -12,6 +13,7 @@ class ToeicTestProvider extends ChangeNotifier {
   bool _isAudioPlaying = false;
   Duration _audioDuration = Duration.zero;
   Duration _audioPosition = Duration.zero;
+  Timer? _timer;
 
   ToeicTestSession? get session => _session;
   List<ToeicQuestion> get questions => _questions;
@@ -48,8 +50,33 @@ class ToeicTestProvider extends ChangeNotifier {
       startTime: DateTime.now(),
     );
     _questions = questions;
+    
+    // Initialize audio player
     _initAudioPlayer();
+    
+    // Start timer if time limit is set
+    if (timeLimit != null && timeLimit > 0) {
+      _startTimer();
+    }
+    
     notifyListeners();
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_session != null) {
+        final remainingTime = _session!.remainingTime;
+        if (remainingTime != null && remainingTime <= Duration.zero) {
+          // Time's up
+          timer.cancel();
+          finishTest();
+        } else {
+          // Just notify listeners to update UI
+          notifyListeners();
+        }
+      }
+    });
   }
 
   void _initAudioPlayer() {
@@ -97,6 +124,8 @@ class ToeicTestProvider extends ChangeNotifier {
 
   Future<void> stopAudio() async {
     await _audioPlayer?.stop();
+    _isAudioPlaying = false;
+    notifyListeners();
   }
 
   void selectAnswer(int questionNumber, String answer) {
@@ -157,8 +186,8 @@ class ToeicTestProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Map<String, dynamic> finishTest() {
-    if (_session == null)
+  Map<String, dynamic> finishTestAndGetResults() {
+    if (_session == null) {
       return {
         'totalQuestions': 0,
         'answered': 0,
@@ -167,6 +196,7 @@ class ToeicTestProvider extends ChangeNotifier {
         'duration': Duration.zero,
         'userAnswers': {},
       };
+    }
 
     final correctAnswers = _questions.where((q) {
       final userAnswer = _session!.userAnswers[q.questionNumber];
@@ -184,12 +214,32 @@ class ToeicTestProvider extends ChangeNotifier {
       'userAnswers': _session!.userAnswers,
     };
 
-    // Don't dispose here - let the widget handle cleanup
+    // Stop audio when test is finished
+    stopAudio();
+
     return result;
+  }
+
+  void finishTest() {
+    _timer?.cancel();
+    stopAudio();
+    _session = null;
+    _questions.clear();
+    notifyListeners();
+  }
+
+  void cleanupTest() {
+    _timer?.cancel();
+    stopAudio();
+    _session = null;
+    _questions.clear();
+    notifyListeners();
   }
 
   @override
   void dispose() {
+    _timer?.cancel();
+    _audioPlayer?.stop();
     _audioPlayer?.dispose();
     _audioPlayer = null;
     super.dispose();

@@ -86,9 +86,14 @@ class RouteGenerator {
         final testId = args?['testId']?.toString() ?? '1';
         final testName = args?['testName'] as String? ?? 'TOEIC Test';
         final test = args?['test'] as ToeicTest?;
+        final partNumber = args?['partNumber'] as int?;
         return MaterialPageRoute(
-          builder: (_) =>
-              ToeicDetailPage(testId: testId, testName: testName, test: test),
+          builder: (_) => ToeicDetailPage(
+            testId: testId,
+            testName: testName,
+            test: test,
+            partNumber: partNumber,
+          ),
         );
       case AppRoutes.toeicTestTaking:
         final args = settings.arguments as Map<String, dynamic>?;
