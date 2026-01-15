@@ -55,10 +55,10 @@ dependencies:
   # Presentation Layer Dependencies
   provider: ^6.1.1
   get_it: ^7.6.4
-
   # Utilities
   intl: ^0.19.0
   image_picker: ^1.0.7
+  audioplayers: ^6.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

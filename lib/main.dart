@@ -6,6 +6,7 @@ import 'core/di/injection_container.dart' as di;
 import 'presentation/providers/auth/auth_provider.dart';
 import 'presentation/providers/profile/profile_provider.dart';
 import 'presentation/providers/vocabulary_provider.dart';
+import 'presentation/providers/personal_vocabulary_provider.dart';
 import 'presentation/providers/grammar_provider.dart';
 import 'routes/app_routes.dart';
 
@@ -85,6 +86,7 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (_) => di.sl<AuthProvider>()),
         ChangeNotifierProvider(create: (_) => di.sl<ProfileProvider>()),
         ChangeNotifierProvider(create: (_) => di.sl<VocabularyProvider>()),
+        ChangeNotifierProvider(create: (_) => di.sl<PersonalVocabularyProvider>()),
         ChangeNotifierProvider(create: (_) => di.sl<GrammarProvider>()),
       ],
       child: MaterialApp(

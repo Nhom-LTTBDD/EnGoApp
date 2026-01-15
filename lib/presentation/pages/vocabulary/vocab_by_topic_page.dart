@@ -4,123 +4,187 @@ import 'package:flutter/material.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/core/constants/app_spacing.dart';
-import 'package:en_go_app/core/constants/app_assets.dart';
+import 'package:get_it/get_it.dart';
+import '../../../domain/repository_interfaces/vocabulary_repository.dart';
+import '../../../domain/entities/vocabulary_topic.dart';
 import '../../widgets/topic_card.dart';
 
-class VocabByTopicPage extends StatelessWidget {
+class VocabByTopicPage extends StatefulWidget {
   const VocabByTopicPage({super.key});
+
+  @override
+  State<VocabByTopicPage> createState() => _VocabByTopicPageState();
+}
+
+class _VocabByTopicPageState extends State<VocabByTopicPage> {
+  late Future<List<VocabularyTopic>> _topicsFuture;
+  final _vocabularyRepository = GetIt.instance<VocabularyRepository>();
+
+  @override
+  void initState() {
+    super.initState();
+    _topicsFuture = _vocabularyRepository.getVocabularyTopics();
+  }
+
+  // Icon mapping cho các topics
+  String _getTopicEmoji(String topicId) {
+    switch (topicId) {
+      case 'food':
+        return '🍔';
+      case 'business':
+        return '💼';
+      case 'technology':
+        return '💻';
+      case 'travel':
+        return '✈️';
+      case 'health':
+        return '🏥';
+      case 'education':
+        return '📚';
+      case 'nature':
+        return '🌳';
+      default:
+        return '📖';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return MainLayout(
-      title: 'VOCABULARY',
+      title: 'VOCABULARY TOPICS',
       currentIndex: -1,
       child: Container(
         width: double.infinity,
         decoration: const BoxDecoration(color: kBackgroundColor),
         child: Column(
           children: [
-            // List topics
-            Expanded(
-              child: Container(
-                color: kBackgroundColor,
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    // Subtitle section - sẽ scroll cùng list
-                    Container(
-                      width: double.infinity,
-                      height: 80,
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Bộ từ vựng',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w600,
-                          color: kTextPrimary,
-                        ),
-                      ),
+            // Header section
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: spaceMd,
+                vertical: spaceLg,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Chọn Chủ Đề',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: kTextPrimary,
                     ),
-                    // Cards trong padding container
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: spaceMd),
+                  ),
+                  const SizedBox(height: spaceSm),
+                  Text(
+                    'Khám phá từ vựng theo các chủ đề khác nhau',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: kTextSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Topics list
+            Expanded(
+              child: FutureBuilder<List<VocabularyTopic>>(
+                future: _topicsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          TopicCard(
-                            title: 'Tên Chủ Đề',
-                            imageAsset:
-                                kBackgroundJpg, // Tạm thời dùng ảnh background
-                            onTap: () {
-                              // Navigate to topic detail with topicId
-                              Navigator.pushNamed(
-                                context,
-                                AppRoutes.vocabMenu,
-                                arguments: {'topicId': 'topic_1'},
-                              );
-                            },
+                          Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: kTextThird,
                           ),
                           const SizedBox(height: spaceMd),
-                          TopicCard(
-                            title: 'Tên Chủ Đề',
-                            imageAsset:
-                                kBackgroundJpg, // Tạm thời dùng ảnh eagle
-                            onTap: () {
-                              // Navigate to topic detail with topicId
-                              Navigator.pushNamed(
-                                context,
-                                AppRoutes.vocabMenu,
-                                arguments: {'topicId': 'topic_2'},
-                              );
-                            },
+                          Text(
+                            'Không thể tải danh sách chủ đề',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: kTextSecondary,
+                            ),
                           ),
-                          const SizedBox(height: spaceMd),
-                          TopicCard(
-                            title: 'Tên Chủ Đề',
-                            imageAsset:
-                                kBackgroundJpg, // Tạm thời dùng ảnh swift
-                            onTap: () {
-                              // Navigate to topic detail with topicId
-                              Navigator.pushNamed(
-                                context,
-                                AppRoutes.vocabMenu,
-                                arguments: {'topicId': 'topic_3'},
-                              );
+                          const SizedBox(height: spaceSm),
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _topicsFuture =
+                                    _vocabularyRepository.getVocabularyTopics();
+                              });
                             },
+                            child: const Text('Thử lại'),
                           ),
-                          const SizedBox(height: spaceMd),
-                          TopicCard(
-                            title: 'Tên Chủ Đề',
-                            imageAsset:
-                                kBackgroundJpg, // Tạm thời dùng ảnh background
-                            onTap: () {
-                              // Navigate to topic detail with topicId
-                              Navigator.pushNamed(
-                                context,
-                                AppRoutes.vocabMenu,
-                                arguments: {'topicId': 'topic_4'},
-                              );
-                            },
-                          ),
-                          const SizedBox(height: spaceMd),
-                          TopicCard(
-                            title: 'Tên Chủ Đề',
-                            imageAsset:
-                                kBackgroundJpg, // Tạm thời dùng ảnh eagle
-                            onTap: () {
-                              // Navigate to topic detail with topicId
-                              Navigator.pushNamed(
-                                context,
-                                AppRoutes.vocabMenu,
-                                arguments: {'topicId': 'topic_5'},
-                              );
-                            },
-                          ),
-                          const SizedBox(height: spaceMd), // Padding bottom
                         ],
                       ),
+                    );
+                  }
+
+                  final topics = snapshot.data ?? [];
+
+                  if (topics.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.inbox_outlined,
+                            size: 64,
+                            color: kTextThird,
+                          ),
+                          const SizedBox(height: spaceMd),
+                          Text(
+                            'Chưa có chủ đề nào',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: kTextSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: spaceMd,
+                      vertical: spaceSm,
                     ),
-                  ],
-                ),
+                    itemCount: topics.length,
+                    itemBuilder: (context, index) {
+                      final topic = topics[index];
+                      final emoji = _getTopicEmoji(topic.id);
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: spaceMd),
+                        child: TopicCard(
+                          title: topic.name,
+                          subtitle: topic.description,
+                          cardCount: topic.cards.length,
+                          emoji: emoji,
+                          imageAsset: topic.imageUrl,
+                          onTap: () {
+                            // Navigate to vocab menu with topic
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutes.vocabMenu,
+                              arguments: {'topicId': topic.id},
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  );},
               ),
             ),
           ],

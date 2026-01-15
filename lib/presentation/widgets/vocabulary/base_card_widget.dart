@@ -19,6 +19,8 @@ class BaseCardWidget extends StatelessWidget {
   final double? height;
   final VoidCallback? onSoundPressed;
   final Widget? extraWidget; // Widget bổ sung (như nút fullscreen)
+  final bool isBookmarked; // Trạng thái bookmark
+  final VoidCallback? onBookmarkPressed; // Callback khi nhấn bookmark
 
   const BaseCardWidget({
     super.key,
@@ -30,6 +32,8 @@ class BaseCardWidget extends StatelessWidget {
     this.height,
     this.onSoundPressed,
     this.extraWidget,
+    this.isBookmarked = false,
+    this.onBookmarkPressed,
   });
 
   @override
@@ -105,16 +109,73 @@ class BaseCardWidget extends StatelessWidget {
         // Main content
         Center(child: _buildMainContent(isShowingFront)),
 
-        // Sound button (chỉ cho flashcard style và mặt trước)
-        if (style == CardStyle.flashcard &&
-            isShowingFront &&
-            onSoundPressed != null)
+        // Sound button - hiển thị cho cả flashcard và simple style ở mặt trước
+        if (isShowingFront && onSoundPressed != null && card.audioUrl != null)
           Positioned(
-            top: 16,
-            left: 16,
-            child: IconButton(
-              onPressed: onSoundPressed,
-              icon: const Icon(Icons.volume_up, size: 24, color: Colors.grey),
+            top: style == CardStyle.flashcard ? 16 : 8,
+            left: style == CardStyle.flashcard ? 16 : 8,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onSoundPressed,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: style == CardStyle.flashcard
+                        ? Colors.white.withOpacity(0.9)
+                        : kSurfaceColor.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.volume_up,
+                    size: style == CardStyle.flashcard ? 24 : 20,
+                    color: kPrimaryColor,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+        // Bookmark button - hiển thị ở góc phải trên
+        if (isShowingFront && onBookmarkPressed != null)
+          Positioned(
+            top: style == CardStyle.flashcard ? 16 : 8,
+            right: style == CardStyle.flashcard ? 16 : 8,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onBookmarkPressed,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: style == CardStyle.flashcard
+                        ? Colors.white.withOpacity(0.9)
+                        : kSurfaceColor.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    isBookmarked ? Icons.star : Icons.star_border,
+                    size: style == CardStyle.flashcard ? 24 : 20,
+                    color: isBookmarked ? Colors.amber : kTextThird,
+                  ),
+                ),
+              ),
             ),
           ),
 
@@ -168,53 +229,103 @@ class BaseCardWidget extends StatelessWidget {
           ),
           textAlign: TextAlign.center,
         ),
+        // Hiển thị phonetic nếu có
+        if (card.phonetic != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            card.phonetic!,
+            style: TextStyle(
+              fontSize: 16,
+              color: kTextThird,
+              fontStyle: FontStyle.italic,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+        // Hiển thị part of speech nếu có
+        if (card.partsOfSpeech != null && card.partsOfSpeech!.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(
+            card.partsOfSpeech!.join(', '),
+            style: TextStyle(
+              fontSize: 14,
+              color: kTextSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ],
     );
   }
 
   Widget _buildBackContent() {
     if (style == CardStyle.simple) {
-      // Simple style - hiển thị tiếng Việt + nghĩa ở mặt sau
-      return Column(
+      // Simple style - hiển thị tiếng Việt + nghĩa + định nghĩa từ dictionary
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              card.vietnamese,
+              style: kFlashcardText,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              card.meaning,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.grey,
+                fontStyle: FontStyle.italic,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            // Hiển thị definition đầu tiên từ dictionary
+            if (card.definitions != null && card.definitions!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: kSurfaceColor.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  card.definitions!.first,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: kTextSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    }
+
+    // Flashcard style - hiển thị tiếng Việt + nghĩa + thông tin chi tiết từ dictionary
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             card.vietnamese,
-            style: kFlashcardText,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            card.meaning,
             style: const TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-              fontStyle: FontStyle.italic,
+              fontSize: 25,
+              fontWeight: FontWeight.w500,
+              color: kTextPrimary,
+              letterSpacing: 0.5,
             ),
             textAlign: TextAlign.center,
           ),
-        ],
-      );
-    }
-
-    // Flashcard style - hiển thị tiếng Việt + nghĩa ở mặt sau
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          card.vietnamese,
-          style: const TextStyle(
-            fontSize: 25,
-            fontWeight: FontWeight.w500,
-            color: kTextPrimary,
-            letterSpacing: 0.5,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text(
+          const SizedBox(height: 12),
+          Text(
             card.meaning,
             style: TextStyle(
               fontSize: 16,
@@ -223,8 +334,57 @@ class BaseCardWidget extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-        ),
-      ],
+          // Hiển thị definitions từ dictionary
+          if (card.definitions != null && card.definitions!.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 8),
+            ...card.definitions!.take(2).map((definition) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('• ', style: TextStyle(fontSize: 14)),
+                      Expanded(
+                        child: Text(
+                          definition,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: kTextSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+          ],
+          // Hiển thị examples từ dictionary
+          if (card.examples != null && card.examples!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            const Text(
+              'Examples:',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: kTextPrimary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            ...card.examples!.take(1).map((example) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(
+                    '"$example"',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: kTextThird,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                )),
+          ],
+        ],
+      ),
     );
   }
 
