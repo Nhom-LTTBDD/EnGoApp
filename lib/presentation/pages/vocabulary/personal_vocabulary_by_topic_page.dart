@@ -4,8 +4,8 @@ import 'package:en_go_app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
-import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/core/constants/app_spacing.dart';
+import 'package:en_go_app/core/theme/theme_helper.dart';
 import '../../widgets/topic_card.dart';
 import '../../providers/personal_vocabulary_provider.dart';
 
@@ -71,10 +71,9 @@ class _PersonalVocabularyByTopicPageState
   Widget build(BuildContext context) {
     return MainLayout(
       title: 'BỘ TỪ CỦA BẠN',
-      currentIndex: -1,
-      child: Container(
+      currentIndex: -1,      child: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(color: kBackgroundColor),
+        decoration: BoxDecoration(color: getBackgroundColor(context)),
         child: Column(
           children: [
             // Header section
@@ -86,13 +85,12 @@ class _PersonalVocabularyByTopicPageState
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
+                children: [                  Text(
                     'Bộ Từ Của Bạn',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: kTextPrimary,
+                      color: getTextPrimary(context),
                     ),
                   ),
                   const SizedBox(height: spaceSm),
@@ -102,7 +100,7 @@ class _PersonalVocabularyByTopicPageState
                         'Bạn đã lưu ${provider.cardCount} từ vựng',
                         style: TextStyle(
                           fontSize: 16,
-                          color: kTextSecondary,
+                          color: getTextSecondary(context),
                         ),
                       );
                     },
@@ -125,18 +123,17 @@ class _PersonalVocabularyByTopicPageState
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
+                        children: [                          Icon(
                             Icons.error_outline,
                             size: 64,
-                            color: kTextThird,
+                            color: getTextThird(context),
                           ),
                           const SizedBox(height: spaceMd),
                           Text(
                             'Không thể tải bộ từ của bạn',
                             style: TextStyle(
                               fontSize: 16,
-                              color: kTextSecondary,
+                              color: getTextSecondary(context),
                             ),
                           ),
                           const SizedBox(height: spaceSm),
@@ -155,11 +152,10 @@ class _PersonalVocabularyByTopicPageState
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
+                        children: [                          Icon(
                             Icons.star_border,
                             size: 80,
-                            color: kTextThird,
+                            color: getTextThird(context),
                           ),
                           const SizedBox(height: spaceMd),
                           Text(
@@ -167,7 +163,7 @@ class _PersonalVocabularyByTopicPageState
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
-                              color: kTextSecondary,
+                              color: getTextSecondary(context),
                             ),
                           ),
                           const SizedBox(height: spaceSm),
@@ -175,7 +171,7 @@ class _PersonalVocabularyByTopicPageState
                             'Nhấn vào dấu sao ⭐ trên thẻ từ vựng\nđể lưu vào bộ từ của bạn',
                             style: TextStyle(
                               fontSize: 14,
-                              color: kTextThird,
+                              color: getTextThird(context),
                             ),
                             textAlign: TextAlign.center,
                           ),

@@ -6,6 +6,7 @@ import '../../providers/toeic_test_provider.dart';
 import '../../layout/main_layout.dart';
 import '../../../domain/entities/toeic_question.dart';
 import '../../../domain/entities/toeic_test_session.dart';
+import '../../../data/datasources/toeic_sample_data.dart';
 
 class ToeicTestTakingPage extends StatefulWidget {
   final String testId;
@@ -41,9 +42,46 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
   Future<void> _loadTest() async {
     final provider = context.read<ToeicTestProvider>();
 
-    // Use passed questions or fallback to mock data
-    final questions = widget.questions ?? _generateMockQuestions();
+    // Load questions from JSON or use passed questions
+    List<ToeicQuestion> questions;
+    if (widget.questions != null) {
+      questions = widget.questions!;
+      print('Using passed questions: ${questions.length}');
+    } else {
+      // Load questions for selected parts from JSON
+      questions = [];
+      print('Loading questions for parts: ${widget.selectedParts}');
 
+      for (int partNumber in widget.selectedParts) {
+        print('Loading part $partNumber...');
+        final partQuestions = await ToeicSampleData.getQuestionsByPart(
+          partNumber,
+        );
+        print('Loaded ${partQuestions.length} questions for part $partNumber');
+        questions.addAll(partQuestions);
+      }
+
+      print('Total questions loaded: ${questions.length}');
+
+      // If no questions loaded, show error
+      if (questions.isEmpty) {
+        print('No questions loaded, showing error message');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'No questions available for selected parts. Please check if JSON data is loaded correctly.',
+              ),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 5),
+            ),
+          );
+        }
+        return;
+      }
+    }
+
+    print('Starting test with ${questions.length} questions');
     provider.startTest(
       testId: widget.testId,
       testName: widget.testName,
@@ -60,66 +98,12 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     }
   }
 
-  List<ToeicQuestion> _generateMockQuestions() {
-    // Mock data for testing - replace with Firebase fetch
-    final partNumber = widget.selectedParts.first;
-
-    return List.generate(10, (index) {
-      final questionNumber = index + 1;
-
-      // Part 1: Image with audio description (no text)
-      if (partNumber == 1) {
-        return ToeicQuestion(
-          id: 'q$questionNumber',
-          testId: widget.testId,
-          partNumber: 1,
-          questionNumber: questionNumber,
-          questionType: 'image-audio',
-          questionText: null, // Part 1 không có text
-          imageUrl: 'https://picsum.photos/400/300?random=$questionNumber',
-          audioUrl: 'sample_audio_url_$questionNumber.mp3',
-          options: ['A', 'B', 'C', 'D'], // Chỉ có chữ cái, không có text
-          correctAnswer: 'A',
-          explanation: 'This is the explanation for question $questionNumber',
-          order: questionNumber,
-          groupId: null,
-          passageText: null,
-        );
-      }
-
-      // Other parts: Normal questions with text
-      return ToeicQuestion(
-        id: 'q$questionNumber',
-        testId: widget.testId,
-        partNumber: partNumber,
-        questionNumber: questionNumber,
-        questionType: 'multiple-choice',
-        questionText:
-            'This is sample question $questionNumber. Choose the best answer.',
-        imageUrl: null,
-        audioUrl: partNumber <= 4
-            ? 'sample_audio_url_$questionNumber.mp3'
-            : null,
-        options: [
-          'Option A for question $questionNumber',
-          'Option B for question $questionNumber',
-          'Option C for question $questionNumber',
-          'Option D for question $questionNumber',
-        ],
-        correctAnswer: 'A',
-        explanation: 'This is the explanation for question $questionNumber',
-        order: questionNumber,
-        groupId: null,
-        passageText: null,
-      );
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return MainLayout(
       title: widget.testName,
       currentIndex: 1,
+      showBottomNav: false, // Ẩn bottom navigation trong test
       child: Consumer<ToeicTestProvider>(
         builder: (context, provider, child) {
           final session = provider.session;
@@ -145,49 +129,13 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Question number
-                        Text(
-                          '${question.questionNumber}.',
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
+                        // Check if this is Part 3 (conversation)
+                        if (question.partNumber == 3)
+                          _buildPart3Questions(provider)
+                        else
+                          _buildSingleQuestion(provider, question),
 
-                        // Audio player
-                        if (!widget.isFullTest && question.audioUrl != null)
-                          _buildAudioPlayer(provider, question.audioUrl!),
-
-                        // Image
-                        if (question.imageUrl != null)
-                          Container(
-                            height: 200,
-                            width: double.infinity,
-                            margin: const EdgeInsets.only(bottom: 16),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              image: DecorationImage(
-                                image: NetworkImage(question.imageUrl!),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-
-                        // Options
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                _buildOptions(provider, question),
-                                const SizedBox(height: 16),
-                                _buildQuestionGrid(provider),
-                              ],
-                            ),
-                          ),
-                        ),
-
+                        const SizedBox(height: 16),
                         // Navigation buttons
                         _buildNavigationButtons(provider),
                       ],
@@ -202,48 +150,180 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     );
   }
 
+  // Build UI for single question (Part 1, 2, 4-7)
+  Widget _buildSingleQuestion(
+    ToeicTestProvider provider,
+    ToeicQuestion question,
+  ) {
+    return Expanded(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Question number
+            Text(
+              '${question.questionNumber}.',
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+
+            // Audio player
+            if (!widget.isFullTest && question.audioUrl != null)
+              _buildAudioPlayer(provider, question.audioUrl!),
+
+            // Image (only for Part 1)
+            if (question.imageUrl != null && question.partNumber == 1)
+              Container(
+                height: 200,
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  image: DecorationImage(
+                    image: AssetImage(
+                      question.imageUrl!.replaceAll('.jpg', '.png'),
+                    ),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+
+            // Question text (only for Part 3 and above)
+            if (question.questionText != null && question.partNumber >= 3)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(
+                  question.questionText!,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+
+            // Part 1 and 2: Only show simple A,B,C,D buttons
+            if (question.partNumber <= 2)
+              _buildSimpleOptions(provider, question)
+            // Part 3+: Show full options with text
+            else
+              _buildOptions(provider, question),
+
+            const SizedBox(height: 24),
+            // Question grid - moved to scrollable area
+            _buildQuestionGrid(provider),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Build UI for Part 3 conversation questions (3 questions per audio)
+  Widget _buildPart3Questions(ToeicTestProvider provider) {
+    final currentQuestion = provider.currentQuestion;
+    if (currentQuestion == null) return Container();
+
+    // Find all questions in the same group (conversation)
+    final groupQuestions =
+        provider.questions
+            .where(
+              (q) => q.partNumber == 3 && q.groupId == currentQuestion.groupId,
+            )
+            .toList()
+          ..sort((a, b) => a.questionNumber.compareTo(b.questionNumber));
+
+    if (groupQuestions.isEmpty)
+      return _buildSingleQuestion(provider, currentQuestion);
+
+    return Expanded(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Conversation header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E90FF).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'Questions ${groupQuestions.first.questionNumber}-${groupQuestions.last.questionNumber}',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E90FF),
+                ),
+              ),
+            ),
+
+            // Audio player - only for first question in group
+            if (!widget.isFullTest && groupQuestions.first.audioUrl != null)
+              _buildAudioPlayer(provider, groupQuestions.first.audioUrl!),
+
+            // All 3 questions
+            ...groupQuestions
+                .map(
+                  (question) => Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Question number and text
+                        Text(
+                          '${question.questionNumber}. ${question.questionText ?? 'Listen to the conversation and choose the best answer.'}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Options for this question
+                        _buildOptions(provider, question),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
+
+            const SizedBox(height: 24),
+            // Question grid - moved to scrollable area
+            _buildQuestionGrid(provider),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildHeader(ToeicTestSession session, ToeicTestProvider provider) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
       decoration: const BoxDecoration(color: Color(0xFF1E90FF)),
       child: Column(
         children: [
-          // Top row with logo and Finish button
+          // Time và btn finish
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Logo TOEIC
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Text(
-                      'TOEIC',
-                      style: TextStyle(
-                        color: Color(0xFF1E90FF),
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      width: 6,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E90FF),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              if (session.timeLimit != null)
+                Text(
+                  'Time: ${_formatDuration(session.remainingTime ?? Duration.zero)}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                )
+              else
+                const SizedBox(), // Empty space if no time limit
               // Finish button
               ElevatedButton(
                 onPressed: () => _showFinishConfirmation(context, provider),
@@ -265,20 +345,6 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          // Time display
-          if (session.timeLimit != null)
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Time: ${_formatDuration(session.remainingTime ?? Duration.zero)}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -293,10 +359,6 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              shape: BoxShape.circle,
-            ),
             child: IconButton(
               onPressed: () {
                 if (provider.isAudioPlaying) {
@@ -307,24 +369,24 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
               },
               icon: Icon(
                 provider.isAudioPlaying ? Icons.pause : Icons.play_arrow,
-                size: 24,
-                color: Colors.black87,
+                size: 30,
+                color: Colors.grey[400],
               ),
               padding: EdgeInsets.zero,
             ),
           ),
           const SizedBox(width: 12),
-          // Progress bar
+          // Thanh audio
           Expanded(
             child: LinearProgressIndicator(
               value: provider.audioDuration.inSeconds > 0
                   ? provider.audioPosition.inSeconds /
                         provider.audioDuration.inSeconds
-                  : 0.3, // Mock progress for demo
+                  : 0.3,
               backgroundColor: Colors.grey[300],
               valueColor: const AlwaysStoppedAnimation<Color>(
                 Color(0xFF4CAF50),
-              ), // Green color
+              ),
               minHeight: 8,
             ),
           ),
@@ -376,10 +438,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
       height: 250,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        image: DecorationImage(
-          image: NetworkImage(imageUrl),
-          fit: BoxFit.cover,
-        ),
+        image: DecorationImage(image: AssetImage(imageUrl), fit: BoxFit.cover),
       ),
     );
   }
@@ -413,19 +472,22 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
       children: question.options.asMap().entries.map<Widget>((entry) {
         final index = entry.key;
         final optionLetter = String.fromCharCode(65 + index); // A, B, C, D
+        final optionText = entry.value;
         final isSelected = userAnswer == optionLetter;
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
-          child: Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  provider.selectAnswer(question.questionNumber, optionLetter);
-                },
-                child: Container(
+          child: GestureDetector(
+            onTap: () {
+              provider.selectAnswer(question.questionNumber, optionLetter);
+            },
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
                   width: 24,
                   height: 24,
+                  margin: const EdgeInsets.only(top: 2),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isSelected
@@ -436,53 +498,178 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                       ? const Icon(Icons.check, color: Colors.white, size: 16)
                       : null,
                 ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                '$optionLetter.',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.black87,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: '$optionLetter. ',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18,
+                          ),
+                        ),
+                        TextSpan(
+                          text: optionText,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       }).toList(),
     );
   }
 
+  // Build simple A,B,C,D options for Part 1 and 2 (no text content)
+  Widget _buildSimpleOptions(
+    ToeicTestProvider provider,
+    ToeicQuestion question,
+  ) {
+    final userAnswer = provider.getAnswer(question.questionNumber);
+
+    // Part 2 only has 3 options (A, B, C), Part 1 has 4 (A, B, C, D)
+    final optionCount = question.partNumber == 2 ? 3 : 4;
+
+    return Column(
+      children: List.generate(optionCount, (index) {
+        final optionLetter = String.fromCharCode(65 + index); // A, B, C, D
+        final isSelected = userAnswer == optionLetter;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: GestureDetector(
+            onTap: () {
+              provider.selectAnswer(question.questionNumber, optionLetter);
+            },
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  margin: const EdgeInsets.only(top: 2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isSelected
+                        ? const Color(0xFF1E90FF) // Màu xanh dương khi chọn
+                        : Colors.grey[400], // Màu xám khi không chọn
+                  ),
+                  child: isSelected
+                      ? const Icon(Icons.check, color: Colors.white, size: 16)
+                      : null,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  '$optionLetter.',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
   Widget _buildNavigationButtons(ToeicTestProvider provider) {
+    final currentQuestion = provider.currentQuestion;
+    final isPart3 = currentQuestion?.partNumber == 3;
+
     return Align(
       alignment: Alignment.centerRight,
       child: Container(
-        width: 60,
-        height: 60,
+        width: 50,
+        height: 50,
         decoration: BoxDecoration(
           color: const Color(0xFF6B8CAE),
           borderRadius: BorderRadius.circular(8),
         ),
         child: IconButton(
-          onPressed: provider.hasNextQuestion
-              ? () => provider.nextQuestion()
-              : () => _showFinishConfirmation(context, provider),
+          onPressed: () {
+            if (isPart3) {
+              // For Part 3, jump to next conversation group
+              _moveToNextConversationGroup(provider);
+            } else if (provider.hasNextQuestion) {
+              provider.nextQuestion();
+            } else {
+              _showFinishConfirmation(context, provider);
+            }
+          },
           icon: const Icon(Icons.arrow_forward, color: Colors.white, size: 28),
         ),
       ),
     );
   }
 
+  void _moveToNextConversationGroup(ToeicTestProvider provider) {
+    final currentQuestion = provider.currentQuestion;
+    if (currentQuestion == null) return;
+
+    // Find the last question in current group
+    final currentGroupQuestions =
+        provider.questions
+            .where(
+              (q) => q.partNumber == 3 && q.groupId == currentQuestion.groupId,
+            )
+            .toList()
+          ..sort((a, b) => a.questionNumber.compareTo(b.questionNumber));
+
+    if (currentGroupQuestions.isEmpty) {
+      if (provider.hasNextQuestion) {
+        provider.nextQuestion();
+      } else {
+        _showFinishConfirmation(context, provider);
+      }
+      return;
+    }
+
+    // Find the index of the last question in this group
+    final lastQuestionInGroup = currentGroupQuestions.last;
+    final lastQuestionIndex = provider.questions.indexWhere(
+      (q) => q.questionNumber == lastQuestionInGroup.questionNumber,
+    );
+
+    // Move to next question after the group (or finish if no more questions)
+    if (lastQuestionIndex >= 0 &&
+        lastQuestionIndex < provider.questions.length - 1) {
+      provider.goToQuestion(lastQuestionIndex + 1);
+    } else {
+      _showFinishConfirmation(context, provider);
+    }
+  }
+
   Widget _buildQuestionGrid(ToeicTestProvider provider) {
     const itemsPerRow = 9;
-    final totalQuestions = provider.totalQuestions;
+    final questions = provider.questions;
+    if (questions.isEmpty) return Container();
+
+    // Get the actual question numbers from the loaded questions
+    final questionNumbers = questions.map((q) => q.questionNumber).toList()
+      ..sort();
+    final minQuestion = questionNumbers.first;
+    final maxQuestion = questionNumbers.last;
+    final totalQuestions = questions.length;
+
     final rows = (totalQuestions / itemsPerRow).ceil();
 
     return Container(
       child: Column(
         children: List.generate(rows, (rowIndex) {
           final startIndex = rowIndex * itemsPerRow;
-          final endIndex = (startIndex + itemsPerRow).clamp(0, totalQuestions);
 
           return Padding(
             padding: const EdgeInsets.only(bottom: 6),
@@ -493,8 +680,10 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                   return Expanded(child: Container());
                 }
 
-                final questionNumber = questionIndex + 1;
-                final isAnswered = provider.getAnswer(questionNumber) != null;
+                // Use actual question number from the loaded questions
+                final actualQuestionNumber = questionNumbers[questionIndex];
+                final isAnswered =
+                    provider.getAnswer(actualQuestionNumber) != null;
                 final isCurrent = questionIndex == provider.currentIndex;
 
                 return Expanded(
@@ -521,7 +710,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                       ),
                       child: Center(
                         child: Text(
-                          questionNumber.toString(),
+                          actualQuestionNumber.toString(),
                           style: TextStyle(
                             color: isCurrent ? Colors.white : Colors.black87,
                             fontWeight: FontWeight.w600,
@@ -597,7 +786,8 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
             onPressed: () {
               Navigator.pop(context);
               try {
-                final result = provider.finishTest();
+                final result = provider.finishTestAndGetResults();
+                provider.finishTest();
                 if (mounted) {
                   _showResults(context, result);
                 }

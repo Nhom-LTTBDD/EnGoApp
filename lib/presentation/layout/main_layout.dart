@@ -8,19 +8,23 @@ class MainLayout extends StatelessWidget {
   final Widget child;
   final int currentIndex;
   final String title;
+  final bool showBottomNav;
 
   const MainLayout({
     super.key,
     required this.child,
     required this.currentIndex,
     required this.title,
+    this.showBottomNav = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppHeader(title: title, elevation: 0.0),
-      bottomNavigationBar: NavBarBottom(currentIndex: currentIndex),
+      bottomNavigationBar: showBottomNav
+          ? NavBarBottom(currentIndex: currentIndex)
+          : null,
       body: child,
     );
   }

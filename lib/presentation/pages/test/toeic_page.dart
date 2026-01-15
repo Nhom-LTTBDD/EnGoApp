@@ -9,7 +9,7 @@ class ToeicPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MainLayout(
-      title: "TOEIC Tests",
+      title: "TOEIC",
       currentIndex: 1,
       child: Container(
         width: double.infinity,
@@ -60,12 +60,6 @@ class ToeicPage extends StatelessWidget {
                       const SizedBox(width: 48),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  const Icon(
-                    Icons.article_outlined,
-                    size: 60,
-                    color: Colors.white,
-                  ),
                 ],
               ),
             ),
@@ -110,27 +104,25 @@ class ToeicPage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Test list
+            // Danh sách đề test ets toeic
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: 1, // Chỉ hiển thị 1 test thật với data có sẵn
-                itemBuilder: (context, index) {
-                  final test = ToeicSampleData.practiceTest1;
-                  return GestureDetector(
+              child: Column(
+                children: [
+                  // Main Test Card
+                  GestureDetector(
                     onTap: () {
                       Navigator.pushNamed(
                         context,
                         AppRoutes.toeicDetail,
                         arguments: {
-                          'testId': test.id,
-                          'testName': test.name,
-                          'test': test, // Pass test object
+                          'testId': ToeicSampleData.practiceTest1.id,
+                          'testName': ToeicSampleData.practiceTest1.name,
+                          'test': ToeicSampleData.practiceTest1,
                         },
                       );
                     },
                     child: Container(
-                      margin: const EdgeInsets.only(bottom: 15),
+                      margin: const EdgeInsets.symmetric(horizontal: 20),
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -154,7 +146,7 @@ class ToeicPage extends StatelessWidget {
                             ),
                             child: const Center(
                               child: Icon(
-                                Icons.description,
+                                Icons.quiz,
                                 color: Color(0xFF1E90FF),
                                 size: 28,
                               ),
@@ -166,7 +158,7 @@ class ToeicPage extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  test.name,
+                                  ToeicSampleData.practiceTest1.name,
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -175,7 +167,7 @@ class ToeicPage extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 5),
                                 Text(
-                                  '2 Parts • ${test.totalQuestions} Questions • ${test.duration} mins',
+                                  '7 Parts • ${ToeicSampleData.practiceTest1.totalQuestions} Questions • ${ToeicSampleData.practiceTest1.duration} mins',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey[600],
@@ -186,14 +178,14 @@ class ToeicPage extends StatelessWidget {
                           ),
                           const Icon(
                             Icons.arrow_forward_ios,
-                            color: Colors.grey,
-                            size: 18,
+                            color: Color(0xFF1E90FF),
+                            size: 16,
                           ),
                         ],
                       ),
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
             ),
           ],

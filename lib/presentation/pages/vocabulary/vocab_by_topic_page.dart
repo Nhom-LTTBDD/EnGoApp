@@ -2,8 +2,8 @@
 import 'package:en_go_app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
-import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/core/constants/app_spacing.dart';
+import 'package:en_go_app/core/theme/theme_helper.dart';
 import 'package:get_it/get_it.dart';
 import '../../../domain/repository_interfaces/vocabulary_repository.dart';
 import '../../../domain/entities/vocabulary_topic.dart';
@@ -52,10 +52,9 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
   Widget build(BuildContext context) {
     return MainLayout(
       title: 'VOCABULARY TOPICS',
-      currentIndex: -1,
-      child: Container(
+      currentIndex: -1,      child: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(color: kBackgroundColor),
+        decoration: BoxDecoration(color: getBackgroundColor(context)),
         child: Column(
           children: [
             // Header section
@@ -67,13 +66,12 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
+                children: [                  Text(
                     'Chọn Chủ Đề',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: kTextPrimary,
+                      color: getTextPrimary(context),
                     ),
                   ),
                 ],
@@ -95,18 +93,17 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
+                        children: [                          Icon(
                             Icons.error_outline,
                             size: 64,
-                            color: kTextThird,
+                            color: getTextThird(context),
                           ),
                           const SizedBox(height: spaceMd),
                           Text(
                             'Không thể tải danh sách chủ đề',
                             style: TextStyle(
                               fontSize: 16,
-                              color: kTextSecondary,
+                              color: getTextSecondary(context),
                             ),
                           ),
                           const SizedBox(height: spaceSm),
@@ -130,18 +127,17 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
+                        children: [                          Icon(
                             Icons.inbox_outlined,
                             size: 64,
-                            color: kTextThird,
+                            color: getTextThird(context),
                           ),
                           const SizedBox(height: spaceMd),
                           Text(
                             'Chưa có chủ đề nào',
                             style: TextStyle(
                               fontSize: 16,
-                              color: kTextSecondary,
+                              color: getTextSecondary(context),
                             ),
                           ),
                         ],

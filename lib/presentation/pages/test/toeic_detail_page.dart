@@ -2,18 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/routes/app_routes.dart';
 import '../../../domain/entities/toeic_test.dart';
-import '../../../data/datasources/toeic_sample_data.dart';
 
 class ToeicDetailPage extends StatefulWidget {
   final String testId;
   final String testName;
   final ToeicTest? test;
+  final int? partNumber;
 
   const ToeicDetailPage({
     Key? key,
     required this.testId,
     required this.testName,
     this.test,
+    this.partNumber,
   }) : super(key: key);
 
   @override
@@ -245,17 +246,17 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
                                 'testId': widget.testId,
                                 'testName': widget.testName,
                                 'isFullTest': !isPracticeMode,
-                                'selectedParts': isPracticeMode
-                                    ? selectedParts.toList()
-                                    : [
-                                        1,
-                                        2,
-                                      ], // Available parts from sample data
+                                'selectedParts': widget.partNumber != null
+                                    ? [widget.partNumber!]
+                                    : (isPracticeMode
+                                          ? selectedParts.toList()
+                                          : [
+                                              1,
+                                              2,
+                                            ]), // Available parts from sample data
                                 'timeLimit': selectedTime == 0
                                     ? null
                                     : selectedTime,
-                                'questions': ToeicSampleData
-                                    .questions, // Pass real questions!
                                 'test': widget.test, // Pass test object
                               },
                             );

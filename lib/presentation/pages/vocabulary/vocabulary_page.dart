@@ -3,8 +3,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
-import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/core/constants/app_spacing.dart';
+import 'package:en_go_app/core/theme/theme_helper.dart';
 import '../../widgets/vocabulary_menu_item.dart';
 import '../../widgets/optimized_vocabulary_list.dart';
 import 'vocabulary_menu_manager.dart';
@@ -63,13 +63,12 @@ class _VocabPageState extends State<VocabPage> with AutomaticKeepAliveClientMixi
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    
-    return MainLayout(
+      return MainLayout(
       title: 'VOCABULARY',
       currentIndex: 1, // Vocabulary tab index
       child: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(color: kBackgroundColor),
+        decoration: BoxDecoration(color: getBackgroundColor(context)),
         child: SafeArea(
           child: Column(
             children: [
