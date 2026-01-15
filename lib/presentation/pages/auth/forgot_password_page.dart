@@ -94,15 +94,42 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   const SizedBox(height: 20),
                   TextFormField(
                     controller: _emailController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Email',
-                      floatingLabelStyle: TextStyle(color: kPrimaryColor),
-                      border: OutlineInputBorder(),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: kPrimaryColor),
+                      hintText: 'vd: name@domain.com',
+                      hintStyle: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 14,
                       ),
+                      prefixIcon: Icon(
+                        Icons.email_outlined,
+                        color: isLoading
+                            ? Colors.grey.shade300
+                            : Colors.grey.shade600,
+                      ),
+                      floatingLabelStyle: const TextStyle(color: kPrimaryColor),
+                      border: const OutlineInputBorder(),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade400,
+                          width: 1.5,
+                        ),
+                      ),
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: kPrimaryColor,
+                          width: 2.5,
+                        ),
+                      ),
+                      errorBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: kDanger, width: 1.5),
+                      ),
+                      filled: true,
+                      fillColor: isLoading ? Colors.grey.shade50 : Colors.white,
                     ),
                     keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) => _handleForgotPassword(context),
                     enabled: !isLoading,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -117,16 +144,23 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     },
                   ),
                   const SizedBox(height: 20),
-                  AppButton(
-                    onPressed: isLoading
-                        ? null
-                        : () => _handleForgotPassword(context),
-                    text: isLoading
-                        ? 'Đang gửi...'
-                        : 'Gửi email đặt lại mật khẩu',
-                    variant: AppButtonVariant.primary,
-                    size: AppButtonSize.large,
-                    isFullWidth: true,
+                  Opacity(
+                    opacity: isLoading ? 0.5 : 1.0,
+                    child: SizedBox(
+                      height: 50,
+                      width: double.infinity,
+                      child: AppButton(
+                        onPressed: isLoading
+                            ? null
+                            : () => _handleForgotPassword(context),
+                        text: isLoading
+                            ? 'Đang gửi...'
+                            : 'Gửi email đặt lại mật khẩu',
+                        variant: AppButtonVariant.primary,
+                        size: AppButtonSize.large,
+                        isFullWidth: true,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   TextButton(

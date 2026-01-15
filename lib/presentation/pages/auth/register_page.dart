@@ -1,9 +1,12 @@
+// lib/presentation/pages/auth/register_page.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:en_go_app/presentation/layout/auth_layout.dart';
+import 'package:en_go_app/core/constants/app_assets.dart';
 import 'package:en_go_app/core/constants/app_text_styles.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
-import '../../../routes/app_routes.dart';
+import 'package:en_go_app/routes/app_routes.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/auth_state.dart';
 import '../../widgets/app_button.dart';
@@ -16,33 +19,78 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
   final _nameFocusNode = FocusNode();
   final _emailFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
   final _confirmPasswordFocusNode = FocusNode();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  String _passwordStrength = '';
-  double _passwordStrengthValue = 0.0;
+  double _passwordStrength = 0.0;
+  String _passwordStrengthText = '';
   Color _passwordStrengthColor = Colors.grey;
-  bool _isProcessing = false; // Prevent multiple taps
-
-  // Track state để tránh xử lý duplicate
-  String? _lastProcessedState;
 
   @override
   void initState() {
     super.initState();
-    _passwordController.addListener(_checkPasswordStrength);
+    _passwordController.addListener(_updatePasswordStrength);
+    _nameFocusNode.addListener(() => setState(() {}));
+    _emailFocusNode.addListener(() => setState(() {}));
+    _passwordFocusNode.addListener(() => setState(() {}));
+    _confirmPasswordFocusNode.addListener(() => setState(() {}));
+  }
+
+  void _updatePasswordStrength() {
+    final password = _passwordController.text;
+    double strength = 0.0;
+
+    if (password.isEmpty) {
+      setState(() {
+        _passwordStrength = 0.0;
+        _passwordStrengthText = '';
+        _passwordStrengthColor = Colors.grey;
+      });
+      return;
+    }
+
+    // Length check
+    if (password.length >= 8) strength += 0.3;
+    if (password.length >= 12) strength += 0.1;
+
+    // Character variety checks
+    if (password.contains(RegExp(r'[A-Z]'))) strength += 0.2;
+    if (password.contains(RegExp(r'[a-z]'))) strength += 0.2;
+    if (password.contains(RegExp(r'[0-9]'))) strength += 0.2;
+    if (password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) strength += 0.1;
+
+    String strengthText;
+    Color strengthColor;
+
+    if (strength <= 0.3) {
+      strengthText = 'Yếu';
+      strengthColor = kDanger;
+    } else if (strength <= 0.6) {
+      strengthText = 'Trung bình';
+      strengthColor = Colors.orange;
+    } else {
+      strengthText = 'Mạnh';
+      strengthColor = Colors.green;
+    }
+
+    setState(() {
+      _passwordStrength = strength.clamp(0.0, 1.0);
+      _passwordStrengthText = strengthText;
+      _passwordStrengthColor = strengthColor;
+    });
   }
 
   @override
   void dispose() {
+    _passwordController.removeListener(_updatePasswordStrength);
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -54,62 +102,14 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  void _checkPasswordStrength() {
-    final password = _passwordController.text;
-    int strength = 0;
-
-    if (password.isEmpty) {
-      setState(() {
-        _passwordStrength = '';
-        _passwordStrengthValue = 0.0;
-        _passwordStrengthColor = Colors.grey;
-      });
-      return;
-    }
-
-    if (password.length >= 6) strength++;
-    if (password.length >= 8) strength++;
-    if (RegExp(r'[A-Z]').hasMatch(password)) strength++;
-    if (RegExp(r'[0-9]').hasMatch(password)) strength++;
-    if (RegExp(r'[!@#\$%^&*(),.?":{}|<>]').hasMatch(password)) strength++;
-
-    setState(() {
-      if (strength <= 2) {
-        _passwordStrength = 'Yếu';
-        _passwordStrengthValue = 0.33;
-        _passwordStrengthColor = kDanger;
-      } else if (strength <= 3) {
-        _passwordStrength = 'Trung bình';
-        _passwordStrengthValue = 0.66;
-        _passwordStrengthColor = Colors.orange;
-      } else {
-        _passwordStrength = 'Mạnh';
-        _passwordStrengthValue = 1.0;
-        _passwordStrengthColor = Colors.green;
-      }
-    });
-  }
-
-  Future<void> _handleRegister(BuildContext context) async {
-    // Prevent multiple taps
-    if (_isProcessing) return;
-
+  void _handleRegister() {
     if (_formKey.currentState?.validate() ?? false) {
-      setState(() => _isProcessing = true);
-
-      // Unfocus để hide keyboard ngay lập tức
       FocusScope.of(context).unfocus();
-
-      final authProvider = context.read<AuthProvider>();
-      await authProvider.register(
+      context.read<AuthProvider>().register(
+        name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         password: _passwordController.text,
-        name: _nameController.text.trim(),
       );
-
-      if (mounted) {
-        setState(() => _isProcessing = false);
-      }
     }
   }
 
@@ -117,112 +117,147 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return AuthLayout(
       title: 'Đăng ký',
-      child: Selector<AuthProvider, AuthState>(
-        selector: (_, provider) => provider.state,
-        shouldRebuild: (previous, current) => previous != current,
-        builder: (context, authState, _) {
-          // Listen to auth state changes
+      child: Consumer<AuthProvider>(
+        builder: (context, authProvider, _) {
+          final authState = authProvider.state;
+
+          // Handle navigation and errors
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
 
-            final stateKey =
-                '${authState.runtimeType}_${authState is AuthError ? authState.message : ""}';
-
-            // Chỉ xử lý nếu state chưa được xử lý
-            if (_lastProcessedState == stateKey) return;
-            _lastProcessedState = stateKey;
-
             if (authState is Authenticated) {
-              // Reset state tracking trước khi navigate
-              _lastProcessedState = null;
-              context.read<AuthProvider>().reset();
+              authProvider.reset();
               Navigator.pushReplacementNamed(context, AppRoutes.home);
             } else if (authState is AuthError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(authState.message),
                   backgroundColor: kDanger,
-                  duration: const Duration(seconds: 3),
                 ),
               );
-              // Reset về initial state sau khi show error
-              setState(() => _isProcessing = false);
-              Future.delayed(const Duration(milliseconds: 100), () {
-                if (mounted) context.read<AuthProvider>().reset();
-              });
+              authProvider.reset();
             }
           });
 
-          final isLoading = authState is AuthLoading || _isProcessing;
+          final isLoading = authState is AuthLoading;
 
           return Container(
-            constraints: const BoxConstraints(maxWidth: 400),
-            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: kSecondaryColor.withOpacity(0.4),
+                  color: Colors.black.withOpacity(0.08),
                   blurRadius: 8,
-                  offset: const Offset(0, 4),
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
+            constraints: const BoxConstraints(maxWidth: 400),
+            padding: const EdgeInsets.all(24),
             child: Form(
               key: _formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Name Field
                   TextFormField(
                     controller: _nameController,
                     focusNode: _nameFocusNode,
-                    decoration: const InputDecoration(
-                      labelText: 'Họ và tên',
-                      prefixIcon: Icon(Icons.person_outlined),
-                      floatingLabelStyle: TextStyle(color: kPrimaryColor),
-                      border: OutlineInputBorder(),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: kPrimaryColor, width: 2),
-                      ),
-                    ),
-                    textInputAction: TextInputAction.next,
                     enabled: !isLoading,
-                    readOnly: false,
-                    enableInteractiveSelection: true,
-                    onTap: () {
-                      _nameFocusNode.requestFocus();
-                    },
-                    onFieldSubmitted: (_) => _emailFocusNode.requestFocus(),
+                    textCapitalization: TextCapitalization.words,
+                    textInputAction: TextInputAction.next,
+                    decoration: InputDecoration(
+                      labelText: 'Họ và tên',
+                      labelStyle: TextStyle(
+                        color: _nameFocusNode.hasFocus
+                            ? kPrimaryColor
+                            : Colors.grey,
+                      ),
+                      hintText: 'Nhập họ và tên đầy đủ',
+                      hintStyle: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 14,
+                      ),
+
+                      prefixIcon: Icon(
+                        Icons.person_outlined,
+                        color: _nameFocusNode.hasFocus
+                            ? kPrimaryColor
+                            : Colors.grey.shade600,
+                      ),
+                      border: const OutlineInputBorder(),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade400,
+                          width: 1.5,
+                        ),
+                      ),
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: kPrimaryColor,
+                          width: 2.5,
+                        ),
+                      ),
+                      errorBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: kDanger, width: 1.5),
+                      ),
+                      filled: true,
+                      fillColor: isLoading ? Colors.grey.shade50 : Colors.white,
+                    ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập họ tên';
+                        return 'Vui lòng nhập họ và tên';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
+
+                  // Email Field
                   TextFormField(
                     controller: _emailController,
                     focusNode: _emailFocusNode,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
-                      floatingLabelStyle: TextStyle(color: kPrimaryColor),
-                      border: OutlineInputBorder(),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: kPrimaryColor, width: 2),
-                      ),
-                    ),
+                    enabled: !isLoading,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
-                    enabled: !isLoading,
-                    readOnly: false,
-                    enableInteractiveSelection: true,
-                    onTap: () {
-                      _emailFocusNode.requestFocus();
-                    },
-                    onFieldSubmitted: (_) => _passwordFocusNode.requestFocus(),
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      labelStyle: TextStyle(
+                        color: _emailFocusNode.hasFocus
+                            ? kPrimaryColor
+                            : Colors.grey,
+                      ),
+                      hintText: 'vd: name@domain.com',
+                      hintStyle: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 14,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.email_outlined,
+                        color: _emailFocusNode.hasFocus
+                            ? kPrimaryColor
+                            : Colors.grey.shade600,
+                      ),
+                      border: const OutlineInputBorder(),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade400,
+                          width: 1.5,
+                        ),
+                      ),
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: kPrimaryColor,
+                          width: 2.5,
+                        ),
+                      ),
+                      errorBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: kDanger, width: 1.5),
+                      ),
+                      filled: true,
+                      fillColor: isLoading ? Colors.grey.shade50 : Colors.white,
+                    ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Vui lòng nhập email';
@@ -234,35 +269,68 @@ class _RegisterPageState extends State<RegisterPage> {
                     },
                   ),
                   const SizedBox(height: 16),
+
+                  // Password Field
                   TextFormField(
                     controller: _passwordController,
                     focusNode: _passwordFocusNode,
+                    enabled: !isLoading,
+                    obscureText: _obscurePassword,
+                    textInputAction: TextInputAction.next,
                     decoration: InputDecoration(
                       labelText: 'Mật khẩu',
-                      prefixIcon: const Icon(Icons.lock_outlined),
+                      labelStyle: TextStyle(
+                        color: _passwordFocusNode.hasFocus
+                            ? kPrimaryColor
+                            : Colors.grey,
+                      ),
+                      hintText: 'Ít nhất 6 ký tự',
+                      hintStyle: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 14,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.lock_outlined,
+                        color: _passwordFocusNode.hasFocus
+                            ? kPrimaryColor
+                            : Colors.grey.shade600,
+                      ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
+                          color: _passwordFocusNode.hasFocus
+                              ? kPrimaryColor
+                              : Colors.grey.shade600,
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                setState(
+                                  () => _obscurePassword = !_obscurePassword,
+                                );
+                              },
                       ),
-                      floatingLabelStyle: const TextStyle(color: kPrimaryColor),
                       border: const OutlineInputBorder(),
-                      focusedBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(color: kPrimaryColor, width: 2),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade400,
+                          width: 1.5,
+                        ),
                       ),
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: kPrimaryColor,
+                          width: 2.5,
+                        ),
+                      ),
+                      errorBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: kDanger, width: 1.5),
+                      ),
+                      filled: true,
+                      fillColor: isLoading ? Colors.grey.shade50 : Colors.white,
                     ),
-                    obscureText: _obscurePassword,
-                    textInputAction: TextInputAction.next,
-                    enabled: !isLoading,
-                    onFieldSubmitted: (_) =>
-                        _confirmPasswordFocusNode.requestFocus(),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Vui lòng nhập mật khẩu';
@@ -273,20 +341,22 @@ class _RegisterPageState extends State<RegisterPage> {
                       return null;
                     },
                   ),
-                  if (_passwordStrength.isNotEmpty) ...[
+
+                  // Password Strength Indicator
+                  if (_passwordController.text.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         LinearProgressIndicator(
-                          value: _passwordStrengthValue,
-                          backgroundColor: Colors.grey[200],
+                          value: _passwordStrength,
+                          backgroundColor: Colors.grey.shade200,
                           color: _passwordStrengthColor,
                           minHeight: 4,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Độ mạnh: $_passwordStrength',
+                          'Độ mạnh: $_passwordStrengthText',
                           style: TextStyle(
                             fontSize: 12,
                             color: _passwordStrengthColor,
@@ -297,34 +367,70 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ],
                   const SizedBox(height: 16),
+
+                  // Confirm Password Field
                   TextFormField(
                     controller: _confirmPasswordController,
                     focusNode: _confirmPasswordFocusNode,
+                    enabled: !isLoading,
+                    obscureText: _obscureConfirmPassword,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) => _handleRegister(),
                     decoration: InputDecoration(
                       labelText: 'Xác nhận mật khẩu',
-                      prefixIcon: const Icon(Icons.lock_outlined),
+                      labelStyle: TextStyle(
+                        color: _confirmPasswordFocusNode.hasFocus
+                            ? kPrimaryColor
+                            : Colors.grey,
+                      ),
+                      hintText: 'Nhập lại mật khẩu',
+                      hintStyle: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 14,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.lock_outlined,
+                        color: _confirmPasswordFocusNode.hasFocus
+                            ? kPrimaryColor
+                            : Colors.grey.shade600,
+                      ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscureConfirmPassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
+                          color: _confirmPasswordFocusNode.hasFocus
+                              ? kPrimaryColor
+                              : Colors.grey.shade600,
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureConfirmPassword = !_obscureConfirmPassword;
-                          });
-                        },
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                setState(
+                                  () => _obscureConfirmPassword =
+                                      !_obscureConfirmPassword,
+                                );
+                              },
                       ),
-                      floatingLabelStyle: const TextStyle(color: kPrimaryColor),
                       border: const OutlineInputBorder(),
-                      focusedBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(color: kPrimaryColor, width: 2),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade400,
+                          width: 1.5,
+                        ),
                       ),
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: kPrimaryColor,
+                          width: 2.5,
+                        ),
+                      ),
+                      errorBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: kDanger, width: 1.5),
+                      ),
+                      filled: true,
+                      fillColor: isLoading ? Colors.grey.shade50 : Colors.white,
                     ),
-                    obscureText: _obscureConfirmPassword,
-                    textInputAction: TextInputAction.done,
-                    enabled: !isLoading,
-                    onFieldSubmitted: (_) => _handleRegister(context),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Vui lòng xác nhận mật khẩu';
@@ -336,51 +442,36 @@ class _RegisterPageState extends State<RegisterPage> {
                     },
                   ),
                   const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: AppButton(
-                      text: isLoading ? 'Đang đăng ký...' : 'Đăng ký',
-                      variant: AppButtonVariant.accent,
-                      size: AppButtonSize.large,
-                      onPressed: isLoading
-                          ? null
-                          : () => _handleRegister(context),
+
+                  // Register Button
+                  Opacity(
+                    opacity: isLoading ? 0.5 : 1.0,
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: AppButton(
+                        text: isLoading ? 'Đang đăng ký...' : 'Đăng ký',
+                        variant: AppButtonVariant.accent,
+                        size: AppButtonSize.large,
+                        onPressed: isLoading ? null : _handleRegister,
+                      ),
                     ),
                   ),
-                  if (isLoading) ...[
-                    const SizedBox(height: 16),
-                    const Center(
-                      child: CircularProgressIndicator(color: kPrimaryColor),
-                    ),
-                  ],
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
+
+                  // Login Link
                   TextButton(
                     onPressed: isLoading
                         ? null
-                        : () {
-                            Navigator.pushNamed(context, AppRoutes.terms);
-                          },
-                    child: Text(
-                      'Quy định và điều khoản',
-                      style: kBodyEmphasized,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: isLoading
-                        ? null
-                        : () {
-                            Navigator.pushReplacementNamed(
-                              context,
-                              AppRoutes.login,
-                            );
-                          },
-                    child: Column(
-                      children: [
-                        Text('Bạn đã có tài khoản?', style: kBody),
-                        const SizedBox(height: 4),
-                        Text('Đăng nhập', style: kBodyEmphasized),
-                      ],
+                        : () => Navigator.pushNamed(context, AppRoutes.login),
+                    child: RichText(
+                      text: TextSpan(
+                        text: 'Đã có tài khoản? ',
+                        style: kBody,
+                        children: [
+                          TextSpan(text: 'Đăng nhập', style: kBodyEmphasized),
+                        ],
+                      ),
                     ),
                   ),
                 ],
