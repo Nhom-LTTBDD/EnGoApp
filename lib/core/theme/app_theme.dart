@@ -32,7 +32,7 @@ class AppTheme {
     ),
 
     // Icon theme
-    iconTheme: const IconThemeData(color: kPrimaryColor),    // Extension colors
+    iconTheme: const IconThemeData(color: kPrimaryColor), // Extension colors
     extensions: const <ThemeExtension<dynamic>>[
       AppThemeExtension(
         backgroundGradientColors: [Color(0xFFFFFFFF), Color(0xFFB2E0FF)],
@@ -56,8 +56,8 @@ class AppTheme {
     useMaterial3: false,
     brightness: Brightness.dark,
     primaryColor: const Color(0xFF4A90E2),
-    scaffoldBackgroundColor: const Color(0xFF121212),
-    cardColor: const Color(0xFF1E1E1E),
+    scaffoldBackgroundColor: const Color(0xFF1c1c1d),
+    cardColor: const Color(0xFF252728),
     dividerColor: const Color(0xFF424242),
 
     // AppBar theme
@@ -79,7 +79,9 @@ class AppTheme {
     ),
 
     // Icon theme
-    iconTheme: const IconThemeData(color: Color(0xFF4A90E2)),    // Extension colors
+    iconTheme: const IconThemeData(
+      color: Color(0xFF4A90E2),
+    ), // Extension colors
     extensions: const <ThemeExtension<dynamic>>[
       AppThemeExtension(
         backgroundGradientColors: [Color(0xFF121212), Color(0xFF1E3A52)],
@@ -107,12 +109,12 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
   final Color shimmerBaseColor;
   final Color shimmerHighlightColor;
   final Color cardBackground;
-  
+
   // Text colors
   final Color textPrimary;
   final Color textSecondary;
   final Color textThird;
-  
+
   // UI colors
   final Color surfaceColor;
   final Color backgroundColor;
@@ -165,6 +167,7 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       borderColor: borderColor ?? this.borderColor,
     );
   }
+
   @override
   AppThemeExtension lerp(ThemeExtension<AppThemeExtension>? other, double t) {
     if (other is! AppThemeExtension) {

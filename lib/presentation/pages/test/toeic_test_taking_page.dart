@@ -7,6 +7,7 @@ import '../../layout/main_layout.dart';
 import '../../../domain/entities/toeic_question.dart';
 import '../../../domain/entities/toeic_test_session.dart';
 import '../../../data/datasources/toeic_sample_data.dart';
+import 'package:en_go_app/core/theme/theme_helper.dart';
 
 class ToeicTestTakingPage extends StatefulWidget {
   final String testId;
@@ -102,7 +103,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
   Widget build(BuildContext context) {
     return MainLayout(
       title: widget.testName,
-      currentIndex: 1,
+      currentIndex: -1,
       showBottomNav: false, // Ẩn bottom navigation trong test
       child: Consumer<ToeicTestProvider>(
         builder: (context, provider, child) {
@@ -114,7 +115,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
           }
 
           return Container(
-            color: const Color(0xFFE8E8E8),
+            color: getBackgroundColor(context),
             child: Column(
               children: [
                 _buildHeader(session, provider),
@@ -123,7 +124,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                     margin: const EdgeInsets.all(12),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: getCardBackground(context),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -163,10 +164,10 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
             // Question number
             Text(
               '${question.questionNumber}.',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: getTextPrimary(context),
               ),
             ),
 
@@ -246,15 +247,15 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
               padding: const EdgeInsets.all(12),
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E90FF).withOpacity(0.1),
+                color: Theme.of(context).primaryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 'Questions ${groupQuestions.first.questionNumber}-${groupQuestions.last.questionNumber}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E90FF),
+                  color: Theme.of(context).primaryColor,
                 ),
               ),
             ),
@@ -270,7 +271,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                     margin: const EdgeInsets.only(bottom: 20),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
+                      border: Border.all(color: getDividerColor(context)),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
@@ -306,7 +307,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
   Widget _buildHeader(ToeicTestSession session, ToeicTestProvider provider) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-      decoration: const BoxDecoration(color: Color(0xFF1E90FF)),
+      decoration: BoxDecoration(color: Theme.of(context).primaryColor),
       child: Column(
         children: [
           // Time và btn finish
@@ -328,7 +329,9 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
               ElevatedButton(
                 onPressed: () => _showFinishConfirmation(context, provider),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6B8CAE),
+                  backgroundColor: Theme.of(
+                    context,
+                  ).primaryColor.withOpacity(0.8),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
@@ -502,9 +505,9 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                 Expanded(
                   child: RichText(
                     text: TextSpan(
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: Colors.black87,
+                        color: getTextPrimary(context),
                       ),
                       children: [
                         TextSpan(

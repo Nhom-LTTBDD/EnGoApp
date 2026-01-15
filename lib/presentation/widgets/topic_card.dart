@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_spacing.dart';
+import '../../core/theme/theme_helper.dart';
 
 /// Card hiển thị chủ đề từ vựng với tiêu đề và nút navigate
 class TopicCard extends StatelessWidget {
@@ -33,7 +34,8 @@ class TopicCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,      child: Container(
+      onTap: onTap,
+      child: Container(
         width: double.infinity,
         height: 240, // Tăng chiều cao để chứa thêm thông tin
         decoration: BoxDecoration(
@@ -90,17 +92,14 @@ class TopicCard extends StatelessWidget {
                         child: Icon(Icons.image, color: Colors.grey, size: 48),
                       ),
               ),
-            ),            // Phần title, subtitle, count và nút arrow
+            ), // Phần title, subtitle, count và nút arrow
             Container(
               padding: const EdgeInsets.all(spaceMd),
               child: Row(
                 children: [
                   // Emoji icon (nếu có)
                   if (emoji != null) ...[
-                    Text(
-                      emoji!,
-                      style: const TextStyle(fontSize: 32),
-                    ),
+                    Text(emoji!, style: const TextStyle(fontSize: 32)),
                     const SizedBox(width: spaceSm),
                   ],
                   // Title và subtitle
@@ -123,10 +122,7 @@ class TopicCard extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                             subtitle!,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: kTextThird,
-                            ),
+                            style: TextStyle(fontSize: 12, color: kTextThird),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),

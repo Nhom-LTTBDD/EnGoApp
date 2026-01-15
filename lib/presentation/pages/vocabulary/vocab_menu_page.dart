@@ -39,6 +39,7 @@ class _VocabMenuPageState extends State<VocabMenuPage> {
       );
     });
   }
+
   @override
   void dispose() {
     _pageController.dispose();
@@ -78,7 +79,7 @@ class _VocabMenuPageState extends State<VocabMenuPage> {
                   const SizedBox(height: 8),
                   Text(
                     vocabularyProvider.error!,
-                    style: const TextStyle(color: Colors.grey),
+                    style: TextStyle(color: getTextSecondary(context)),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
@@ -99,14 +100,18 @@ class _VocabMenuPageState extends State<VocabMenuPage> {
           return MainLayout(
             title: 'VOCABULARY',
             currentIndex: -1,
-            child: const Center(
+            child: Center(
               child: Text(
                 'Không có từ vựng nào',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
+                style: TextStyle(
+                  fontSize: 18,
+                  color: getTextSecondary(context),
+                ),
               ),
             ),
           );
-        }        return MainLayout(
+        }
+        return MainLayout(
           title: 'VOCABULARY',
           currentIndex: -1,
           child: Container(
@@ -116,7 +121,8 @@ class _VocabMenuPageState extends State<VocabMenuPage> {
               children: [
                 Expanded(
                   child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: spaceMd),                    children: [
+                    padding: const EdgeInsets.symmetric(horizontal: spaceMd),
+                    children: [
                       // Header with back button
                       const VocabPageHeader(),
 
@@ -128,7 +134,7 @@ class _VocabMenuPageState extends State<VocabMenuPage> {
                         topicId: widget.topicId, // Truyền topicId
                       ),
 
-                      const SizedBox(height: 16),                      // Dots indicator cho PageView
+                      const SizedBox(height: 16), // Dots indicator cho PageView
                       DotsIndicator(
                         totalDots: vocabularyCards.length,
                         activeDotIndex: vocabularyProvider.getDotIndex(),
