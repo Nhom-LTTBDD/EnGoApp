@@ -22,6 +22,8 @@ import '../presentation/pages/vocabulary/vocab_by_topic_page.dart';
 import '../presentation/pages/vocabulary/vocab_menu_page.dart';
 import '../presentation/pages/vocabulary/flashcard_page.dart';
 import '../presentation/pages/vocabulary/personal_vocabulary_page.dart';
+import '../presentation/pages/vocabulary/personal_vocabulary_by_topic_page.dart';
+import '../presentation/pages/vocabulary/personal_vocabulary_cards_page.dart';
 
 //Grammar
 import '../presentation/pages/grammar/grammar_page.dart';
@@ -43,15 +45,15 @@ class AppRoutes {
   static const String test = '/test'; //Test
   static const String ielts = '/ielts';
   static const String toeic = '/toeic';
-  static const String toeicDetail = '/toeic/detail';
-  static const String toeicTestTaking = '/toeic/test-taking';
+  static const String toeicDetail = '/toeic/detail';  static const String toeicTestTaking = '/toeic/test-taking';
   static const String vocab = '/vocabulary'; //Vocabulary
-  static const String vocabByTopic =
-      '/vocabulary/by-topic'; //Vocabulary by topic
+  static const String vocabByTopic = '/vocabulary/by-topic'; //Vocabulary by topic
   static const String vocabMenu = '/vocabulary/menu'; //Vocabulary menu
   static const String flashcard = '/vocabulary/flashcard'; //Flashcard page
   static const String personalVocabulary = '/vocabulary/personal'; //Personal vocabulary
-    // Grammar routes
+  static const String personalVocabByTopic = '/vocabulary/personal/by-topic'; //Personal vocab by topic
+  static const String personalVocabCards = '/vocabulary/personal/cards'; //Personal vocab cards
+  // Grammar routes
   static const String grammar = '/grammar'; //Grammar main
 }
 
@@ -124,7 +126,14 @@ class RouteGenerator {
         );
       case AppRoutes.personalVocabulary:
         return MaterialPageRoute(builder: (_) => const PersonalVocabularyPage());
-        
+      case AppRoutes.personalVocabByTopic:
+        return MaterialPageRoute(builder: (_) => const PersonalVocabularyByTopicPage());
+      case AppRoutes.personalVocabCards:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final topicId = args?['topicId'] as String? ?? '';
+        return MaterialPageRoute(
+          builder: (_) => PersonalVocabularyCardsPage(topicId: topicId),
+        );
 
       // Grammar cases
       case AppRoutes.grammar:

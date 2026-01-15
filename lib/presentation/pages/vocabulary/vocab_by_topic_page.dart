@@ -76,14 +76,6 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
                       color: kTextPrimary,
                     ),
                   ),
-                  const SizedBox(height: spaceSm),
-                  Text(
-                    'Khám phá từ vựng theo các chủ đề khác nhau',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: kTextSecondary,
-                    ),
-                  ),
                 ],
               ),
             ),

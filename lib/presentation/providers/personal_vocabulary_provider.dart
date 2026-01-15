@@ -4,11 +4,13 @@ import 'package:flutter/foundation.dart';
 import '../../core/services/personal_vocabulary_service.dart';
 import '../../domain/entities/vocabulary_card.dart';
 import '../../domain/repository_interfaces/vocabulary_repository.dart';
+import '../../domain/repository_interfaces/dictionary_repository.dart';
 
 /// Provider quản lý state của Personal Vocabulary
 class PersonalVocabularyProvider with ChangeNotifier {
   final PersonalVocabularyService _service;
   final VocabularyRepository _vocabularyRepository;
+  final DictionaryRepository _dictionaryRepository;
 
   // Current user ID (sẽ get từ AuthProvider)
   String _userId = 'default_user';
@@ -23,12 +25,13 @@ class PersonalVocabularyProvider with ChangeNotifier {
   bool _isLoading = false;
   
   // Error message
-  String? _error;
-  PersonalVocabularyProvider({
+  String? _error;  PersonalVocabularyProvider({
     required PersonalVocabularyService service,
     required VocabularyRepository vocabularyRepository,
+    required DictionaryRepository dictionaryRepository,
   })  : _service = service,
-        _vocabularyRepository = vocabularyRepository {
+        _vocabularyRepository = vocabularyRepository,
+        _dictionaryRepository = dictionaryRepository {
     // Load personal vocabulary when provider is created
     loadPersonalVocabulary();
   }
@@ -57,16 +60,22 @@ class PersonalVocabularyProvider with ChangeNotifier {
 
       // Get bookmarked card IDs
       _bookmarkedCardIds = await _service.getBookmarkedCardIds(_userId);
-      print('📚 Found ${_bookmarkedCardIds.length} bookmarked cards');
-
-      // Get actual card data from all topics
+      print('📚 Found ${_bookmarkedCardIds.length} bookmarked cards');      // Get actual card data from all topics
       _personalCards = [];
       if (_bookmarkedCardIds.isNotEmpty) {
         for (final cardId in _bookmarkedCardIds) {
           final card = await _vocabularyRepository.getVocabularyCardById(cardId);
           if (card != null) {
-            _personalCards.add(card);
-            print('✅ Loaded card: ${card.english}');
+            // Enrich card with dictionary data (phonetic, definitions, etc.)
+            try {
+              final enrichedCard = await _dictionaryRepository.enrichVocabularyCard(card);
+              _personalCards.add(enrichedCard);
+              print('✅ Loaded & enriched card: ${enrichedCard.english} - ${enrichedCard.phonetic ?? "no phonetic"}');
+            } catch (e) {
+              // Nếu không enrich được, vẫn thêm card gốc
+              _personalCards.add(card);
+              print('✅ Loaded card (no enrichment): ${card.english}');
+            }
           }
         }
       }
@@ -92,8 +101,7 @@ class PersonalVocabularyProvider with ChangeNotifier {
       print('⭐ Toggling bookmark for card: $cardId');
       
       final isNowBookmarked = await _service.toggleBookmark(_userId, cardId);
-      
-      if (isNowBookmarked) {
+        if (isNowBookmarked) {
         print('✅ Added to bookmarks: $cardId');
         // Added to bookmarks
         if (!_bookmarkedCardIds.contains(cardId)) {
@@ -102,8 +110,16 @@ class PersonalVocabularyProvider with ChangeNotifier {
           // Load card data
           final card = await _vocabularyRepository.getVocabularyCardById(cardId);
           if (card != null) {
-            _personalCards.add(card);
-            print('📚 Card loaded: ${card.english}');
+            // Enrich card with dictionary data
+            try {
+              final enrichedCard = await _dictionaryRepository.enrichVocabularyCard(card);
+              _personalCards.add(enrichedCard);
+              print('📚 Card loaded & enriched: ${enrichedCard.english} - ${enrichedCard.phonetic ?? "no phonetic"}');
+            } catch (e) {
+              // Nếu không enrich được, vẫn thêm card gốc
+              _personalCards.add(card);
+              print('📚 Card loaded (no enrichment): ${card.english}');
+            }
           }
         }
       } else {

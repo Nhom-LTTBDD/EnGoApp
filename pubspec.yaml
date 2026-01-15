@@ -44,7 +44,6 @@ dependencies:
   # Data Layer Dependencies
   http: ^1.1.0
   shared_preferences: ^2.2.2
-  audioplayers: ^6.0.0
 
   # Firebase Dependencies
   firebase_core: ^3.8.1
@@ -60,6 +59,7 @@ dependencies:
   intl: ^0.19.0
   image_picker: ^1.0.7
   audioplayers: ^6.0.0
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
