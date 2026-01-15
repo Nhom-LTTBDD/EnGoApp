@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../../layout/main_layout.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/theme_helper.dart';
 
 class GrammarPage extends StatelessWidget {
   const GrammarPage({super.key});
@@ -12,7 +13,7 @@ class GrammarPage extends StatelessWidget {
       title: 'GRAMMAR',
       currentIndex: -1,
       child: Container(
-        color: kBackgroundColor,
+        color: getBackgroundColor(context),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(

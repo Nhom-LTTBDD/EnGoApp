@@ -32,9 +32,7 @@ class AppTheme {
     ),
 
     // Icon theme
-    iconTheme: const IconThemeData(color: kPrimaryColor),
-
-    // Extension colors
+    iconTheme: const IconThemeData(color: kPrimaryColor),    // Extension colors
     extensions: const <ThemeExtension<dynamic>>[
       AppThemeExtension(
         backgroundGradientColors: [Color(0xFFFFFFFF), Color(0xFFB2E0FF)],
@@ -42,6 +40,13 @@ class AppTheme {
         shimmerBaseColor: Color(0xFFE0E0E0),
         shimmerHighlightColor: Color(0xFFF5F5F5),
         cardBackground: Colors.white,
+        textPrimary: Color(0xFF212121),
+        textSecondary: Color(0xFF424242),
+        textThird: Color(0xFF9E9E9E),
+        surfaceColor: Colors.white,
+        backgroundColor: Color(0xFFF5F5F5),
+        dividerColor: Color(0xFFE0E0E0),
+        borderColor: Color(0xFFBDBDBD),
       ),
     ],
   );
@@ -74,9 +79,7 @@ class AppTheme {
     ),
 
     // Icon theme
-    iconTheme: const IconThemeData(color: Color(0xFF4A90E2)),
-
-    // Extension colors
+    iconTheme: const IconThemeData(color: Color(0xFF4A90E2)),    // Extension colors
     extensions: const <ThemeExtension<dynamic>>[
       AppThemeExtension(
         backgroundGradientColors: [Color(0xFF121212), Color(0xFF1E3A52)],
@@ -84,6 +87,13 @@ class AppTheme {
         shimmerBaseColor: Color(0xFF2C2C2C),
         shimmerHighlightColor: Color(0xFF3A3A3A),
         cardBackground: Color(0xFF2C2C2C),
+        textPrimary: Color(0xFFE0E0E0),
+        textSecondary: Color(0xFFB0B0B0),
+        textThird: Color(0xFF757575),
+        surfaceColor: Color(0xFF1E1E1E),
+        backgroundColor: Color(0xFF121212),
+        dividerColor: Color(0xFF424242),
+        borderColor: Color(0xFF616161),
       ),
     ],
   );
@@ -97,6 +107,17 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
   final Color shimmerBaseColor;
   final Color shimmerHighlightColor;
   final Color cardBackground;
+  
+  // Text colors
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textThird;
+  
+  // UI colors
+  final Color surfaceColor;
+  final Color backgroundColor;
+  final Color dividerColor;
+  final Color borderColor;
 
   const AppThemeExtension({
     required this.backgroundGradientColors,
@@ -104,8 +125,14 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     required this.shimmerBaseColor,
     required this.shimmerHighlightColor,
     required this.cardBackground,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.textThird,
+    required this.surfaceColor,
+    required this.backgroundColor,
+    required this.dividerColor,
+    required this.borderColor,
   });
-
   @override
   AppThemeExtension copyWith({
     List<Color>? backgroundGradientColors,
@@ -113,6 +140,13 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     Color? shimmerBaseColor,
     Color? shimmerHighlightColor,
     Color? cardBackground,
+    Color? textPrimary,
+    Color? textSecondary,
+    Color? textThird,
+    Color? surfaceColor,
+    Color? backgroundColor,
+    Color? dividerColor,
+    Color? borderColor,
   }) {
     return AppThemeExtension(
       backgroundGradientColors:
@@ -122,9 +156,15 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       shimmerHighlightColor:
           shimmerHighlightColor ?? this.shimmerHighlightColor,
       cardBackground: cardBackground ?? this.cardBackground,
+      textPrimary: textPrimary ?? this.textPrimary,
+      textSecondary: textSecondary ?? this.textSecondary,
+      textThird: textThird ?? this.textThird,
+      surfaceColor: surfaceColor ?? this.surfaceColor,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      dividerColor: dividerColor ?? this.dividerColor,
+      borderColor: borderColor ?? this.borderColor,
     );
   }
-
   @override
   AppThemeExtension lerp(ThemeExtension<AppThemeExtension>? other, double t) {
     if (other is! AppThemeExtension) {
@@ -155,6 +195,13 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
         t,
       )!,
       cardBackground: Color.lerp(cardBackground, other.cardBackground, t)!,
+      textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
+      textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
+      textThird: Color.lerp(textThird, other.textThird, t)!,
+      surfaceColor: Color.lerp(surfaceColor, other.surfaceColor, t)!,
+      backgroundColor: Color.lerp(backgroundColor, other.backgroundColor, t)!,
+      dividerColor: Color.lerp(dividerColor, other.dividerColor, t)!,
+      borderColor: Color.lerp(borderColor, other.borderColor, t)!,
     );
   }
 }

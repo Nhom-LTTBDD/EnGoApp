@@ -2,9 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
-import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/core/constants/app_spacing.dart';
 import 'package:en_go_app/core/constants/app_text_styles.dart';
+import 'package:en_go_app/core/theme/theme_helper.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../widgets/vocabulary/vocabulary_card_list.dart';
 import '../../widgets/vocabulary/dots_indicator.dart';
@@ -106,14 +106,12 @@ class _VocabMenuPageState extends State<VocabMenuPage> {
               ),
             ),
           );
-        }
-
-        return MainLayout(
+        }        return MainLayout(
           title: 'VOCABULARY',
           currentIndex: -1,
           child: Container(
             width: double.infinity,
-            decoration: const BoxDecoration(color: kBackgroundColor),
+            decoration: BoxDecoration(color: getBackgroundColor(context)),
             child: Column(
               children: [
                 Expanded(

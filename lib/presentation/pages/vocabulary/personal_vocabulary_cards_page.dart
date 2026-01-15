@@ -3,8 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
-import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/core/constants/app_spacing.dart';
+import 'package:en_go_app/core/theme/theme_helper.dart';
 import 'package:en_go_app/domain/entities/vocabulary_card.dart';
 import '../../providers/personal_vocabulary_provider.dart';
 import '../../widgets/vocabulary/vocabulary_card_widget.dart';
@@ -72,10 +72,9 @@ class _PersonalVocabularyCardsPageState
 
     return MainLayout(
       title: topicName.toUpperCase(),
-      currentIndex: -1,
-      child: Container(
+      currentIndex: -1,      child: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(color: kBackgroundColor),
+        decoration: BoxDecoration(color: getBackgroundColor(context)),
         child: Column(
           children: [
             // Header section
@@ -98,13 +97,12 @@ class _PersonalVocabularyCardsPageState
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
+                          children: [                            Text(
                               topicName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: kTextPrimary,
+                                color: getTextPrimary(context),
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -114,9 +112,9 @@ class _PersonalVocabularyCardsPageState
                                     _getCardsForTopic(provider, widget.topicId);
                                 return Text(
                                   '${topicCards.length} từ đã lưu',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 14,
-                                    color: kTextSecondary,
+                                    color: getTextSecondary(context),
                                   ),
                                 );
                               },
@@ -146,18 +144,17 @@ class _PersonalVocabularyCardsPageState
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
+                        children: [                          Icon(
                             Icons.star_border,
                             size: 80,
-                            color: kTextThird,
+                            color: getTextThird(context),
                           ),
                           const SizedBox(height: spaceMd),
                           Text(
                             'Chưa có từ nào trong chủ đề này',
                             style: TextStyle(
                               fontSize: 16,
-                              color: kTextSecondary,
+                              color: getTextSecondary(context),
                             ),
                           ),
                           const SizedBox(height: spaceSm),
@@ -165,7 +162,7 @@ class _PersonalVocabularyCardsPageState
                             'Nhấn dấu sao ⭐ để lưu từ vựng',
                             style: TextStyle(
                               fontSize: 14,
-                              color: kTextThird,
+                              color: getTextThird(context),
                             ),
                           ),
                         ],
