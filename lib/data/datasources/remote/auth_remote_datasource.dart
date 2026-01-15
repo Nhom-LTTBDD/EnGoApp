@@ -220,11 +220,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw const AuthFailure('Người dùng chưa đăng nhập');
       }
 
-      // Lấy thông tin user từ Firestore
+      // Lấy thông tin user từ cache first, fallback to server
       final userDoc = await firestore
           .collection('users')
           .doc(currentUser.uid)
-          .get();
+          .get(const GetOptions(source: Source.cache))
+          .timeout(
+            const Duration(milliseconds: 300),
+            onTimeout: () => firestore
+                .collection('users')
+                .doc(currentUser.uid)
+                .get(const GetOptions(source: Source.server))
+                .timeout(const Duration(seconds: 3)),
+          );
 
       final userData = userDoc.data();
       if (userData == null) {
@@ -279,8 +287,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       final user = userCredential.user!;
 
-      // Check if user exists in Firestore
-      final userDoc = await firestore.collection('users').doc(user.uid).get();
+      // Check if user exists in Firestore with timeout
+      final userDoc = await firestore
+          .collection('users')
+          .doc(user.uid)
+          .get()
+          .timeout(const Duration(seconds: 5));
 
       if (!userDoc.exists) {
         // Create new user document
@@ -291,14 +303,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'createdAt': FieldValue.serverTimestamp(),
         };
 
-        await firestore.collection('users').doc(user.uid).set(userData);
+        await firestore
+            .collection('users')
+            .doc(user.uid)
+            .set(userData)
+            .timeout(const Duration(seconds: 5));
       }
 
-      // Get user data
+      // Get user data from cache or server
       final updatedUserDoc = await firestore
           .collection('users')
           .doc(user.uid)
-          .get();
+          .get()
+          .timeout(const Duration(seconds: 3));
       final userData = updatedUserDoc.data() ?? {};
 
       final userModel = UserModel.fromJson({

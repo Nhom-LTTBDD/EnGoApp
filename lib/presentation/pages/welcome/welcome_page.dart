@@ -1,5 +1,6 @@
 // lib/presentation/pages/welcome/welcome_page.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_text_styles.dart';
 import 'package:en_go_app/routes/app_routes.dart';
@@ -19,7 +20,7 @@ class _WelcomePageState extends State<WelcomePage> {
     super.didChangeDependencies();
     // Precache images to avoid jank
     precacheImage(AssetImage(kBackgroundJpg), context);
-    precacheImage(AssetImage(kSwiftWelcomePng), context);
+    precacheImage(AssetImage(kIconBirdWelcome), context);
   }
 
   @override
@@ -53,13 +54,7 @@ class _WelcomePageState extends State<WelcomePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SizedBox(height: 40),
-                    Image.asset(
-                      kSwiftWelcomePng,
-                      width: 200,
-                      height: 200,
-                      cacheWidth:
-                          400, // Cache at 2x resolution for optimization
-                    ),
+                    SvgPicture.asset(kIconBirdWelcome, width: 150, height: 150),
                     SizedBox(height: 20),
                     Text('Welcome to EnGo App!', style: kH1),
                     SizedBox(height: 10),

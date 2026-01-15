@@ -15,6 +15,7 @@ import '../presentation/pages/test/test_page.dart';
 import '../presentation/pages//test/ielts_page.dart';
 import '../presentation/pages/test/toeic_page.dart';
 import '../presentation/pages/test/toeic_detail_page.dart';
+import '../presentation/pages/test/toeic_test_taking_page.dart';
 //Vocabulary
 import '../presentation/pages/vocabulary/vocabulary_page.dart';
 import '../presentation/pages/vocabulary/vocab_by_topic_page.dart';
@@ -24,6 +25,10 @@ import '../presentation/pages/vocabulary/personal_vocabulary_page.dart';
 
 //Grammar
 import '../presentation/pages/grammar/grammar_page.dart';
+
+// Domain entities
+import '../domain/entities/toeic_test.dart';
+import '../domain/entities/toeic_question.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -38,7 +43,9 @@ class AppRoutes {
   static const String test = '/test'; //Test
   static const String ielts = '/ielts';
   static const String toeic = '/toeic';
-  static const String toeicDetail = '/toeic/detail';  static const String vocab = '/vocabulary'; //Vocabulary
+  static const String toeicDetail = '/toeic/detail';
+  static const String toeicTestTaking = '/toeic/test-taking';
+  static const String vocab = '/vocabulary'; //Vocabulary
   static const String vocabByTopic =
       '/vocabulary/by-topic'; //Vocabulary by topic
   static const String vocabMenu = '/vocabulary/menu'; //Vocabulary menu
@@ -78,10 +85,25 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => ToeicPage());
       case AppRoutes.toeicDetail:
         final args = settings.arguments as Map<String, dynamic>?;
-        final testId = args?['testId'] as int? ?? 1;
+        final testId = args?['testId']?.toString() ?? '1';
         final testName = args?['testName'] as String? ?? 'TOEIC Test';
+        final test = args?['test'] as ToeicTest?;
         return MaterialPageRoute(
-          builder: (_) => ToeicDetailPage(testId: testId, testName: testName),
+          builder: (_) =>
+              ToeicDetailPage(testId: testId, testName: testName, test: test),
+        );
+      case AppRoutes.toeicTestTaking:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final questions = args?['questions'] as List<ToeicQuestion>?;
+        return MaterialPageRoute(
+          builder: (_) => ToeicTestTakingPage(
+            testId: args?['testId']?.toString() ?? '1',
+            testName: args?['testName'] as String? ?? 'TOEIC Test',
+            isFullTest: args?['isFullTest'] as bool? ?? false,
+            selectedParts: (args?['selectedParts'] as List?)?.cast<int>() ?? [],
+            timeLimit: args?['timeLimit'] as int?,
+            questions: questions,
+          ),
         );
       //case Vocab
       case AppRoutes.vocab:
@@ -93,18 +115,21 @@ class RouteGenerator {
         final topicId = args?['topicId'] as String?;
         return MaterialPageRoute(
           builder: (_) => VocabMenuPage(topicId: topicId),
-        );      case AppRoutes.flashcard:
-        final args = settings.arguments as Map<String, dynamic>?;        final topicId = args?['topicId'] as String?;
+        );
+      case AppRoutes.flashcard:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final topicId = args?['topicId'] as String?;
         return MaterialPageRoute(
           builder: (_) => FlashcardPage(topicId: topicId),
         );
       case AppRoutes.personalVocabulary:
         return MaterialPageRoute(builder: (_) => const PersonalVocabularyPage());
         
+
       // Grammar cases
       case AppRoutes.grammar:
         return MaterialPageRoute(builder: (_) => GrammarPage());
-      
+
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

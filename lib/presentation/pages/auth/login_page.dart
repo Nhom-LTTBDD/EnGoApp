@@ -1,7 +1,9 @@
 // lib/presentation/pages/auth/login_page.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:en_go_app/presentation/layout/auth_layout.dart';
+import 'package:en_go_app/core/constants/app_assets.dart';
 import 'package:en_go_app/core/constants/app_text_styles.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/routes/app_routes.dart';
@@ -23,6 +25,10 @@ class _LoginPageState extends State<LoginPage> {
   final _emailFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
   bool _obscurePassword = true;
+  bool _isProcessing = false; // Prevent multiple taps
+
+  // Track state để tránh xử lý duplicate
+  String? _lastProcessedState;
 
   @override
   void dispose() {
@@ -33,13 +39,25 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _handleLogin(BuildContext context) {
+  Future<void> _handleLogin(BuildContext context) async {
+    // Prevent multiple taps
+    if (_isProcessing) return;
+
     if (_formKey.currentState?.validate() ?? false) {
+      setState(() => _isProcessing = true);
+
+      // Unfocus để hide keyboard ngay lập tức
+      FocusScope.of(context).unfocus();
+
       final authProvider = context.read<AuthProvider>();
-      authProvider.login(
+      await authProvider.login(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
     }
   }
 
@@ -47,25 +65,43 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return AuthLayout(
       title: 'Đăng nhập',
-      child: Consumer<AuthProvider>(
-        builder: (context, authProvider, _) {
+      child: Selector<AuthProvider, AuthState>(
+        selector: (_, provider) => provider.state,
+        shouldRebuild: (previous, current) => previous != current,
+        builder: (context, authState, _) {
           // Listen to auth state changes
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            final state = authProvider.state;
+            if (!mounted) return;
 
-            if (state is Authenticated) {
+            final stateKey =
+                '${authState.runtimeType}_${authState is AuthError ? authState.message : ""}';
+
+            // Chỉ xử lý nếu state chưa được xử lý
+            if (_lastProcessedState == stateKey) return;
+            _lastProcessedState = stateKey;
+
+            if (authState is Authenticated) {
+              // Reset state tracking trước khi navigate
+              _lastProcessedState = null;
+              context.read<AuthProvider>().reset();
               Navigator.pushReplacementNamed(context, AppRoutes.home);
-            } else if (state is AuthError) {
+            } else if (authState is AuthError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(state.message),
+                  content: Text(authState.message),
                   backgroundColor: kDanger,
+                  duration: const Duration(seconds: 3),
                 ),
               );
+              // Reset về initial state sau khi show error
+              setState(() => _isProcessing = false);
+              Future.delayed(const Duration(milliseconds: 100), () {
+                if (mounted) context.read<AuthProvider>().reset();
+              });
             }
           });
 
-          final isLoading = authProvider.state is AuthLoading;
+          final isLoading = authState is AuthLoading || _isProcessing;
 
           return Container(
             decoration: BoxDecoration(
@@ -183,17 +219,15 @@ class _LoginPageState extends State<LoginPage> {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      icon: Image.asset(
-                        'assets/icons/ic_google.png',
-                        height: 24,
-                        width: 24,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(Icons.g_mobiledata, size: 24);
-                        },
+                      icon: SvgPicture.asset(
+                        kIconGoogle,
+                        width: 20,
+                        height: 20,
                       ),
                       label: Text(
-                        'Đăng nhập với Google',
-                        style: kBodyEmphasized.copyWith(fontSize: 16),
+                        isLoading
+                            ? 'Đang đăng nhập với Google...'
+                            : 'Đăng nhập với Google',
                       ),
                       style: OutlinedButton.styleFrom(
                         padding: EdgeInsets.symmetric(vertical: 14),

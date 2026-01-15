@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 import 'core/di/injection_container.dart' as di;
+import 'core/theme/app_theme.dart';
 import 'presentation/providers/auth/auth_provider.dart';
 import 'presentation/providers/profile/profile_provider.dart';
 import 'presentation/providers/vocabulary_provider.dart';
 import 'presentation/providers/personal_vocabulary_provider.dart';
 import 'presentation/providers/grammar_provider.dart';
+import 'presentation/providers/theme/theme_provider.dart';
+import 'presentation/providers/toeic_test_provider.dart';
 import 'routes/app_routes.dart';
 
 void main() {
@@ -36,6 +40,13 @@ class _MyAppState extends State<MyApp> {
       // Initialize Firebase
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
+      );
+
+      // Configure Firestore for better performance
+      final firestore = FirebaseFirestore.instance;
+      firestore.settings = const Settings(
+        persistenceEnabled: true, // Enable offline persistence
+        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED, // Unlimited cache
       );
 
       // Initialize DI
@@ -80,25 +91,40 @@ class _MyAppState extends State<MyApp> {
         debugShowCheckedModeBanner: false,
         home: Scaffold(body: Center(child: Text('Initialization Error'))),
       );
-    }    // App initialized successfully
+    } // App initialized successfully
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => di.sl<AuthProvider>()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()..loadTheme()),
         ChangeNotifierProvider(create: (_) => di.sl<ProfileProvider>()),
+        ChangeNotifierProxyProvider<ProfileProvider, AuthProvider>(
+          create: (_) => di.sl<AuthProvider>(),
+          update: (_, profileProvider, authProvider) {
+            // Setup callback để reset ProfileProvider khi logout
+            authProvider!.onLogout = profileProvider.reset;
+            // Setup callback để reset ProfileProvider khi login/register thành công
+            authProvider.onAuthSuccess = profileProvider.reset;
+            return authProvider;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => di.sl<VocabularyProvider>()),
         ChangeNotifierProvider(create: (_) => di.sl<PersonalVocabularyProvider>()),
         ChangeNotifierProvider(create: (_) => di.sl<GrammarProvider>()),
+        ChangeNotifierProvider(create: (_) => ToeicTestProvider()),
       ],
-      child: MaterialApp(
-        title: 'EnGo App',
-        theme: ThemeData(
-          useMaterial3: false,
-          scaffoldBackgroundColor: Colors.white,
-          primaryColor: const Color(0xFF1196EF),
-        ),
-        debugShowCheckedModeBanner: false,
-        initialRoute: AppRoutes.splash,
-        onGenerateRoute: RouteGenerator.generateRoute,
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) {
+          return MaterialApp(
+            title: 'EnGo App',
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeProvider.isDarkMode
+                ? ThemeMode.dark
+                : ThemeMode.light,
+            debugShowCheckedModeBanner: false,
+            initialRoute: AppRoutes.splash,
+            onGenerateRoute: RouteGenerator.generateRoute,
+          );
+        },
       ),
     );
   }
