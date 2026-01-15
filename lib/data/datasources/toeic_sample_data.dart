@@ -88,11 +88,11 @@ class ToeicSampleData {
         partNumber,
       );
       print('ToeicSampleData: Loaded ${questions.length} questions from JSON');
-      
+
       if (questions.isNotEmpty) {
         return questions;
       }
-      
+
       // Fallback: create some sample questions if JSON is empty
       print('ToeicSampleData: No questions from JSON, creating fallback');
       return _createFallbackQuestions(partNumber);
@@ -114,15 +114,23 @@ class ToeicSampleData {
         partNumber: partNumber,
         questionNumber: questionNumber,
         questionType: partNumber <= 2 ? 'image-audio' : 'multiple-choice',
-        questionText: partNumber <= 2 ? null : 'Sample question $questionNumber for Part $partNumber',
-        imageUrl: partNumber == 1 ? 'assets/test_toeic/test_1/test1_$questionNumber.png' : null,
-        audioUrl: partNumber <= 4 ? 'assets/audio/toeic_test1/${questionNumber.toString().padLeft(3, '0')}.mp3' : null,
-        options: partNumber <= 2 ? ['A', 'B', 'C', 'D'] : [
-          'Option A for question $questionNumber',
-          'Option B for question $questionNumber',  
-          'Option C for question $questionNumber',
-          'Option D for question $questionNumber',
-        ],
+        questionText: partNumber <= 2
+            ? null
+            : 'Sample question $questionNumber for Part $partNumber',
+        imageUrl: partNumber == 1
+            ? 'assets/test_toeic/test_1/test1_$questionNumber.png'
+            : null,
+        audioUrl: partNumber <= 4
+            ? 'assets/audio/toeic_test1/${questionNumber.toString().padLeft(3, '0')}.mp3'
+            : null,
+        options: partNumber <= 2
+            ? ['A', 'B', 'C', 'D']
+            : [
+                'Option A for question $questionNumber',
+                'Option B for question $questionNumber',
+                'Option C for question $questionNumber',
+                'Option D for question $questionNumber',
+              ],
         correctAnswer: 'A',
         explanation: 'This is a fallback sample question.',
         order: questionNumber,

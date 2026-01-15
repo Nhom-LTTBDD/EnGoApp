@@ -151,7 +151,10 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
   }
 
   // Build UI for single question (Part 1, 2, 4-7)
-  Widget _buildSingleQuestion(ToeicTestProvider provider, ToeicQuestion question) {
+  Widget _buildSingleQuestion(
+    ToeicTestProvider provider,
+    ToeicQuestion question,
+  ) {
     return Expanded(
       child: SingleChildScrollView(
         child: Column(
@@ -180,7 +183,9 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   image: DecorationImage(
-                    image: AssetImage(question.imageUrl!.replaceAll('.jpg', '.png')),
+                    image: AssetImage(
+                      question.imageUrl!.replaceAll('.jpg', '.png'),
+                    ),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -219,13 +224,16 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     if (currentQuestion == null) return Container();
 
     // Find all questions in the same group (conversation)
-    final groupQuestions = provider.questions
-        .where((q) => q.partNumber == 3 && 
-                     q.groupId == currentQuestion.groupId)
-        .toList()
-        ..sort((a, b) => a.questionNumber.compareTo(b.questionNumber));
+    final groupQuestions =
+        provider.questions
+            .where(
+              (q) => q.partNumber == 3 && q.groupId == currentQuestion.groupId,
+            )
+            .toList()
+          ..sort((a, b) => a.questionNumber.compareTo(b.questionNumber));
 
-    if (groupQuestions.isEmpty) return _buildSingleQuestion(provider, currentQuestion);
+    if (groupQuestions.isEmpty)
+      return _buildSingleQuestion(provider, currentQuestion);
 
     return Expanded(
       child: SingleChildScrollView(
@@ -256,30 +264,34 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
               _buildAudioPlayer(provider, groupQuestions.first.audioUrl!),
 
             // All 3 questions
-            ...groupQuestions.map((question) => Container(
-              margin: const EdgeInsets.only(bottom: 20),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Question number and text
-                  Text(
-                    '${question.questionNumber}. ${question.questionText ?? 'Listen to the conversation and choose the best answer.'}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+            ...groupQuestions
+                .map(
+                  (question) => Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Question number and text
+                        Text(
+                          '${question.questionNumber}. ${question.questionText ?? 'Listen to the conversation and choose the best answer.'}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Options for this question
+                        _buildOptions(provider, question),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  // Options for this question
-                  _buildOptions(provider, question),
-                ],
-              ),
-            )).toList(),
+                )
+                .toList(),
 
             const SizedBox(height: 24),
             // Question grid - moved to scrollable area
@@ -519,12 +531,15 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
   }
 
   // Build simple A,B,C,D options for Part 1 and 2 (no text content)
-  Widget _buildSimpleOptions(ToeicTestProvider provider, ToeicQuestion question) {
+  Widget _buildSimpleOptions(
+    ToeicTestProvider provider,
+    ToeicQuestion question,
+  ) {
     final userAnswer = provider.getAnswer(question.questionNumber);
-    
+
     // Part 2 only has 3 options (A, B, C), Part 1 has 4 (A, B, C, D)
     final optionCount = question.partNumber == 2 ? 3 : 4;
-    
+
     return Column(
       children: List.generate(optionCount, (index) {
         final optionLetter = String.fromCharCode(65 + index); // A, B, C, D
@@ -573,7 +588,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
   Widget _buildNavigationButtons(ToeicTestProvider provider) {
     final currentQuestion = provider.currentQuestion;
     final isPart3 = currentQuestion?.partNumber == 3;
-    
+
     return Align(
       alignment: Alignment.centerRight,
       child: Container(
@@ -605,10 +620,13 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     if (currentQuestion == null) return;
 
     // Find the last question in current group
-    final currentGroupQuestions = provider.questions
-        .where((q) => q.partNumber == 3 && q.groupId == currentQuestion.groupId)
-        .toList()
-        ..sort((a, b) => a.questionNumber.compareTo(b.questionNumber));
+    final currentGroupQuestions =
+        provider.questions
+            .where(
+              (q) => q.partNumber == 3 && q.groupId == currentQuestion.groupId,
+            )
+            .toList()
+          ..sort((a, b) => a.questionNumber.compareTo(b.questionNumber));
 
     if (currentGroupQuestions.isEmpty) {
       if (provider.hasNextQuestion) {
@@ -621,10 +639,13 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
 
     // Find the index of the last question in this group
     final lastQuestionInGroup = currentGroupQuestions.last;
-    final lastQuestionIndex = provider.questions.indexWhere((q) => q.questionNumber == lastQuestionInGroup.questionNumber);
+    final lastQuestionIndex = provider.questions.indexWhere(
+      (q) => q.questionNumber == lastQuestionInGroup.questionNumber,
+    );
 
     // Move to next question after the group (or finish if no more questions)
-    if (lastQuestionIndex >= 0 && lastQuestionIndex < provider.questions.length - 1) {
+    if (lastQuestionIndex >= 0 &&
+        lastQuestionIndex < provider.questions.length - 1) {
       provider.goToQuestion(lastQuestionIndex + 1);
     } else {
       _showFinishConfirmation(context, provider);
@@ -635,13 +656,14 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     const itemsPerRow = 9;
     final questions = provider.questions;
     if (questions.isEmpty) return Container();
-    
+
     // Get the actual question numbers from the loaded questions
-    final questionNumbers = questions.map((q) => q.questionNumber).toList()..sort();
+    final questionNumbers = questions.map((q) => q.questionNumber).toList()
+      ..sort();
     final minQuestion = questionNumbers.first;
     final maxQuestion = questionNumbers.last;
     final totalQuestions = questions.length;
-    
+
     final rows = (totalQuestions / itemsPerRow).ceil();
 
     return Container(
@@ -660,7 +682,8 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
 
                 // Use actual question number from the loaded questions
                 final actualQuestionNumber = questionNumbers[questionIndex];
-                final isAnswered = provider.getAnswer(actualQuestionNumber) != null;
+                final isAnswered =
+                    provider.getAnswer(actualQuestionNumber) != null;
                 final isCurrent = questionIndex == provider.currentIndex;
 
                 return Expanded(
