@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../providers/profile/profile_provider.dart';
 import '../../providers/profile/profile_state.dart';
 import '../../widgets/app_button.dart';
@@ -24,6 +25,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   void initState() {
     super.initState();
+    _nameFocusNode.addListener(() => setState(() {}));
     // Load dữ liệu hiện tại
     final profileProvider = context.read<ProfileProvider>();
     final user = profileProvider.currentUser;
@@ -73,63 +75,81 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  void _handleSave(BuildContext context) {
+  Future<void> _handleSave(BuildContext context) async {
     if (_formKey.currentState?.validate() ?? false) {
       final profileProvider = context.read<ProfileProvider>();
       final birthDateStr = _selectedDate != null
           ? DateFormat('dd/MM/yyyy').format(_selectedDate!)
           : null;
 
-      profileProvider.updateProfile(
+      print(
+        '🔵 [EditProfile] Saving - Name: ${_nameController.text.trim()}, BirthDate: $birthDateStr',
+      );
+
+      await profileProvider.updateProfile(
         name: _nameController.text.trim(),
         birthDate: birthDateStr,
       );
+
+      if (!context.mounted) return;
+
+      final state = profileProvider.state;
+      print('🔵 [EditProfile] State after save: ${state.runtimeType}');
+
+      if (state is ProfileUpdated) {
+        print('✅ [EditProfile] Profile updated successfully, navigating back');
+        // Navigate back on success
+        Navigator.pop(context, true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cập nhật thông tin thành công'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } else if (state is ProfileError) {
+        print('❌ [EditProfile] Error: ${state.message}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(state.message),
+            backgroundColor: kDanger,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } else {
+      print('⚠️ [EditProfile] Form validation failed');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final themeExt = Theme.of(context).extension<AppThemeExtension>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Chỉnh sửa hồ sơ'),
-        backgroundColor: kPrimaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
         elevation: 0,
       ),
       body: Consumer<ProfileProvider>(
         builder: (context, profileProvider, _) {
-          // Listen to state changes
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            final state = profileProvider.state;
-
-            if (state is ProfileUpdated) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Cập nhật thông tin thành công'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-              // Navigate back sau khi cập nhật
-              Future.delayed(const Duration(milliseconds: 500), () {
-                if (context.mounted) {
-                  Navigator.pop(context);
-                }
-              });
-            } else if (state is ProfileError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: kDanger,
-                ),
-              );
-            }
-          });
-
           final isLoading = profileProvider.state is ProfileUpdating;
 
           return Container(
-            decoration: const BoxDecoration(gradient: kBackgroundGradient),
+            height: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors:
+                    themeExt?.backgroundGradientColors ??
+                    [Colors.white, const Color(0xFFB2E0FF)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Form(
@@ -144,18 +164,44 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       controller: _nameController,
                       focusNode: _nameFocusNode,
                       autofocus: true,
-                      decoration: const InputDecoration(
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                        fontSize: 16,
+                      ),
+                      decoration: InputDecoration(
                         labelText: 'Họ và tên',
-                        prefixIcon: Icon(Icons.person_outlined),
-                        floatingLabelStyle: TextStyle(color: kPrimaryColor),
+                        prefixIcon: Icon(
+                          Icons.person_outlined,
+                          color: _nameFocusNode.hasFocus
+                              ? kPrimaryColor
+                              : Colors.grey.shade600,
+                        ),
+                        labelStyle: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 16,
+                        ),
+                        floatingLabelStyle: const TextStyle(
+                          color: kPrimaryColor,
+                          fontSize: 14,
+                        ),
                         filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(),
-                        focusedBorder: OutlineInputBorder(
+                        fillColor: (themeExt?.cardBackground ?? Colors.white)
+                            .withOpacity(themeExt?.surfaceOpacity ?? 0.9),
+                        border: const OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.grey.shade400,
+                            width: 1.5,
+                          ),
+                        ),
+                        focusedBorder: const OutlineInputBorder(
                           borderSide: BorderSide(
                             color: kPrimaryColor,
-                            width: 2,
+                            width: 2.5,
                           ),
+                        ),
+                        errorBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: kDanger, width: 1.5),
                         ),
                       ),
                       textInputAction: TextInputAction.done,
@@ -181,13 +227,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           vertical: 16,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Colors.grey),
+                          color: (themeExt?.cardBackground ?? Colors.white)
+                              .withOpacity(themeExt?.surfaceOpacity ?? 0.9),
+                          border: Border.all(
+                            color: Colors.grey.shade400,
+                            width: 1.5,
+                          ),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.cake_outlined, color: Colors.grey),
+                            Icon(
+                              Icons.cake_outlined,
+                              color: Colors.grey.shade600,
+                            ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
@@ -199,7 +252,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: _selectedDate != null
-                                      ? Colors.black87
+                                      ? Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge?.color
                                       : Colors.grey[600],
                                 ),
                               ),
@@ -215,25 +270,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     const SizedBox(height: 40),
 
                     // Save Button
-                    SizedBox(
-                      height: 50,
-                      child: AppButton(
-                        text: isLoading ? 'Đang lưu...' : 'Lưu thay đổi',
-                        variant: AppButtonVariant.accent,
-                        size: AppButtonSize.large,
-                        onPressed: isLoading
-                            ? null
-                            : () => _handleSave(context),
+                    Opacity(
+                      opacity: isLoading ? 0.5 : 1.0,
+                      child: SizedBox(
+                        height: 50,
+                        child: AppButton(
+                          text: isLoading ? 'Đang lưu...' : 'Lưu thay đổi',
+                          variant: AppButtonVariant.accent,
+                          size: AppButtonSize.large,
+                          onPressed: isLoading
+                              ? null
+                              : () => _handleSave(context),
+                        ),
                       ),
                     ),
-
-                    if (isLoading) ...[
-                      const SizedBox(height: 20),
-                      const Center(
-                        child: CircularProgressIndicator(color: kPrimaryColor),
-                      ),
-                    ],
-
                     const SizedBox(height: 20),
 
                     // Cancel Button
