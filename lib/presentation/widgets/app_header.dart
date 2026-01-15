@@ -26,6 +26,7 @@
  * AppHeader(title: 'Bài học', actions: [IconButton(icon: Icon(Icons.search), onPressed: () {})]);
  */
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_assets.dart';
 
@@ -49,20 +50,19 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       title: Row(
         children: [
           Container(
-            decoration: BoxDecoration(color: kPrimaryColor),
-            child: Image.asset(
-              kSwiftPng,
-              width: 35,
-              height: 35,
-              fit: BoxFit.contain,
-              cacheWidth: 70, // Cache at 2x for performance
-              filterQuality: FilterQuality.low,
+            width: 40,
+            height: 40,
+            padding: const EdgeInsets.all(6),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
             ),
+            child: SvgPicture.asset(kIconSwiftLogo, fit: BoxFit.contain),
           ),
-          SizedBox(width: 10),
+          const SizedBox(width: 10),
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.bold,

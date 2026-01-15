@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../widgets/vocabulary/flashcard_widget.dart';
-import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/theme_helper.dart';
 
 class FlashcardPage extends StatefulWidget {
   final String? topicId;
@@ -242,10 +243,9 @@ class _FlashcardPageState extends State<FlashcardPage>
   @override
   Widget build(BuildContext context) {
     return Consumer<VocabularyProvider>(
-      builder: (context, vocabularyProvider, child) {
-        if (vocabularyProvider.isLoading) {
+      builder: (context, vocabularyProvider, child) {        if (vocabularyProvider.isLoading) {
           return Scaffold(
-            backgroundColor: kBackgroundColor,
+            backgroundColor: getBackgroundColor(context),
             body: const SafeArea(
               child: Center(child: CircularProgressIndicator()),
             ),
@@ -254,7 +254,7 @@ class _FlashcardPageState extends State<FlashcardPage>
 
         if (vocabularyProvider.error != null) {
           return Scaffold(
-            backgroundColor: kBackgroundColor,
+            backgroundColor: getBackgroundColor(context),
             body: SafeArea(
               child: Center(
                 child: Column(
@@ -293,9 +293,8 @@ class _FlashcardPageState extends State<FlashcardPage>
         }
 
         final vocabularyCards = vocabularyProvider.vocabularyCards;
-        if (vocabularyCards.isEmpty) {
-          return Scaffold(
-            backgroundColor: kBackgroundColor,
+        if (vocabularyCards.isEmpty) {        return Scaffold(
+            backgroundColor: getBackgroundColor(context),
             body: const SafeArea(
               child: Center(
                 child: Text(
@@ -310,7 +309,7 @@ class _FlashcardPageState extends State<FlashcardPage>
         // Kiểm tra nếu đã hết thẻ
         if (_currentCardIndex >= vocabularyCards.length) {
           return Scaffold(
-            backgroundColor: kBackgroundColor,
+            backgroundColor: getBackgroundColor(context),
             body: const SafeArea(
               child: Center(
                 child: Text(
@@ -320,14 +319,12 @@ class _FlashcardPageState extends State<FlashcardPage>
               ),
             ),
           );
-        }
-
-        return Scaffold(
-          backgroundColor: kBackgroundColor,
+        }        return Scaffold(
+          backgroundColor: getBackgroundColor(context),
           body: SafeArea(
             child: Container(
               width: double.infinity,
-              decoration: const BoxDecoration(color: kBackgroundColor),
+              decoration: BoxDecoration(color: getBackgroundColor(context)),
               padding: const EdgeInsets.all(spaceMd),
               child: Column(
                 children: [
@@ -343,15 +340,13 @@ class _FlashcardPageState extends State<FlashcardPage>
                           color: Colors.black,
                           size: 28,
                         ),
-                      ),
-
-                      // Progress hiển thị ở giữa
+                      ),                      // Progress hiển thị ở giữa
                       Text(
                         '${_currentCardIndex + 1} / ${vocabularyCards.length}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
-                          color: kTextPrimary,
+                          color: getTextPrimary(context),
                         ),
                       ),
 
@@ -461,11 +456,10 @@ class _FlashcardPageState extends State<FlashcardPage>
                                       : Matrix4.identity(), // Thẻ ẩn không có transform
                                   child: Container(
                                     width: double.infinity,
-                                    height: 600,
-                                    decoration: BoxDecoration(
+                                    height: 600,                                    decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(color: kOutlineColor),
+                                      border: Border.all(color: getBorderColor(context)),
                                       boxShadow: [
                                         BoxShadow(
                                           color: Colors.black.withOpacity(0.15),

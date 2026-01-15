@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../domain/entities/vocabulary_card.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/audio_service.dart';
+import '../../../core/di/injection_container.dart';
 import '../../providers/vocabulary_provider.dart';
+import '../../providers/personal_vocabulary_provider.dart';
 import 'base_card_widget.dart';
 
 class VocabularyCardWidget extends StatefulWidget {
@@ -43,13 +46,14 @@ class _VocabularyCardWidgetState extends State<VocabularyCardWidget>
   void dispose() {
     _animationController.dispose();
     super.dispose();
-  }
-
-  @override
+  }  @override
   Widget build(BuildContext context) {
-    return Consumer<VocabularyProvider>(
-      builder: (context, provider, child) {
-        final isFlipped = provider.isCardFlippedAtIndex(widget.index);
+    final audioService = sl<AudioService>();
+    
+    return Consumer2<VocabularyProvider, PersonalVocabularyProvider>(
+      builder: (context, vocabProvider, personalProvider, child) {
+        final isFlipped = vocabProvider.isCardFlippedAtIndex(widget.index);
+        final isBookmarked = personalProvider.isBookmarked(widget.card.id);
 
         // Sync animation với trạng thái flip
         if (isFlipped && !_animationController.isCompleted) {
@@ -60,7 +64,7 @@ class _VocabularyCardWidgetState extends State<VocabularyCardWidget>
 
         return GestureDetector(
           onTap: () {
-            provider.flipCardAtIndex(widget.index);
+            vocabProvider.flipCardAtIndex(widget.index);
           },
           child: BaseCardWidget(
             card: widget.card,
@@ -68,6 +72,14 @@ class _VocabularyCardWidgetState extends State<VocabularyCardWidget>
             isFlipped: isFlipped,
             style: CardStyle.simple,
             height: 200,
+            isBookmarked: isBookmarked,
+            onBookmarkPressed: () async {
+              await personalProvider.toggleBookmark(widget.card.id);
+            },
+            onSoundPressed: () async {
+              // Phát audio khi nhấn nút loa
+              await audioService.playAudio(widget.card.audioUrl);
+            },
             extraWidget: widget.onExpand != null
                 ? Positioned(
                     bottom: 4,

@@ -3,11 +3,16 @@
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/vocabulary_card.dart';
 import '../../domain/usecase/get_vocabulary_cards.dart';
+import '../../domain/usecase/enrich_vocabulary_card.dart';
 
 class VocabularyProvider extends ChangeNotifier {
   final GetVocabularyCards getVocabularyCards;
+  final EnrichVocabularyCard enrichVocabularyCard;
 
-  VocabularyProvider({required this.getVocabularyCards});
+  VocabularyProvider({
+    required this.getVocabularyCards,
+    required this.enrichVocabularyCard,
+  });
 
   // State
   List<VocabularyCard> _vocabularyCards = [];
@@ -41,7 +46,6 @@ class VocabularyProvider extends ChangeNotifier {
   }
 
   bool get isSwipingForward => _currentCardIndex > _previousCardIndex;
-
   // Methods
   Future<void> loadVocabularyCards(String topicId) async {
     _setLoading(true);
@@ -49,7 +53,20 @@ class VocabularyProvider extends ChangeNotifier {
 
     try {
       final cards = await getVocabularyCards.call(topicId);
-      _vocabularyCards = cards;
+      
+      // Enrich cards with dictionary data
+      final enrichedCards = <VocabularyCard>[];
+      for (var card in cards) {
+        try {
+          final enrichedCard = await enrichVocabularyCard.call(card);
+          enrichedCards.add(enrichedCard);
+        } catch (e) {
+          // If enrichment fails for a card, use original card
+          enrichedCards.add(card);
+        }
+      }
+      
+      _vocabularyCards = enrichedCards;
       _currentCardIndex = 0;
       _previousCardIndex = 0;
       _isCardFlipped = false;

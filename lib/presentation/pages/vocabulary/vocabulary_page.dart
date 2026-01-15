@@ -3,8 +3,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
-import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/core/constants/app_spacing.dart';
+import 'package:en_go_app/core/theme/theme_helper.dart';
 import '../../widgets/vocabulary_menu_item.dart';
 import '../../widgets/optimized_vocabulary_list.dart';
 import 'vocabulary_menu_manager.dart';
@@ -63,17 +63,15 @@ class _VocabPageState extends State<VocabPage> with AutomaticKeepAliveClientMixi
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    
-    return MainLayout(
+      return MainLayout(
       title: 'VOCABULARY',
       currentIndex: 1, // Vocabulary tab index
       child: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(color: kBackgroundColor),
+        decoration: BoxDecoration(color: getBackgroundColor(context)),
         child: SafeArea(
           child: Column(
             children: [
-              _buildHeader(),
               Expanded(
                 child: OptimizedVocabularyList(
                   menuItems: _menuItems,
@@ -88,66 +86,6 @@ class _VocabPageState extends State<VocabPage> with AutomaticKeepAliveClientMixi
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      margin: const EdgeInsets.all(spaceMd),
-      padding: const EdgeInsets.all(spaceMd),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            kPrimaryColor.withOpacity(0.1),
-            kSecondaryColor.withOpacity(0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: kPrimaryColor.withOpacity(0.2),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(spaceSm),
-            decoration: BoxDecoration(
-              color: kPrimaryColor.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.book_outlined,
-              color: kPrimaryColor,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: spaceMd),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Học từ vựng',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: kTextPrimary,
-                  ),
-                ),
-                const SizedBox(height: spaceSm),
-                Text(
-                  'Chọn phương pháp học phù hợp với bạn',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: kTextThird,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

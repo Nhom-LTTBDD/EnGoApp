@@ -12,6 +12,10 @@ class VocabularyCardModel extends VocabularyCard {
     super.audioUrl,
     required super.createdAt,
     required super.updatedAt,
+    super.phonetic,
+    super.definitions,
+    super.examples,
+    super.partsOfSpeech,
   });
 
   factory VocabularyCardModel.fromJson(Map<String, dynamic> json) {
@@ -24,6 +28,16 @@ class VocabularyCardModel extends VocabularyCard {
       audioUrl: json['audioUrl'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      phonetic: json['phonetic'] as String?,
+      definitions: (json['definitions'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      examples: (json['examples'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      partsOfSpeech: (json['partsOfSpeech'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
   }
 
@@ -37,6 +51,10 @@ class VocabularyCardModel extends VocabularyCard {
       'audioUrl': audioUrl,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      'phonetic': phonetic,
+      'definitions': definitions,
+      'examples': examples,
+      'partsOfSpeech': partsOfSpeech,
     };
   }
 
@@ -50,6 +68,10 @@ class VocabularyCardModel extends VocabularyCard {
       audioUrl: entity.audioUrl,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
+      phonetic: entity.phonetic,
+      definitions: entity.definitions,
+      examples: entity.examples,
+      partsOfSpeech: entity.partsOfSpeech,
     );
   }
 }

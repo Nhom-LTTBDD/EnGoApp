@@ -9,12 +9,15 @@ import 'package:en_go_app/core/constants/app_text_styles.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/routes/app_routes.dart';
 import '../../../domain/entities/user.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/auth_state.dart';
 import '../../providers/profile/profile_provider.dart';
 import '../../providers/profile/profile_state.dart';
+import '../../providers/theme/theme_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/avatar_color_picker_dialog.dart';
+import '../../widgets/custom_icon_button.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -39,11 +42,21 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   /// Shimmer loading placeholder
-  Widget _buildShimmerLoading() {
+  Widget _buildShimmerLoading(BuildContext context) {
+    final themeExt = Theme.of(context).extension<AppThemeExtension>();
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(top: 30, bottom: 30),
-      decoration: const BoxDecoration(gradient: kBackgroundGradient),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors:
+              themeExt?.backgroundGradientColors ??
+              [Colors.white, const Color(0xFFB2E0FF)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -53,7 +66,7 @@ class _ProfilePageState extends State<ProfilePage> {
             height: 150,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.grey[300],
+              color: themeExt?.shimmerBaseColor ?? Colors.grey[300],
             ),
           ),
           const SizedBox(height: 30),
@@ -62,16 +75,18 @@ class _ProfilePageState extends State<ProfilePage> {
             width: 300,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.8),
+              color: (themeExt?.cardBackground ?? Colors.white).withOpacity(
+                themeExt?.surfaceOpacity ?? 0.8,
+              ),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               children: [
-                _shimmerLine(width: 200),
+                _shimmerLine(context, width: 200),
                 const SizedBox(height: 15),
-                _shimmerLine(width: 180),
+                _shimmerLine(context, width: 180),
                 const SizedBox(height: 15),
-                _shimmerLine(width: 220),
+                _shimmerLine(context, width: 220),
               ],
             ),
           ),
@@ -80,12 +95,14 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _shimmerLine({required double width}) {
+  Widget _shimmerLine(BuildContext context, {required double width}) {
+    final themeExt = Theme.of(context).extension<AppThemeExtension>();
+
     return Container(
       width: width,
       height: 16,
       decoration: BoxDecoration(
-        color: Colors.grey[300],
+        color: themeExt?.shimmerBaseColor ?? Colors.grey[300],
         borderRadius: BorderRadius.circular(4),
       ),
     );
@@ -190,7 +207,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
               // Handle loading state - Use shimmer nếu chưa có data
               if (profileState is ProfileLoading && user == null) {
-                return _buildShimmerLoading();
+                return _buildShimmerLoading(context);
               }
 
               // Handle error state
@@ -213,11 +230,21 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
               }
 
+              final themeExt = Theme.of(context).extension<AppThemeExtension>();
+
               return Container(
                 width: double.infinity,
-                padding: const EdgeInsets.only(top: 30, bottom: 30),
-                decoration: const BoxDecoration(gradient: kBackgroundGradient),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors:
+                        themeExt?.backgroundGradientColors ??
+                        [Colors.white, const Color(0xFFB2E0FF)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
                 child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(top: 50, bottom: 100),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -252,27 +279,20 @@ class _ProfilePageState extends State<ProfilePage> {
                           Positioned(
                             bottom: 0,
                             right: 0,
-                            child: GestureDetector(
+                            child: CustomIconButton(
+                              icon: Icons.palette,
                               onTap: () => _showColorPicker(context),
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.2),
-                                      blurRadius: 4,
-                                      spreadRadius: 1,
-                                    ),
-                                  ],
+                              backgroundColor: Colors.white,
+                              iconColor: kPrimaryColor,
+                              size: 40,
+                              iconSize: 24,
+                              shadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 4,
+                                  spreadRadius: 1,
                                 ),
-                                child: const Icon(
-                                  Icons.palette,
-                                  color: kPrimaryColor,
-                                  size: 24,
-                                ),
-                              ),
+                              ],
                             ),
                           ),
                         ],
@@ -280,75 +300,113 @@ class _ProfilePageState extends State<ProfilePage> {
                       const SizedBox(height: 30),
 
                       // User Info Container
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 15,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.person,
-                                      color: kPrimaryColor,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: (themeExt?.cardBackground ?? Colors.white)
+                                .withOpacity(themeExt?.surfaceOpacity ?? 0.8),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Header với Edit button
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Thông tin cá nhân',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).primaryColor,
                                     ),
-                                    const SizedBox(width: 10),
-                                    Text(user?.name ?? 'N/A', style: kBody),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.cake,
-                                      color: kPrimaryColor,
+                                  ),
+                                  CustomIconButton(
+                                    icon: Icons.edit,
+                                    onTap: () {
+                                      Navigator.pushNamed(
+                                        context,
+                                        AppRoutes.editProfile,
+                                      );
+                                    },
+                                    backgroundColor: Colors.white,
+                                    iconColor: kSuccess,
+                                    size: 36,
+                                    iconSize: 18,
+                                    shadow: [
+                                      BoxShadow(
+                                        color: kSuccess.withOpacity(0.2),
+                                        blurRadius: 4,
+                                        spreadRadius: 0,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              // User info
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.person,
+                                    color: Theme.of(context).iconTheme.color,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    user?.name ?? 'N/A',
+                                    style: kBody.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge?.color,
                                     ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      user?.birthDate ?? 'Chưa cập nhật',
-                                      style: kBody,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.cake,
+                                    color: Theme.of(context).iconTheme.color,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    user?.birthDate ?? 'Chưa cập nhật',
+                                    style: kBody.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge?.color,
                                     ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.email,
-                                      color: kPrimaryColor,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.email,
+                                    color: Theme.of(context).iconTheme.color,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    user?.email ?? 'N/A',
+                                    style: kBody.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge?.color,
                                     ),
-                                    const SizedBox(width: 10),
-                                    Text(user?.email ?? 'N/A', style: kBody),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 30),
-                            AppButton(
-                              icon: Icons.edit,
-                              onPressed: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  AppRoutes.editProfile,
-                                );
-                              },
-                              variant: AppButtonVariant.borderSuccess,
-                              size: AppButtonSize.small,
-                              isFullWidth: false,
-                            ),
-                          ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 15),
@@ -393,12 +451,18 @@ class _ProfilePageState extends State<ProfilePage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          AppButton(
-                            onPressed: () {},
-                            icon: Icons.dark_mode,
-                            variant: AppButtonVariant.accent,
-                            size: AppButtonSize.small,
-                            isFullWidth: false,
+                          Consumer<ThemeProvider>(
+                            builder: (context, themeProvider, _) {
+                              return AppButton(
+                                onPressed: () => themeProvider.toggleTheme(),
+                                icon: themeProvider.isDarkMode
+                                    ? Icons.light_mode
+                                    : Icons.dark_mode,
+                                variant: AppButtonVariant.accent,
+                                size: AppButtonSize.small,
+                                isFullWidth: false,
+                              );
+                            },
                           ),
                           const SizedBox(width: 20),
                           AppButton(
