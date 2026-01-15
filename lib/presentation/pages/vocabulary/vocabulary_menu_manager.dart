@@ -30,11 +30,8 @@ class TopicsMenuAction extends VocabularyMenuAction {
 class PersonalCollectionMenuAction extends VocabularyMenuAction {
   @override
   Future<void> execute(BuildContext context) async {
-    // Implement personal collection navigation
-    // Navigator.pushNamed(context, AppRoutes.personalCollection);
-    
-    // Temporary: Show coming soon dialog
-    _showComingSoonDialog(context, 'Bộ từ của bạn');
+    // Navigate to personal vocabulary page
+    Navigator.pushNamed(context, AppRoutes.personalVocabulary);
   }
 
   @override
@@ -58,19 +55,8 @@ class QuizMenuAction extends VocabularyMenuAction {
     // Navigator.pushNamed(context, AppRoutes.quiz);
     _showComingSoonDialog(context, 'Quiz');
   }
-
   @override
   String get analyticsEvent => 'quiz_opened';
-}
-
-class GrammarMenuAction extends VocabularyMenuAction {
-  @override
-  Future<void> execute(BuildContext context) async {
-    Navigator.pushNamed(context, AppRoutes.grammar);
-  }
-
-  @override
-  String get analyticsEvent => 'grammar_opened';
 }
 
 /// Helper function for coming soon dialog
@@ -97,7 +83,6 @@ class VocabularyMenuActionFactory {
     VocabularyMenuType.personalCollection: PersonalCollectionMenuAction(),
     VocabularyMenuType.flashCard: FlashCardMenuAction(),
     VocabularyMenuType.quiz: QuizMenuAction(),
-    VocabularyMenuType.grammar: GrammarMenuAction(),
   };
 
   static VocabularyMenuAction? getAction(VocabularyMenuType type) {

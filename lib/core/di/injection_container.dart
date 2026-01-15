@@ -36,13 +36,23 @@ import '../../presentation/providers/auth/auth_provider.dart';
 import '../../presentation/providers/profile/profile_provider.dart';
 import '../../presentation/providers/vocabulary_provider.dart';
 import '../../presentation/providers/grammar_provider.dart';
+import '../../presentation/providers/personal_vocabulary_provider.dart';
 
 // Vocabulary Domain
 import '../../domain/repository_interfaces/vocabulary_repository.dart';
 import '../../domain/usecase/get_vocabulary_cards.dart';
+import '../../domain/usecase/enrich_vocabulary_card.dart';
 
 // Vocabulary Data
 import '../../data/repositories/vocabulary_repository_impl.dart';
+
+// Dictionary Domain
+import '../../domain/repository_interfaces/dictionary_repository.dart';
+
+// Dictionary Data
+import '../../data/repositories/dictionary_repository_impl.dart';
+import '../../data/datasources/dictionary_remote_data_source.dart';
+import '../../data/datasources/dictionary_local_data_source.dart';
 
 // Grammar Domain
 import '../../domain/repository_interfaces/grammar_repository.dart';
@@ -52,41 +62,99 @@ import '../../domain/use_cases/get_grammar_lessons_use_case.dart';
 // Grammar Data
 import '../../data/repositories/grammar_repository_impl.dart';
 
+// Services
+import '../services/audio_service.dart';
+import '../services/personal_vocabulary_service.dart';
+
 final sl = GetIt.instance;
 
 /// Initialize tất cả dependencies
+/// ⚠️ THỨ TỰ QUAN TRỌNG: External → DataSources → Repositories → Use Cases → Providers
 Future<void> init() async {
   // =============================================================================
-  // Providers (State Management)
+  // External Dependencies (MUST BE FIRST)
   // =============================================================================
-  sl.registerFactory(
-    () => AuthProvider(
-      loginUseCase: sl(),
-      registerUseCase: sl(),
-      logoutUseCase: sl(),
-      forgotPasswordUseCase: sl(),
-      getCurrentUserUseCase: sl(),
-      googleSignInUseCase: sl(),
+  final sharedPreferences = await SharedPreferences.getInstance();
+  sl.registerLazySingleton(() => sharedPreferences);
+
+  sl.registerLazySingleton(() => http.Client());
+  
+  // Firebase services
+  sl.registerLazySingleton(() => FirebaseAuth.instance);
+  sl.registerLazySingleton(() => FirebaseFirestore.instance);
+  sl.registerLazySingleton(() => FirebaseStorage.instance);
+  sl.registerLazySingleton(() => GoogleSignIn());
+  
+  // Services
+  sl.registerLazySingleton(() => AudioService());
+  sl.registerLazySingleton(() => PersonalVocabularyService(sl()));
+
+  // =============================================================================
+  // Data Sources - Local
+  // =============================================================================
+  sl.registerLazySingleton<AuthLocalDataSource>(
+    () => AuthLocalDataSourceImpl(sharedPreferences: sl()),
+  );
+
+  sl.registerLazySingleton<ProfileLocalDataSource>(
+    () => ProfileLocalDataSourceImpl(sharedPreferences: sl()),
+  );
+
+  sl.registerLazySingleton<DictionaryLocalDataSource>(
+    () => DictionaryLocalDataSourceImpl(sharedPreferences: sl()),
+  );
+
+  // =============================================================================
+  // Data Sources - Remote
+  // =============================================================================
+  sl.registerLazySingleton<AuthRemoteDataSource>(
+    () => AuthRemoteDataSourceImpl(
+      firebaseAuth: sl(),
+      firestore: sl(),
+      googleSignIn: sl(),
     ),
   );
 
-  sl.registerFactory(
-    () => ProfileProvider(
-      getUserProfileUseCase: sl(),
-      updateProfileUseCase: sl(),
-      updateAvatarColorUseCase: sl(),
-      clearProfileCacheUseCase: sl(),
+  sl.registerLazySingleton<ProfileRemoteDataSource>(
+    () => ProfileRemoteDataSourceImpl(
+      firebaseAuth: sl(),
+      firestore: sl(),
+      storage: sl(),
     ),
   );
 
-  sl.registerFactory(() => VocabularyProvider(getVocabularyCards: sl()));
-  // Grammar Provider
-  sl.registerFactory(
-    () => GrammarProvider(
-      getGrammarTopicsUseCase: sl(),
-      getGrammarLessonsUseCase: sl(),
-      grammarRepository: sl(),
+  sl.registerLazySingleton<DictionaryRemoteDataSource>(
+    () => DictionaryRemoteDataSourceImpl(client: sl()),
+  );
+
+  // =============================================================================
+  // Repositories (MUST BE BEFORE USE CASES)
+  // =============================================================================
+  sl.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(remoteDataSource: sl(), localDataSource: sl()),
+  );
+
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(
+      remoteDataSource: sl(),
+      localDataSource: sl(),
+      authLocalDataSource: sl(),
     ),
+  );
+
+  sl.registerLazySingleton<VocabularyRepository>(
+    () => VocabularyRepositoryImpl(),
+  );
+
+  sl.registerLazySingleton<DictionaryRepository>(
+    () => DictionaryRepositoryImpl(
+      remoteDataSource: sl(),
+      localDataSource: sl(),
+    ),
+  );
+
+  sl.registerLazySingleton<GrammarRepository>(
+    () => GrammarRepositoryImpl(),
   );
 
   // =============================================================================
@@ -111,6 +179,7 @@ Future<void> init() async {
   // Use Cases - Vocabulary
   // =============================================================================
   sl.registerLazySingleton(() => GetVocabularyCards(sl()));
+  sl.registerLazySingleton(() => EnrichVocabularyCard(sl()));
 
   // =============================================================================
   // Use Cases - Grammar
@@ -119,67 +188,47 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetGrammarLessonsUseCase(sl()));
 
   // =============================================================================
-  // Repositories
+  // Providers (State Management) - MUST BE LAST
   // =============================================================================
-  sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(remoteDataSource: sl(), localDataSource: sl()),
-  );
-
-  sl.registerLazySingleton<ProfileRepository>(
-    () => ProfileRepositoryImpl(
-      remoteDataSource: sl(),
-      localDataSource: sl(),
-      authLocalDataSource: sl(),
+  sl.registerFactory(
+    () => AuthProvider(
+      loginUseCase: sl(),
+      registerUseCase: sl(),
+      logoutUseCase: sl(),
+      forgotPasswordUseCase: sl(),
+      getCurrentUserUseCase: sl(),
+      googleSignInUseCase: sl(),
     ),
   );
 
-  sl.registerLazySingleton<VocabularyRepository>(
-    () => VocabularyRepositoryImpl(),
-  );
-
-  sl.registerLazySingleton<GrammarRepository>(() => GrammarRepositoryImpl());
-
-  // =============================================================================
-  // Data Sources - Remote
-  // =============================================================================
-  sl.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(
-      firebaseAuth: sl(),
-      firestore: sl(),
-      googleSignIn: sl(),
+  sl.registerFactory(
+    () => ProfileProvider(
+      getUserProfileUseCase: sl(),
+      updateProfileUseCase: sl(),
+      updateAvatarColorUseCase: sl(),
+      clearProfileCacheUseCase: sl(),
     ),
   );
 
-  sl.registerLazySingleton<ProfileRemoteDataSource>(
-    () => ProfileRemoteDataSourceImpl(
-      firebaseAuth: sl(),
-      firestore: sl(),
-      storage: sl(),
+  sl.registerFactory(
+    () => VocabularyProvider(
+      getVocabularyCards: sl(),
+      enrichVocabularyCard: sl(),
     ),
   );
-
-  // =============================================================================
-  // Data Sources - Local
-  // =============================================================================
-  sl.registerLazySingleton<AuthLocalDataSource>(
-    () => AuthLocalDataSourceImpl(sharedPreferences: sl()),
+        sl.registerFactory(
+    () => PersonalVocabularyProvider(
+      service: sl(),
+      vocabularyRepository: sl(),
+      dictionaryRepository: sl(),
+    ),
   );
-
-  sl.registerLazySingleton<ProfileLocalDataSource>(
-    () => ProfileLocalDataSourceImpl(sharedPreferences: sl()),
+      
+  sl.registerFactory(
+    () => GrammarProvider(
+      getGrammarTopicsUseCase: sl(),
+      getGrammarLessonsUseCase: sl(),
+      grammarRepository: sl(),
+    ),
   );
-
-  // =============================================================================
-  // External Dependencies
-  // =============================================================================
-  final sharedPreferences = await SharedPreferences.getInstance();
-  sl.registerLazySingleton(() => sharedPreferences);
-
-  sl.registerLazySingleton(() => http.Client());
-
-  // Firebase services
-  sl.registerLazySingleton(() => FirebaseAuth.instance);
-  sl.registerLazySingleton(() => FirebaseFirestore.instance);
-  sl.registerLazySingleton(() => FirebaseStorage.instance);
-  sl.registerLazySingleton(() => GoogleSignIn());
 }

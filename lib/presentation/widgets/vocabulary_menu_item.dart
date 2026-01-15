@@ -11,8 +11,7 @@ enum VocabularyMenuType {
   topics('Các chủ đề từ vựng', Icons.topic_outlined),
   personalCollection('Bộ từ của bạn', Icons.bookmark_outline),
   flashCard('Flash Card', Icons.flip_to_front_outlined),
-  quiz('Quiz', Icons.quiz_outlined),
-  grammar('Grammar', Icons.format_quote_outlined);
+  quiz('Quiz', Icons.quiz_outlined);
 
   const VocabularyMenuType(this.title, this.icon);
   
@@ -210,7 +209,6 @@ extension VocabularyMenuTypeExtension on VocabularyMenuType {
         return VocabularyMenuItemConfig.warning();
       case VocabularyMenuType.flashCard:
       case VocabularyMenuType.quiz:
-      case VocabularyMenuType.grammar:
         return VocabularyMenuItemConfig.special();
     }
   }

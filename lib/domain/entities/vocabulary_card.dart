@@ -9,6 +9,12 @@ class VocabularyCard {
   final String? audioUrl;
   final DateTime createdAt;
   final DateTime updatedAt;
+  
+  // Dictionary API enriched fields
+  final String? phonetic;
+  final List<String>? definitions;
+  final List<String>? examples;
+  final List<String>? partsOfSpeech;
 
   const VocabularyCard({
     required this.id,
@@ -19,6 +25,10 @@ class VocabularyCard {
     this.audioUrl,
     required this.createdAt,
     required this.updatedAt,
+    this.phonetic,
+    this.definitions,
+    this.examples,
+    this.partsOfSpeech,
   });
 
   @override

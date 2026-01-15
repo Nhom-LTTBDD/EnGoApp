@@ -8,7 +8,6 @@ import 'package:en_go_app/core/constants/app_text_styles.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../widgets/vocabulary/vocabulary_card_list.dart';
 import '../../widgets/vocabulary/dots_indicator.dart';
-import '../../widgets/vocabulary/profile_section.dart';
 import '../../widgets/vocabulary/vocab_menu_items.dart';
 import '../../widgets/vocabulary/vocab_page_header.dart';
 
@@ -40,50 +39,10 @@ class _VocabMenuPageState extends State<VocabMenuPage> {
       );
     });
   }
-
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
-  }
-
-  void _handleEditVocabularySet() {
-    // TODO: Navigate to edit vocabulary set page
-    print('Edit vocabulary set');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Chức năng sửa bộ từ đang phát triển')),
-    );
-  }
-
-  void _handleDeleteVocabularySet() {
-    // Show confirmation dialog
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Xóa bộ từ'),
-          content: const Text('Bạn có chắc chắn muốn xóa bộ từ này không?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Hủy'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                // TODO: Implement delete functionality
-                print('Delete vocabulary set confirmed');
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('Đã xóa bộ từ')));
-              },
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Xóa'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
@@ -159,13 +118,9 @@ class _VocabMenuPageState extends State<VocabMenuPage> {
               children: [
                 Expanded(
                   child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: spaceMd),
-                    children: [
-                      // Header with back and more buttons
-                      VocabPageHeader(
-                        onEdit: _handleEditVocabularySet,
-                        onDelete: _handleDeleteVocabularySet,
-                      ),
+                    padding: const EdgeInsets.symmetric(horizontal: spaceMd),                    children: [
+                      // Header with back button
+                      const VocabPageHeader(),
 
                       // Card "Từ vựng" với dots - có thể lật và lướt ngang
                       VocabularyCardList(
@@ -175,30 +130,11 @@ class _VocabMenuPageState extends State<VocabMenuPage> {
                         topicId: widget.topicId, // Truyền topicId
                       ),
 
-                      const SizedBox(height: 16),
-
-                      // Dots indicator cho PageView
+                      const SizedBox(height: 16),                      // Dots indicator cho PageView
                       DotsIndicator(
                         totalDots: vocabularyCards.length,
                         activeDotIndex: vocabularyProvider.getDotIndex(),
                       ),
-
-                      const SizedBox(height: spaceLg),
-
-                      // "Tên Chủ Đề" title
-                      const Text(
-                        'Tên Chủ Đề',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: kTextPrimary,
-                        ),
-                      ),
-
-                      const SizedBox(height: spaceMd),
-
-                      // Profile section
-                      ProfileSection(cardCount: vocabularyCards.length),
 
                       const SizedBox(height: spaceLg),
 
