@@ -7,6 +7,7 @@ import '../../layout/main_layout.dart';
 import '../../../domain/entities/toeic_question.dart';
 import '../../../domain/entities/toeic_test_session.dart';
 import '../../../data/datasources/toeic_sample_data.dart';
+import '../../../routes/app_routes.dart';
 import 'package:en_go_app/core/theme/theme_helper.dart';
 
 class ToeicTestTakingPage extends StatefulWidget {
@@ -90,6 +91,15 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
       selectedParts: widget.selectedParts,
       timeLimit: widget.timeLimit,
       questions: questions, // Use real questions
+      onTimeUp: () {
+        // Handle time up - automatically finish test and go to results
+        final result = provider.finishTestAndGetResults();
+        final session = provider.session;
+        provider.finishTest();
+        if (mounted) {
+          _navigateToResults(context, result, session);
+        }
+      },
     );
 
     // If full test with listening, play full audio
@@ -171,26 +181,68 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
               ),
             ),
 
-            // Audio player
-            if (!widget.isFullTest && question.audioUrl != null)
+            // Debug: Check all questions for imageUrl
+            Builder(
+              builder: (context) {
+                if (question.questionNumber == 62 ||
+                    question.questionNumber == 63 ||
+                    question.questionNumber == 64 ||
+                    question.questionNumber == 66 ||
+                    question.questionNumber == 69) {
+                  print(
+                    'UI BUILD Q${question.questionNumber}: Part ${question.partNumber}, imageUrl: ${question.imageUrl}',
+                  );
+                  print(
+                    'UI CONDITIONS: imageUrl != null: ${question.imageUrl != null}, partNumber == 3: ${question.partNumber == 3}',
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+
+            // Audio player for listening parts (Part 1-4)
+            if (question.audioUrl != null && question.partNumber <= 4)
               _buildAudioPlayer(provider, question.audioUrl!),
 
-            // Image (only for Part 1)
-            if (question.imageUrl != null && question.partNumber == 1)
+            // Image (for Part 1 and Part 3 questions with images)
+            if (question.imageUrl != null &&
+                (question.partNumber == 1 || question.partNumber == 3)) ...[
               Container(
                 height: 200,
                 width: double.infinity,
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  image: DecorationImage(
-                    image: AssetImage(
-                      question.imageUrl!.replaceAll('.jpg', '.png'),
-                    ),
-                    fit: BoxFit.cover,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(
+                    question.imageUrl!,
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    height: double.infinity,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 200,
+                        color: Colors.grey[300],
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.error, color: Colors.red),
+                              Text(
+                                'Error loading image:\n${question.imageUrl}',
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
+            ],
 
             // Question text (only for Part 3 and above)
             if (question.questionText != null && question.partNumber >= 3)
@@ -238,6 +290,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
 
     return Expanded(
       child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -260,39 +313,88 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
               ),
             ),
 
-            // Audio player - only for first question in group
-            if (!widget.isFullTest && groupQuestions.first.audioUrl != null)
+            // Audio player - for listening parts (Part 1-4)
+            if (groupQuestions.first.audioUrl != null &&
+                groupQuestions.first.partNumber <= 4)
               _buildAudioPlayer(provider, groupQuestions.first.audioUrl!),
 
-            // All 3 questions
-            ...groupQuestions
-                .map(
-                  (question) => Container(
-                    margin: const EdgeInsets.only(bottom: 20),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: getDividerColor(context)),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Question number and text
-                        Text(
-                          '${question.questionNumber}. ${question.questionText ?? 'Listen to the conversation and choose the best answer.'}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+            // Image for Part 3 groups (show only if first question has image)
+            if (groupQuestions.first.imageUrl != null) ...[
+              Builder(
+                builder: (context) {
+                  print(
+                    '🖼️ SHOWING GROUP IMAGE: ${groupQuestions.first.imageUrl}',
+                  );
+                  return const SizedBox.shrink();
+                },
+              ),
+              Container(
+                height: 200,
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(
+                    groupQuestions.first.imageUrl!,
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    height: double.infinity,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 200,
+                        color: Colors.grey[300],
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.error, color: Colors.red),
+                              Text(
+                                'Error loading image:\n${groupQuestions.first.imageUrl}',
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        // Options for this question
-                        _buildOptions(provider, question),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                )
-                .toList(),
+                ),
+              ),
+            ],
+
+            // All 3 questions
+            ...groupQuestions.asMap().entries.map((entry) {
+              final index = entry.key;
+              final question = entry.value;
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 20),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: getDividerColor(context)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Question number and text
+                    Text(
+                      '${question.questionNumber}. ${question.questionText ?? 'Listen to the conversation and choose the best answer.'}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Options for this question
+                    _buildOptions(provider, question),
+                  ],
+                ),
+              );
+            }).toList(),
 
             const SizedBox(height: 24),
             // Question grid - moved to scrollable area
@@ -796,9 +898,10 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
               Navigator.pop(context);
               try {
                 final result = provider.finishTestAndGetResults();
+                final session = provider.session;
                 provider.finishTest();
                 if (mounted) {
-                  _showResults(context, result);
+                  _navigateToResults(context, result, session);
                 }
               } catch (e) {
                 print('Error finishing test: $e');
@@ -811,40 +914,32 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     );
   }
 
-  void _showResults(BuildContext context, Map<String, dynamic> result) {
+  void _navigateToResults(
+    BuildContext context,
+    Map<String, dynamic> result,
+    ToeicTestSession? session,
+  ) {
     if (!mounted) return;
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Test Results'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Score: ${result['score'] ?? 0}%'),
-            Text(
-              'Correct: ${result['correctAnswers'] ?? 0}/${result['totalQuestions'] ?? 0}',
-            ),
-            Text(
-              'Answered: ${result['answered'] ?? 0}/${result['totalQuestions'] ?? 0}',
-            ),
-            Text(
-              'Time: ${_formatDuration(result['duration'] ?? Duration.zero)}',
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      AppRoutes.toeicResult,
+      (route) => route.settings.name == AppRoutes.toeic,
+      arguments: {
+        'session': session,
+        'testName': widget.testName,
+        'listeningScore': result['listeningScore'] ?? 5,
+        'readingScore': result['readingScore'] ?? 5,
+        'totalScore': result['totalScore'] ?? 10,
+        'listeningCorrect': result['listeningCorrect'] ?? 0,
+        'listeningWrong': result['listeningWrong'] ?? 0,
+        'listeningUnanswered': result['listeningUnanswered'] ?? 0,
+        'readingCorrect': result['readingCorrect'] ?? 0,
+        'readingWrong': result['readingWrong'] ?? 0,
+        'readingUnanswered': result['readingUnanswered'] ?? 0,
+        'listeningTotal': result['listeningTotal'] ?? 100,
+        'readingTotal': result['readingTotal'] ?? 100,
+      },
     );
   }
 }

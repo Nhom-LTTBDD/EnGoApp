@@ -16,6 +16,7 @@ import '../presentation/pages//test/ielts_page.dart';
 import '../presentation/pages/test/toeic_page.dart';
 import '../presentation/pages/test/toeic_detail_page.dart';
 import '../presentation/pages/test/toeic_test_taking_page.dart';
+import '../presentation/pages/test/toeic_result_page.dart';
 //Vocabulary
 import '../presentation/pages/vocabulary/vocabulary_page.dart';
 import '../presentation/pages/vocabulary/vocab_by_topic_page.dart';
@@ -45,14 +46,20 @@ class AppRoutes {
   static const String test = '/test'; //Test
   static const String ielts = '/ielts';
   static const String toeic = '/toeic';
-  static const String toeicDetail = '/toeic/detail';  static const String toeicTestTaking = '/toeic/test-taking';
+  static const String toeicDetail = '/toeic/detail';
+  static const String toeicTestTaking = '/toeic/test-taking';
+  static const String toeicResult = '/toeic/result';
   static const String vocab = '/vocabulary'; //Vocabulary
-  static const String vocabByTopic = '/vocabulary/by-topic'; //Vocabulary by topic
+  static const String vocabByTopic =
+      '/vocabulary/by-topic'; //Vocabulary by topic
   static const String vocabMenu = '/vocabulary/menu'; //Vocabulary menu
   static const String flashcard = '/vocabulary/flashcard'; //Flashcard page
-  static const String personalVocabulary = '/vocabulary/personal'; //Personal vocabulary
-  static const String personalVocabByTopic = '/vocabulary/personal/by-topic'; //Personal vocab by topic
-  static const String personalVocabCards = '/vocabulary/personal/cards'; //Personal vocab cards
+  static const String personalVocabulary =
+      '/vocabulary/personal'; //Personal vocabulary
+  static const String personalVocabByTopic =
+      '/vocabulary/personal/by-topic'; //Personal vocab by topic
+  static const String personalVocabCards =
+      '/vocabulary/personal/cards'; //Personal vocab cards
   // Grammar routes
   static const String grammar = '/grammar'; //Grammar main
 }
@@ -112,6 +119,25 @@ class RouteGenerator {
             questions: questions,
           ),
         );
+      case AppRoutes.toeicResult:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => ToeicResultPage(
+            session: args?['session'],
+            testName: args?['testName'] as String? ?? 'TOEIC Test',
+            listeningScore: args?['listeningScore'] as int? ?? 5,
+            readingScore: args?['readingScore'] as int? ?? 5,
+            totalScore: args?['totalScore'] as int? ?? 10,
+            listeningCorrect: args?['listeningCorrect'] as int? ?? 0,
+            listeningWrong: args?['listeningWrong'] as int? ?? 0,
+            listeningUnanswered: args?['listeningUnanswered'] as int? ?? 0,
+            readingCorrect: args?['readingCorrect'] as int? ?? 0,
+            readingWrong: args?['readingWrong'] as int? ?? 0,
+            readingUnanswered: args?['readingUnanswered'] as int? ?? 0,
+            listeningTotal: args?['listeningTotal'] as int? ?? 100,
+            readingTotal: args?['readingTotal'] as int? ?? 100,
+          ),
+        );
       //case Vocab
       case AppRoutes.vocab:
         return MaterialPageRoute(builder: (_) => VocabPage());
@@ -130,9 +156,13 @@ class RouteGenerator {
           builder: (_) => FlashcardPage(topicId: topicId),
         );
       case AppRoutes.personalVocabulary:
-        return MaterialPageRoute(builder: (_) => const PersonalVocabularyPage());
+        return MaterialPageRoute(
+          builder: (_) => const PersonalVocabularyPage(),
+        );
       case AppRoutes.personalVocabByTopic:
-        return MaterialPageRoute(builder: (_) => const PersonalVocabularyByTopicPage());
+        return MaterialPageRoute(
+          builder: (_) => const PersonalVocabularyByTopicPage(),
+        );
       case AppRoutes.personalVocabCards:
         final args = settings.arguments as Map<String, dynamic>?;
         final topicId = args?['topicId'] as String? ?? '';

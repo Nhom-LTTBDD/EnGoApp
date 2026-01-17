@@ -1,0 +1,119 @@
+// lib/presentation/providers/streak_provider.dart
+
+import 'package:flutter/foundation.dart';
+import '../../core/services/streak_service.dart';
+import '../../domain/entities/user_streak.dart';
+
+/// Provider quản lý state của streak
+class StreakProvider with ChangeNotifier {
+  final StreakService _streakService;
+
+  // Current user ID
+  String _userId = 'default_user';
+
+  // Streak data
+  UserStreak? _streak;
+
+  // Loading state
+  bool _isLoading = false;
+
+  // Error message
+  String? _error;
+
+  StreakProvider({required StreakService streakService})
+    : _streakService = streakService {
+    // Load streak when provider is created
+    loadStreak();
+  }
+
+  // Getters
+  UserStreak? get streak => _streak;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+  int get currentStreak => _streak?.currentStreak ?? 0;
+  int get longestStreak => _streak?.longestStreak ?? 0;
+  DateTime? get lastActivityDate => _streak?.lastActivityDate;
+
+  /// Set user ID và reload streak
+  void setUserId(String userId) {
+    if (_userId != userId) {
+      print('🔄 StreakProvider: Switching user to $userId');
+      _userId = userId;
+      loadStreak();
+    } else if (_streak == null) {
+      // Nếu chưa có streak data, load lại (case: user login lần đầu)
+      print('🔄 StreakProvider: No streak data, loading...');
+      loadStreak();
+    }
+  }
+
+  /// Load streak từ service
+  Future<void> loadStreak() async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      print('🔄 Loading streak for user: $_userId');
+      _streak = await _streakService.getStreak(_userId);
+
+      _isLoading = false;
+      print('✨ Streak loaded: ${_streak?.currentStreak ?? 0} days');
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      print('❌ Error loading streak: $e');
+      notifyListeners();
+    }
+  }
+
+  /// Record activity (gọi khi hoàn thành flashcard)
+  Future<void> recordActivity() async {
+    try {
+      print('🎯 Recording activity for user: $_userId');
+
+      final updatedStreak = await _streakService.recordActivity(_userId);
+
+      // Check if streak increased
+      final oldStreak = _streak?.currentStreak ?? 0;
+      final newStreak = updatedStreak.currentStreak;
+
+      _streak = updatedStreak;
+      notifyListeners();
+
+      // Show celebration if streak increased
+      if (newStreak > oldStreak) {
+        print('🎉 Streak increased from $oldStreak to $newStreak!');
+      }
+    } catch (e) {
+      _error = e.toString();
+      print('❌ Error recording activity: $e');
+      notifyListeners();
+    }
+  }
+
+  /// Reset streak (for testing)
+  Future<void> resetStreak() async {
+    try {
+      await _streakService.resetStreak(_userId);
+      await loadStreak();
+      print('🔄 Streak reset');
+    } catch (e) {
+      _error = e.toString();
+      print('❌ Error resetting streak: $e');
+      notifyListeners();
+    }
+  }
+
+  /// Force sync to cloud
+  Future<void> forceSyncToCloud() async {
+    try {
+      await _streakService.forceSyncToCloud(_userId);
+      print('☁️ Streak synced to cloud');
+    } catch (e) {
+      _error = e.toString();
+      print('❌ Error syncing to cloud: $e');
+    }
+  }
+}

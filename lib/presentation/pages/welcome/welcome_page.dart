@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../core/constants/app_colors.dart';
 import 'package:en_go_app/routes/app_routes.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_header.dart';

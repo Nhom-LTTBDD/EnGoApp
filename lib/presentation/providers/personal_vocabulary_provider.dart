@@ -13,7 +13,8 @@ import '../../domain/repository_interfaces/dictionary_repository.dart';
 /// - Load card data từ repositories
 /// - Enrich card với dictionary data
 /// - Handle UI state (loading, error)
-class PersonalVocabularyProvider with ChangeNotifier {  final PersonalVocabularyService _service;
+class PersonalVocabularyProvider with ChangeNotifier {
+  final PersonalVocabularyService _service;
   final VocabularyRepository _vocabularyRepository;
   final DictionaryRepository _dictionaryRepository;  // State variables
   String _userId = 'default_user';
@@ -21,18 +22,15 @@ class PersonalVocabularyProvider with ChangeNotifier {  final PersonalVocabulary
   List<VocabularyCard> _personalCards = [];
   bool _isLoading = false;
   String? _error;
-  
-  // Prevent race conditions
-  bool _isCurrentlyLoading = false;  PersonalVocabularyProvider({
+  PersonalVocabularyProvider({
     required PersonalVocabularyService service,
     required VocabularyRepository vocabularyRepository,
     required DictionaryRepository dictionaryRepository,
-  })  : _service = service,
-        _vocabularyRepository = vocabularyRepository,
-        _dictionaryRepository = dictionaryRepository {
-    // DON'T load here - wait for real userId from setUserId()
-    // Constructor runs BEFORE auth is ready, so userId would be 'default_user'
-    _logInfo('🎯 PersonalVocabularyProvider initialized (waiting for userId)');
+  }) : _service = service,
+       _vocabularyRepository = vocabularyRepository,
+       _dictionaryRepository = dictionaryRepository {
+    // Load personal vocabulary when provider is created
+    loadPersonalVocabulary();
   }
 
   // Getters
@@ -45,14 +43,16 @@ class PersonalVocabularyProvider with ChangeNotifier {  final PersonalVocabulary
   // Set user ID
   void setUserId(String userId) {
     if (_userId != userId) {
-      _logInfo('🔄 PersonalVocabularyProvider: Switching user from $_userId to $userId');
+      _logInfo(
+        '🔄 PersonalVocabularyProvider: Switching user from $_userId to $userId',
+      );
       _userId = userId;
       loadPersonalVocabulary();
     } else {
       _logInfo('✅ PersonalVocabularyProvider: User ID already set to $userId');
     }
   }
-  
+
   // Get current userId (for debugging)
   String get currentUserId => _userId;  // Load personal vocabulary
   Future<void> loadPersonalVocabulary() async {
@@ -104,8 +104,9 @@ class PersonalVocabularyProvider with ChangeNotifier {  final PersonalVocabulary
       }
 
       _isLoading = false;
-      _isCurrentlyLoading = false;
-      _logInfo('✨ Personal vocabulary loaded: $loadedCount cards (${failedCount} failed)');
+      _logInfo(
+        '✨ Personal vocabulary loaded successfully: ${_personalCards.length} cards',
+      );
       notifyListeners();
     } catch (e) {
       _error = e.toString();
@@ -119,19 +120,20 @@ class PersonalVocabularyProvider with ChangeNotifier {  final PersonalVocabulary
   // Check if card is bookmarked
   bool isBookmarked(String cardId) {
     return _bookmarkedCardIds.contains(cardId);
-  }  // Toggle bookmark
+  } // Toggle bookmark
+
   Future<void> toggleBookmark(String cardId) async {
     try {
       _logInfo('⭐ Toggling bookmark for card: $cardId');
-      
+
       final isNowBookmarked = await _service.toggleBookmark(_userId, cardId);
-        
+
       if (isNowBookmarked) {
         _logInfo('✅ Added to bookmarks: $cardId');
         // Added to bookmarks
         if (!_bookmarkedCardIds.contains(cardId)) {
           _bookmarkedCardIds.add(cardId);
-          
+
           // Load and enrich card
           final card = await _loadAndEnrichCard(cardId);
           if (card != null) {
@@ -190,6 +192,7 @@ class PersonalVocabularyProvider with ChangeNotifier {  final PersonalVocabulary
       notifyListeners();
     }
   }
+
   // Clear all bookmarks
   Future<void> clearAll() async {
     try {

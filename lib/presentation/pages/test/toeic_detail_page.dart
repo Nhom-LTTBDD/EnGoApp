@@ -261,7 +261,12 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
                                           : [
                                               1,
                                               2,
-                                            ]), // Available parts from sample data
+                                              3,
+                                              4,
+                                              5,
+                                              6,
+                                              7,
+                                            ]), // All 7 parts for full test
                                 'timeLimit': selectedTime == 0
                                     ? null
                                     : selectedTime,

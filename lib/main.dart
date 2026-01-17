@@ -13,6 +13,7 @@ import 'presentation/providers/personal_vocabulary_provider.dart';
 import 'presentation/providers/grammar_provider.dart';
 import 'presentation/providers/theme/theme_provider.dart';
 import 'presentation/providers/toeic_test_provider.dart';
+import 'presentation/providers/streak_provider.dart';
 import 'routes/app_routes.dart';
 
 void main() {
@@ -92,12 +93,12 @@ class _MyAppState extends State<MyApp> {
         debugShowCheckedModeBanner: false,
         home: Scaffold(body: Center(child: Text('Initialization Error'))),
       );
-    }    // App initialized successfully
+    } // App initialized successfully
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()..loadTheme()),
         ChangeNotifierProvider(create: (_) => di.sl<ProfileProvider>()),
-        
+
         // ⚠️ AuthProvider PHẢI được tạo TRƯỚC PersonalVocabularyProvider
         ChangeNotifierProxyProvider<ProfileProvider, AuthProvider>(
           create: (_) => di.sl<AuthProvider>(),
@@ -109,7 +110,7 @@ class _MyAppState extends State<MyApp> {
             return authProvider;
           },
         ),
-        
+
         // 🆕 PersonalVocabularyProvider listen AuthProvider để lấy userId
         ChangeNotifierProxyProvider<AuthProvider, PersonalVocabularyProvider>(
           create: (_) => di.sl<PersonalVocabularyProvider>(),
@@ -117,15 +118,33 @@ class _MyAppState extends State<MyApp> {
             // Khi user login/logout, update userId trong PersonalVocabularyProvider
             if (authProvider.state is Authenticated) {
               final user = (authProvider.state as Authenticated).user;
-              print('🔐 Auth state: Authenticated - Setting userId: ${user.id}');
+              print(
+                '🔐 Auth state: Authenticated - Setting userId: ${user.id}',
+              );
               personalVocabProvider?.setUserId(user.id);
             } else {
-              print('⚠️ Auth state: Not authenticated - ${authProvider.state.runtimeType}');
+              print(
+                '⚠️ Auth state: Not authenticated - ${authProvider.state.runtimeType}',
+              );
             }
             return personalVocabProvider ?? di.sl<PersonalVocabularyProvider>();
           },
         ),
-        
+
+        // 🔥 StreakProvider listen AuthProvider để lấy userId
+        ChangeNotifierProxyProvider<AuthProvider, StreakProvider>(
+          create: (_) => di.sl<StreakProvider>(),
+          update: (_, authProvider, streakProvider) {
+            // Khi user login/logout, update userId trong StreakProvider
+            if (authProvider.state is Authenticated) {
+              final user = (authProvider.state as Authenticated).user;
+              print('🔐 Streak: Setting userId: ${user.id}');
+              streakProvider?.setUserId(user.id);
+            }
+            return streakProvider ?? di.sl<StreakProvider>();
+          },
+        ),
+
         ChangeNotifierProvider(create: (_) => di.sl<VocabularyProvider>()),
         ChangeNotifierProvider(create: (_) => di.sl<GrammarProvider>()),
         ChangeNotifierProvider(create: (_) => ToeicTestProvider()),

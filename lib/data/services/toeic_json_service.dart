@@ -16,7 +16,7 @@ class ToeicJsonService {
       final data = json.decode(jsonString);
       print('JSON decoded successfully');
       print('Available tests: ${data.keys.toList()}');
-      
+
       // Check if test1 exists
       if (data['test1'] != null) {
         final test1 = data['test1'];
@@ -26,7 +26,7 @@ class ToeicJsonService {
           print('Available parts: ${parts.keys.toList()}');
         }
       }
-      
+
       return data;
     } catch (e) {
       print('Error loading JSON: $e');
@@ -48,8 +48,8 @@ class ToeicJsonService {
       name: testData['name'],
       description: 'TOEIC Practice Test',
       totalQuestions: testData['totalQuestions'],
-      listeningQuestions: 70, // Part 1-4
-      readingQuestions: 30, // Part 5-7
+      listeningQuestions: 100, // Part 1-4
+      readingQuestions: 100, // Part 5-7
       duration: testData['duration'],
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
@@ -101,6 +101,13 @@ class ToeicJsonService {
 
       for (var questionData in questionsData) {
         try {
+          final imageUrl = _getImagePath(questionData['imageFile']);
+          final audioUrl = _getAudioPath(questionData['audioFile']);
+
+          print(
+            'Question ${questionData['questionNumber']}: imageFile=${questionData['imageFile']}, imageUrl=$imageUrl',
+          );
+
           final question = ToeicQuestion(
             id: 'q${questionData['questionNumber']}',
             testId: testId,
@@ -108,8 +115,8 @@ class ToeicJsonService {
             questionNumber: questionData['questionNumber'],
             questionType: questionData['questionType'] ?? 'multiple-choice',
             questionText: questionData['questionText'],
-            imageUrl: _getImagePath(questionData['imageFile']),
-            audioUrl: _getAudioPath(questionData['audioFile']),
+            imageUrl: imageUrl,
+            audioUrl: audioUrl,
             options: List<String>.from(questionData['options'] ?? []),
             correctAnswer: questionData['correctAnswer'] ?? 'A',
             explanation: questionData['explanation'] ?? '',
@@ -153,7 +160,8 @@ class ToeicJsonService {
     if (imageFile.endsWith('.jpg')) {
       correctedImageFile = imageFile.replaceAll('.jpg', '.png');
     }
-    return 'assets/test_toeic/test_1/$correctedImageFile';
+    String finalPath = 'assets/test_toeic/test_1/$correctedImageFile';
+    return finalPath;
   }
 
   static String? _getAudioPath(String? audioFile) {

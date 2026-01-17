@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/vocabulary_provider.dart';
+import '../../providers/streak_provider.dart';
 import '../../widgets/vocabulary/flashcard_widget.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_text_styles.dart';
@@ -63,6 +64,9 @@ class _FlashcardPageState extends State<FlashcardPage>
   void _showResultDialog() {
     final total = _correctCount + _wrongCount;
     final percentage = total > 0 ? (_correctCount * 100 / total).round() : 0;
+
+    // 🔥 Record activity to update streak
+    context.read<StreakProvider>().recordActivity();
 
     showDialog(
       context: context,

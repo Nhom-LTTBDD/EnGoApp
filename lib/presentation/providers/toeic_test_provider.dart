@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../domain/entities/toeic_test_session.dart';
 import '../../domain/entities/toeic_question.dart';
+import '../../core/utils/toeic_score_calculator.dart';
 
 class ToeicTestProvider extends ChangeNotifier {
   ToeicTestSession? _session;
@@ -14,6 +15,7 @@ class ToeicTestProvider extends ChangeNotifier {
   Duration _audioDuration = Duration.zero;
   Duration _audioPosition = Duration.zero;
   Timer? _timer;
+  VoidCallback? _onTimeUp;
 
   ToeicTestSession? get session => _session;
   List<ToeicQuestion> get questions => _questions;
@@ -40,6 +42,7 @@ class ToeicTestProvider extends ChangeNotifier {
     required List<int> selectedParts,
     int? timeLimit,
     required List<ToeicQuestion> questions,
+    VoidCallback? onTimeUp,
   }) {
     _session = ToeicTestSession(
       testId: testId,
@@ -50,15 +53,16 @@ class ToeicTestProvider extends ChangeNotifier {
       startTime: DateTime.now(),
     );
     _questions = questions;
-    
+    _onTimeUp = onTimeUp;
+
     // Initialize audio player
     _initAudioPlayer();
-    
+
     // Start timer if time limit is set
     if (timeLimit != null && timeLimit > 0) {
       _startTimer();
     }
-    
+
     notifyListeners();
   }
 
@@ -70,7 +74,11 @@ class ToeicTestProvider extends ChangeNotifier {
         if (remainingTime != null && remainingTime <= Duration.zero) {
           // Time's up
           timer.cancel();
-          finishTest();
+          if (_onTimeUp != null) {
+            _onTimeUp!();
+          } else {
+            finishTest();
+          }
         } else {
           // Just notify listeners to update UI
           notifyListeners();
@@ -195,23 +203,110 @@ class ToeicTestProvider extends ChangeNotifier {
         'score': 0,
         'duration': Duration.zero,
         'userAnswers': {},
+        'listeningScore': 5,
+        'readingScore': 5,
+        'totalScore': 10,
+        'listeningCorrect': 0,
+        'listeningWrong': 0,
+        'listeningUnanswered': 0,
+        'readingCorrect': 0,
+        'readingWrong': 0,
+        'readingUnanswered': 0,
+        'listeningTotal': 100,
+        'readingTotal': 100,
       };
     }
 
-    final correctAnswers = _questions.where((q) {
-      final userAnswer = _session!.userAnswers[q.questionNumber];
-      return userAnswer == q.correctAnswer;
-    }).length;
+    // Separate listening and reading questions
+    final listeningQuestions = _questions
+        .where((q) => q.partNumber <= 4)
+        .toList();
+    final readingQuestions = _questions
+        .where((q) => q.partNumber >= 5)
+        .toList();
+
+    // Calculate stats for each section
+    int listeningCorrect = 0;
+    int listeningWrong = 0;
+    int listeningUnanswered = 0;
+
+    int readingCorrect = 0;
+    int readingWrong = 0;
+    int readingUnanswered = 0;
+
+    // Count listening results
+    for (final question in listeningQuestions) {
+      final userAnswer = _session!.userAnswers[question.questionNumber];
+      if (userAnswer == null || userAnswer.isEmpty) {
+        listeningUnanswered++;
+      } else if (userAnswer == question.correctAnswer) {
+        listeningCorrect++;
+      } else {
+        listeningWrong++;
+      }
+    }
+
+    // Count reading results
+    for (final question in readingQuestions) {
+      final userAnswer = _session!.userAnswers[question.questionNumber];
+      if (userAnswer == null || userAnswer.isEmpty) {
+        readingUnanswered++;
+      } else if (userAnswer == question.correctAnswer) {
+        readingCorrect++;
+      } else {
+        readingWrong++;
+      }
+    }
+
+    // For full TOEIC test (200 questions), assume 100 listening + 100 reading
+    // For partial tests, use actual counts
+    final listeningTotal = listeningQuestions.isNotEmpty
+        ? (listeningQuestions.length == totalQuestions
+              ? 100
+              : listeningQuestions.length)
+        : 100;
+    final readingTotal = readingQuestions.isNotEmpty
+        ? (readingQuestions.length == totalQuestions
+              ? 100
+              : readingQuestions.length)
+        : 100;
+
+    // Calculate TOEIC scores based on standard 100 questions each
+    final listeningScore = ToeicScoreCalculator.calculateListeningScore(
+      listeningCorrect,
+      listeningTotal,
+    );
+    final readingScore = ToeicScoreCalculator.calculateReadingScore(
+      readingCorrect,
+      readingTotal,
+    );
+    final totalScore = ToeicScoreCalculator.calculateTotalScore(
+      listeningScore,
+      readingScore,
+    );
+
+    final totalCorrect = listeningCorrect + readingCorrect;
 
     final result = {
       'totalQuestions': totalQuestions,
       'answered': _session!.totalAnswered,
-      'correctAnswers': correctAnswers,
+      'correctAnswers': totalCorrect,
       'score': totalQuestions > 0
-          ? (correctAnswers / totalQuestions * 100).round()
+          ? (totalCorrect / totalQuestions * 100).round()
           : 0,
       'duration': _session!.elapsedTime,
       'userAnswers': _session!.userAnswers,
+      'listeningScore': listeningScore,
+      'readingScore': readingScore,
+      'totalScore': totalScore,
+      'listeningCorrect': listeningCorrect,
+      'listeningWrong': listeningWrong,
+      'listeningUnanswered': listeningUnanswered,
+      'readingCorrect': readingCorrect,
+      'readingWrong': readingWrong,
+      'readingUnanswered': readingUnanswered,
+      'listeningTotal': listeningTotal,
+      'readingTotal': readingTotal,
     };
 
     // Stop audio when test is finished

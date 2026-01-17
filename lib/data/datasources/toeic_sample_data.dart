@@ -11,37 +11,9 @@ class ToeicSampleData {
       return await ToeicJsonService.loadTest('test1');
     } catch (e) {
       print('Error loading test: $e');
-      // Fallback test info
-      return ToeicTest(
-        id: 'test1',
-        name: 'TOEIC Practice Test 1',
-        description: 'Complete TOEIC practice test with 7 parts',
-        totalQuestions: 100,
-        listeningQuestions: 70, // Part 1-4
-        readingQuestions: 30, // Part 5-7
-        duration: 120, // 120 minutes
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        isActive: true,
-        year: 2025,
-      );
+      throw Exception('Failed to load TOEIC test data: $e');
     }
   }
-
-  // Static fallback for immediate access (will be replaced by async method above)
-  static final ToeicTest practiceTest1 = ToeicTest(
-    id: 'test1',
-    name: 'TOEIC Practice Test 1',
-    description: 'Complete TOEIC practice test with 7 parts',
-    totalQuestions: 100,
-    listeningQuestions: 70, // Part 1-4
-    readingQuestions: 30, // Part 5-7
-    duration: 120, // 120 minutes
-    createdAt: DateTime.now(),
-    updatedAt: DateTime.now(),
-    isActive: true,
-    year: 2025,
-  );
 
   // Part definitions for navigation
   static final List<Map<String, dynamic>> parts = [
@@ -89,64 +61,28 @@ class ToeicSampleData {
       );
       print('ToeicSampleData: Loaded ${questions.length} questions from JSON');
 
-      if (questions.isNotEmpty) {
-        return questions;
+      if (questions.isEmpty) {
+        throw Exception('No questions found for part $partNumber in JSON data');
       }
 
-      // Fallback: create some sample questions if JSON is empty
-      print('ToeicSampleData: No questions from JSON, creating fallback');
-      return _createFallbackQuestions(partNumber);
+      return questions;
     } catch (e) {
       print('Error loading questions for part $partNumber: $e');
-      // Return fallback questions on error
-      return _createFallbackQuestions(partNumber);
+      throw Exception('Failed to load questions for part $partNumber: $e');
     }
-  }
-
-  // Create fallback questions when JSON loading fails
-  static List<ToeicQuestion> _createFallbackQuestions(int partNumber) {
-    print('Creating fallback questions for part $partNumber');
-    return List.generate(3, (index) {
-      final questionNumber = index + 1;
-      return ToeicQuestion(
-        id: 'fallback_part${partNumber}_q$questionNumber',
-        testId: 'test1',
-        partNumber: partNumber,
-        questionNumber: questionNumber,
-        questionType: partNumber <= 2 ? 'image-audio' : 'multiple-choice',
-        questionText: partNumber <= 2
-            ? null
-            : 'Sample question $questionNumber for Part $partNumber',
-        imageUrl: partNumber == 1
-            ? 'assets/test_toeic/test_1/test1_$questionNumber.png'
-            : null,
-        audioUrl: partNumber <= 4
-            ? 'assets/audio/toeic_test1/${questionNumber.toString().padLeft(3, '0')}.mp3'
-            : null,
-        options: partNumber <= 2
-            ? ['A', 'B', 'C', 'D']
-            : [
-                'Option A for question $questionNumber',
-                'Option B for question $questionNumber',
-                'Option C for question $questionNumber',
-                'Option D for question $questionNumber',
-              ],
-        correctAnswer: 'A',
-        explanation: 'This is a fallback sample question.',
-        order: questionNumber,
-        groupId: null,
-        passageText: null,
-      );
-    });
   }
 
   // Load all questions from JSON
   static Future<List<ToeicQuestion>> getAllQuestions() async {
     try {
-      return await ToeicJsonService.loadAllQuestions('test1');
+      final questions = await ToeicJsonService.loadAllQuestions('test1');
+      if (questions.isEmpty) {
+        throw Exception('No questions found in JSON data');
+      }
+      return questions;
     } catch (e) {
       print('Error loading all questions: $e');
-      return [];
+      throw Exception('Failed to load TOEIC questions: $e');
     }
   }
 }

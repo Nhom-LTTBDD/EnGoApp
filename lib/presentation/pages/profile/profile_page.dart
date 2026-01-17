@@ -16,6 +16,7 @@ import '../../providers/profile/profile_provider.dart';
 import '../../providers/profile/profile_state.dart';
 import '../../providers/theme/theme_provider.dart';
 import '../../providers/personal_vocabulary_provider.dart';
+import '../../providers/streak_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/avatar_color_picker_dialog.dart';
 import '../../widgets/custom_icon_button.dart';
@@ -324,38 +325,42 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
 
                           // Streak
-                          Column(
-                            children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
+                          Consumer<StreakProvider>(
+                            builder: (context, streakProvider, _) {
+                              return Column(
                                 children: [
-                                  const Text(
-                                    '10',
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        '${streakProvider.currentStreak}',
+                                        style: const TextStyle(
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.bold,
+                                          color: kDanger,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      SvgPicture.asset(
+                                        kIconFire,
+                                        width: 38,
+                                        height: 48,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Streak',
                                     style: TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                      color: kDanger,
+                                      fontSize: 14,
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium?.color,
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  SvgPicture.asset(
-                                    kIconFire,
-                                    width: 38,
-                                    height: 48,
-                                  ),
                                 ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Streak',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium?.color,
-                                ),
-                              ),
-                            ],
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -463,11 +468,11 @@ class _ProfilePageState extends State<ProfilePage> {
                                         onPressed: () {
                                           Navigator.pushNamed(
                                             context,
-                                            AppRoutes.personalVocabulary,
+                                            AppRoutes.personalVocabByTopic,
                                           );
                                         },
                                         text:
-                                            '${vocabProvider.cardCount} bộ từ',
+                                            '${vocabProvider.topicCount} bộ từ',
                                         variant: AppButtonVariant.primary,
                                         size: AppButtonSize.medium,
                                       );
@@ -477,8 +482,20 @@ class _ProfilePageState extends State<ProfilePage> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: AppButton(
-                                    onPressed: () {},
-                                    text: '15 bài học',
+                                    onPressed: () {
+                                      // TODO: Tính năng flashcard chưa có
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Tính năng flashcard đang được phát triển',
+                                          ),
+                                          duration: Duration(seconds: 2),
+                                        ),
+                                      );
+                                    },
+                                    text: 'Flashcard',
                                     variant: AppButtonVariant.success,
                                     size: AppButtonSize.medium,
                                   ),
