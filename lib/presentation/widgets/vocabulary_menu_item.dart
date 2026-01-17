@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_spacing.dart';
 import '../../core/utils/animation_utils.dart';
+import '../../core/theme/theme_helper.dart';
 
 /// Enum định nghĩa các loại menu item vocabulary
 enum VocabularyMenuType {
@@ -14,14 +15,14 @@ enum VocabularyMenuType {
   quiz('Quiz', Icons.quiz_outlined);
 
   const VocabularyMenuType(this.title, this.icon);
-  
+
   final String title;
   final IconData icon;
 }
 
 /// Configuration class cho vocabulary menu item styling
 class VocabularyMenuItemConfig {
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final Color borderColor;
   final Color textColor;
   final Color iconColor;
@@ -30,12 +31,15 @@ class VocabularyMenuItemConfig {
   final double elevation;
 
   const VocabularyMenuItemConfig({
-    this.backgroundColor = Colors.white,
+    this.backgroundColor,
     this.borderColor = kPrimaryColor,
     this.textColor = kTextPrimary,
     this.iconColor = kPrimaryColor,
     this.borderRadius = 12.0,
-    this.padding = const EdgeInsets.symmetric(vertical: spaceLg, horizontal: spaceMd),
+    this.padding = const EdgeInsets.symmetric(
+      vertical: spaceLg,
+      horizontal: spaceMd,
+    ),
     this.elevation = 2.0,
   });
 
@@ -82,9 +86,8 @@ class VocabularyMenuItem extends StatefulWidget {
   State<VocabularyMenuItem> createState() => _VocabularyMenuItemState();
 }
 
-class _VocabularyMenuItemState extends State<VocabularyMenuItem> 
+class _VocabularyMenuItemState extends State<VocabularyMenuItem>
     with TickerProviderStateMixin, AnimationMixin {
-  
   bool _isPressed = false;
 
   VocabularyMenuItemConfig get _effectiveConfig {
@@ -109,6 +112,7 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
     setState(() => _isPressed = false);
     reverseAnimation();
   }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -128,23 +132,34 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
                 horizontal: spaceMd,
                 vertical: spaceSm,
               ),
-              padding: _effectiveConfig.padding,              decoration: BoxDecoration(
-                color: _isPressed 
-                    ? _effectiveConfig.backgroundColor.withValues(alpha: 0.9)
-                    : _effectiveConfig.backgroundColor,
-                borderRadius: BorderRadius.circular(_effectiveConfig.borderRadius),
+              padding: _effectiveConfig.padding,
+              decoration: BoxDecoration(
+                color: _isPressed
+                    ? (_effectiveConfig.backgroundColor ??
+                              getSurfaceColor(context))
+                          .withValues(alpha: 0.9)
+                    : (_effectiveConfig.backgroundColor ??
+                          getSurfaceColor(context)),
+                borderRadius: BorderRadius.circular(
+                  _effectiveConfig.borderRadius,
+                ),
                 border: Border.all(
-                  color: widget.isEnabled 
-                      ? _effectiveConfig.borderColor 
-                      : Colors.grey.shade300,
+                  color: widget.isEnabled
+                      ? _effectiveConfig.borderColor
+                      : getDividerColor(context),
                   width: 2,
-                ),                boxShadow: widget.isEnabled ? [
-                  BoxShadow(
-                    color: _effectiveConfig.borderColor.withValues(alpha: 0.1),
-                    blurRadius: _effectiveConfig.elevation * 2,
-                    offset: Offset(0, _effectiveConfig.elevation),
-                  ),
-                ] : null,
+                ),
+                boxShadow: widget.isEnabled
+                    ? [
+                        BoxShadow(
+                          color: _effectiveConfig.borderColor.withValues(
+                            alpha: 0.1,
+                          ),
+                          blurRadius: _effectiveConfig.elevation * 2,
+                          offset: Offset(0, _effectiveConfig.elevation),
+                        ),
+                      ]
+                    : null,
               ),
               child: _buildContent(),
             ),
@@ -158,17 +173,18 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(spaceSm),          decoration: BoxDecoration(
-            color: widget.isEnabled 
+          padding: const EdgeInsets.all(spaceSm),
+          decoration: BoxDecoration(
+            color: widget.isEnabled
                 ? _effectiveConfig.iconColor.withValues(alpha: 0.1)
-                : Colors.grey.shade100,
+                : getTextThird(context).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             widget.menuType.icon,
-            color: widget.isEnabled 
-                ? _effectiveConfig.iconColor 
-                : Colors.grey,
+            color: widget.isEnabled
+                ? _effectiveConfig.iconColor
+                : getTextThird(context),
             size: 24,
           ),
         ),
@@ -177,8 +193,8 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
           child: Text(
             widget.menuType.title,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: widget.isEnabled 
-                  ? _effectiveConfig.textColor 
+              color: widget.isEnabled
+                  ? _effectiveConfig.textColor
                   : Colors.grey,
               fontWeight: FontWeight.w600,
             ),

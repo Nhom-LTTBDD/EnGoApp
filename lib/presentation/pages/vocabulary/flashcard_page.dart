@@ -243,7 +243,8 @@ class _FlashcardPageState extends State<FlashcardPage>
   @override
   Widget build(BuildContext context) {
     return Consumer<VocabularyProvider>(
-      builder: (context, vocabularyProvider, child) {        if (vocabularyProvider.isLoading) {
+      builder: (context, vocabularyProvider, child) {
+        if (vocabularyProvider.isLoading) {
           return Scaffold(
             backgroundColor: getBackgroundColor(context),
             body: const SafeArea(
@@ -275,7 +276,7 @@ class _FlashcardPageState extends State<FlashcardPage>
                     const SizedBox(height: 8),
                     Text(
                       vocabularyProvider.error!,
-                      style: const TextStyle(color: Colors.grey),
+                      style: TextStyle(color: getTextSecondary(context)),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
@@ -293,13 +294,17 @@ class _FlashcardPageState extends State<FlashcardPage>
         }
 
         final vocabularyCards = vocabularyProvider.vocabularyCards;
-        if (vocabularyCards.isEmpty) {        return Scaffold(
+        if (vocabularyCards.isEmpty) {
+          return Scaffold(
             backgroundColor: getBackgroundColor(context),
-            body: const SafeArea(
+            body: SafeArea(
               child: Center(
                 child: Text(
                   'Không có từ vựng nào',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: getTextSecondary(context),
+                  ),
                 ),
               ),
             ),
@@ -310,16 +315,20 @@ class _FlashcardPageState extends State<FlashcardPage>
         if (_currentCardIndex >= vocabularyCards.length) {
           return Scaffold(
             backgroundColor: getBackgroundColor(context),
-            body: const SafeArea(
+            body: SafeArea(
               child: Center(
                 child: Text(
                   'Đã hoàn thành tất cả thẻ!',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: getTextSecondary(context),
+                  ),
                 ),
               ),
             ),
           );
-        }        return Scaffold(
+        }
+        return Scaffold(
           backgroundColor: getBackgroundColor(context),
           body: SafeArea(
             child: Container(
@@ -340,7 +349,7 @@ class _FlashcardPageState extends State<FlashcardPage>
                           color: Colors.black,
                           size: 28,
                         ),
-                      ),                      // Progress hiển thị ở giữa
+                      ), // Progress hiển thị ở giữa
                       Text(
                         '${_currentCardIndex + 1} / ${vocabularyCards.length}',
                         style: TextStyle(
@@ -412,14 +421,16 @@ class _FlashcardPageState extends State<FlashcardPage>
                     child: Center(
                       child: Stack(
                         children: [
-                          // Thẻ trắng placeholder ở phía sau - luôn hiển thị để tạo depth
+                          // Thẻtrắng placeholder ở phía sau - luôn hiển thị để tạo depth
                           Container(
                             width: double.infinity,
                             height: 600,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: getSurfaceColor(context),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: Colors.grey.shade200),
+                              border: Border.all(
+                                color: getBorderColor(context),
+                              ),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.08),
@@ -456,10 +467,13 @@ class _FlashcardPageState extends State<FlashcardPage>
                                       : Matrix4.identity(), // Thẻ ẩn không có transform
                                   child: Container(
                                     width: double.infinity,
-                                    height: 600,                                    decoration: BoxDecoration(
-                                      color: Colors.white,
+                                    height: 600,
+                                    decoration: BoxDecoration(
+                                      color: getSurfaceColor(context),
                                       borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(color: getBorderColor(context)),
+                                      border: Border.all(
+                                        color: getBorderColor(context),
+                                      ),
                                       boxShadow: [
                                         BoxShadow(
                                           color: Colors.black.withOpacity(0.15),

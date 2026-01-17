@@ -83,7 +83,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           : null;
 
       print(
-        '🔵 [EditProfile] Saving - Name: ${_nameController.text.trim()}, BirthDate: $birthDateStr',
+        '[EditProfile] Saving - Name: ${_nameController.text.trim()}, BirthDate: $birthDateStr',
       );
 
       await profileProvider.updateProfile(
@@ -94,10 +94,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (!context.mounted) return;
 
       final state = profileProvider.state;
-      print('🔵 [EditProfile] State after save: ${state.runtimeType}');
+      print('[EditProfile] State after save: ${state.runtimeType}');
 
       if (state is ProfileUpdated) {
-        print('✅ [EditProfile] Profile updated successfully, navigating back');
+        print('[EditProfile] Profile updated successfully, navigating back');
         // Navigate back on success
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -108,7 +108,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
         );
       } else if (state is ProfileError) {
-        print('❌ [EditProfile] Error: ${state.message}');
+        print('[EditProfile] Error: ${state.message}');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(state.message),
@@ -118,7 +118,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         );
       }
     } else {
-      print('⚠️ [EditProfile] Form validation failed');
+      print('[EditProfile] Form validation failed');
     }
   }
 

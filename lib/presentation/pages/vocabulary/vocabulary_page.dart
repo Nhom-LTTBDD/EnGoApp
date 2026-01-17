@@ -16,7 +16,8 @@ class VocabPage extends StatefulWidget {
   State<VocabPage> createState() => _VocabPageState();
 }
 
-class _VocabPageState extends State<VocabPage> with AutomaticKeepAliveClientMixin {
+class _VocabPageState extends State<VocabPage>
+    with AutomaticKeepAliveClientMixin {
   late final VocabularyMenuManager _menuManager;
   late final List<VocabularyMenuData> _menuItems;
 
@@ -63,9 +64,9 @@ class _VocabPageState extends State<VocabPage> with AutomaticKeepAliveClientMixi
   @override
   Widget build(BuildContext context) {
     super.build(context);
-      return MainLayout(
+    return MainLayout(
       title: 'VOCABULARY',
-      currentIndex: 1, // Vocabulary tab index
+      currentIndex: -1,
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(color: getBackgroundColor(context)),
@@ -77,10 +78,7 @@ class _VocabPageState extends State<VocabPage> with AutomaticKeepAliveClientMixi
                   menuItems: _menuItems,
                   onMenuTap: _handleMenuTap,
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.only(
-                    top: spaceMd,
-                    bottom: spaceLg,
-                  ),
+                  padding: const EdgeInsets.only(top: spaceMd, bottom: spaceLg),
                 ),
               ),
             ],

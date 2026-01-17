@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import '../../../domain/entities/vocabulary_card.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/theme/theme_helper.dart';
 
 enum CardStyle {
   flashcard, // Style phức tạp cho flashcard page
@@ -57,7 +58,7 @@ class BaseCardWidget extends StatelessWidget {
         }
 
         // Tạo widget content với logic đảo text cho mặt sau
-        Widget content = _buildCard(isShowingFront);
+        Widget content = _buildCard(isShowingFront, context);
 
         // Nếu đang hiển thị mặt sau, cần flip lại text để đọc được
         if (!isShowingFront) {
@@ -87,27 +88,27 @@ class BaseCardWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildCard(bool isShowingFront) {
+  Widget _buildCard(bool isShowingFront, BuildContext context) {
     // Container cơ bản
     final container = Container(
       width: width ?? double.infinity,
       height: height ?? double.infinity,
       decoration: BoxDecoration(
-        color: style == CardStyle.flashcard ? Colors.white : kSurfaceColor,
+        color: style == CardStyle.flashcard ? kSurfaceColor : kSurfaceColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: _getCardShadow(),
       ),
-      child: _buildCardContent(isShowingFront),
+      child: _buildCardContent(isShowingFront, context),
     );
 
     return container;
   }
 
-  Widget _buildCardContent(bool isShowingFront) {
+  Widget _buildCardContent(bool isShowingFront, BuildContext context) {
     Widget content = Stack(
       children: [
         // Main content
-        Center(child: _buildMainContent(isShowingFront)),
+        Center(child: _buildMainContent(isShowingFront, context)),
 
         // Sound button - hiển thị cho cả flashcard và simple style ở mặt trước
         if (isShowingFront && onSoundPressed != null && card.audioUrl != null)
@@ -206,11 +207,11 @@ class BaseCardWidget extends StatelessWidget {
     return content;
   }
 
-  Widget _buildMainContent(bool isShowingFront) {
+  Widget _buildMainContent(bool isShowingFront, BuildContext context) {
     if (isShowingFront) {
       return _buildFrontContent();
     } else {
-      return _buildBackContent();
+      return _buildBackContent(context);
     }
   }
 
@@ -259,7 +260,7 @@ class BaseCardWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildBackContent() {
+  Widget _buildBackContent(BuildContext context) {
     if (style == CardStyle.simple) {
       // Simple style - hiển thị tiếng Việt + nghĩa + định nghĩa từ dictionary
       return Padding(
@@ -275,9 +276,9 @@ class BaseCardWidget extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               card.meaning,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey,
+                color: getTextSecondary(context),
                 fontStyle: FontStyle.italic,
               ),
               textAlign: TextAlign.center,
@@ -293,10 +294,7 @@ class BaseCardWidget extends StatelessWidget {
                 ),
                 child: Text(
                   card.definitions!.first,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: kTextSecondary,
-                  ),
+                  style: const TextStyle(fontSize: 14, color: kTextSecondary),
                   textAlign: TextAlign.center,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
@@ -339,24 +337,28 @@ class BaseCardWidget extends StatelessWidget {
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 8),
-            ...card.definitions!.take(2).map((definition) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('• ', style: TextStyle(fontSize: 14)),
-                      Expanded(
-                        child: Text(
-                          definition,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: kTextSecondary,
+            ...card.definitions!
+                .take(2)
+                .map(
+                  (definition) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('• ', style: TextStyle(fontSize: 14)),
+                        Expanded(
+                          child: Text(
+                            definition,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: kTextSecondary,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                )),
+                ),
           ],
           // Hiển thị examples từ dictionary
           if (card.examples != null && card.examples!.isNotEmpty) ...[
@@ -370,18 +372,22 @@ class BaseCardWidget extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            ...card.examples!.take(1).map((example) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Text(
-                    '"$example"',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: kTextThird,
-                      fontStyle: FontStyle.italic,
+            ...card.examples!
+                .take(1)
+                .map(
+                  (example) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Text(
+                      '"$example"',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: kTextThird,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                )),
+                ),
           ],
         ],
       ),
