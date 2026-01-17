@@ -1,7 +1,7 @@
 {
   "test1": {
     "name": "TOEIC Practice Test 1",
-    "totalQuestions": 100,
+    "totalQuestions": 130,
     "duration": 120,
     "parts": {
       "1": {
@@ -989,22 +989,6 @@
           }
         ]
       },
-      "5": {
-        "name": "Part 5 - Conversations",
-        "questions": [
-          {
-            "questionNumber": 72,
-            "audioFile": "32-34.mp3",
-            "questionType": "conversation",
-            "groupId": "32-34",
-            "audioTranscript": "M Hi. I'm calling to book three tickets for this Thursday's tennis match. Are there any seats left?\nW Just a few! Tickets for Thursday's match have been selling quickly.\nM I'm not surprised! After all, Ife Rotimi won the regional championship tournament last month. Everyone wants to see her play after her incredible performance. What seats are available?\nW Well, there's only one group of three seats together. Advance payment is required to hold them.",
-            "questionText": "What type of food product does the speakers' company sell?",
-            "options": ["Candy", "Cheese", "Bread", "Pasta"],
-            "correctAnswer": "B",
-            "explanation": "The speakers discuss cheese products."
-          }
-        ]
-      },
       "6": {
         "name": "Part 4 - Conversations",
         "questions": [
@@ -1034,6 +1018,271 @@
             "options": ["Candy", "Cheese", "Bread", "Pasta"],
             "correctAnswer": "B",
             "explanation": "The speakers discuss cheese products."
+          }
+        ]
+      },
+      "5": {
+        "name": "Part 5 - Incomplete Sentences",
+        "questions": [
+          {
+            "questionNumber": 101,
+            "questionType": "text-completion",
+            "questionText": "The lecture will take place at 6:00 P.M., ----- which attendees may ask questions.",
+            "options": ["across", "after", "inside", "among"],
+            "correctAnswer": "B",
+            "explanation": "After is the correct preposition indicating the time sequence."
+          },
+          {
+            "questionNumber": 102,
+            "questionType": "text-completion",
+            "questionText": "The ------- antique shop in Pepper Valley will close down next month.",
+            "options": ["last", "lasts", "lasted", "lasting"],
+            "correctAnswer": "A",
+            "explanation": "Last is the correct adjective form meaning 'remaining'."
+          },
+          {
+            "questionNumber": 103,
+            "questionType": "text-completion",
+            "questionText": "Merryville residents will receive an online status ------- about the ongoing bridge construction project.",
+            "options": ["update", "change", "payment", "request"],
+            "correctAnswer": "A",
+            "explanation": "Update is the appropriate noun for status information."
+          },
+          {
+            "questionNumber": 104,
+            "questionType": "text-completion",
+            "questionText": "As a result of ------- many years leading media organizations, Ms. Ayo was selected for the Dowel Journalism Prize.",
+            "options": ["she", "her", "hers", "herself"],
+            "correctAnswer": "B",
+            "explanation": "Her is the correct possessive pronoun before the gerund phrase."
+          },
+          {
+            "questionNumber": 105,
+            "questionType": "text-completion",
+            "questionText": "To stop the ------- of computer viruses, do not open suspicious e-mails.",
+            "options": ["break", "spread", "balance", "surface"],
+            "correctAnswer": "B",
+            "explanation": "Spread is the correct noun referring to the transmission of viruses."
+          },
+          {
+            "questionNumber": 106,
+            "questionType": "text-completion",
+            "questionText": "The hiring manager ------- considered each applicant's résumé and qualifications.",
+            "options": ["caring", "careful", "carefully", "carefulness"],
+            "correctAnswer": "C",
+            "explanation": "Carefully is the correct adverb modifying the verb 'considered'."
+          },
+          {
+            "questionNumber": 107,
+            "questionType": "text-completion",
+            "questionText": "In October, Mr. Sakamoto will leave for New Zealand ------- will oversee the opening of the new Auckland branch.",
+            "options": ["because", "in addition", "and", "prior to"],
+            "correctAnswer": "C",
+            "explanation": "And is the correct conjunction connecting two clauses about what Mr. Sakamoto will do."
+          },
+          {
+            "questionNumber": 108,
+            "questionType": "text-completion",
+            "questionText": "Tarateer Pharmaceuticals is varying its product ------- to include over-the-counter medications.",
+            "options": ["to line", "lining", "lined", "line"],
+            "correctAnswer": "D",
+            "explanation": "Line is the correct noun form referring to 'product line'."
+          },
+          {
+            "questionNumber": 109,
+            "questionType": "text-completion",
+            "questionText": "Dynart, Inc., continuously ------- new ways to reduce its use of plastics.",
+            "options": ["seeks", "seeker", "to seek", "seeking"],
+            "correctAnswer": "A",
+            "explanation": "Seeks is the correct present tense verb form for the subject 'Dynart, Inc.'."
+          },
+          {
+            "questionNumber": 110,
+            "questionType": "text-completion",
+            "questionText": "The cash registers at Pirkle Books automatically ------- the remaining inventory of books available.",
+            "options": [
+              "calculate",
+              "calculator",
+              "calculating",
+              "calculation"
+            ],
+            "correctAnswer": "A",
+            "explanation": "Calculate is the correct verb form following the adverb 'automatically'."
+          },
+          {
+            "questionNumber": 111,
+            "questionType": "text-completion",
+            "questionText": "The product team is designing mapping software that can ------- locate underground minerals.",
+            "options": ["infinitely", "sincerely", "precisely", "greatly"],
+            "correctAnswer": "C",
+            "explanation": "Precisely is the correct adverb for accurately locating something."
+          },
+          {
+            "questionNumber": 112,
+            "questionType": "text-completion",
+            "questionText": "According to CEO Mayu Yamada, it would not be ------- responsible to expand the warehouse at this time.",
+            "options": ["finance", "financials", "financially", "financing"],
+            "correctAnswer": "C",
+            "explanation": "Financially is the correct adverb modifying the adjective 'responsible'."
+          },
+          {
+            "questionNumber": 113,
+            "questionType": "text-completion",
+            "questionText": "Analysts cannot say with any ------- what the regional demand for electric trucks will be.",
+            "options": ["certainty", "justice", "excellence", "denial"],
+            "correctAnswer": "A",
+            "explanation": "Certainty is the correct noun that fits the context of expressing confidence in predictions."
+          },
+          {
+            "questionNumber": 114,
+            "questionType": "text-completion",
+            "questionText": "As part of its marketing campaign, Elegancia Dishware is ------- soliciting feedback from customers.",
+            "options": ["lightly", "loyally", "actively", "cleanly"],
+            "correctAnswer": "C",
+            "explanation": "Actively is the correct adverb describing how they are soliciting feedback."
+          },
+          {
+            "questionNumber": 115,
+            "questionType": "text-completion",
+            "questionText": "Rain gardens are intended to ------- water to prevent flooding of local roads.",
+            "options": ["engage", "undergo", "absorb", "overwhelm"],
+            "correctAnswer": "C",
+            "explanation": "Absorb is the correct verb describing how rain gardens function with water."
+          },
+          {
+            "questionNumber": 116,
+            "questionType": "text-completion",
+            "questionText": "Theta Industries' training program aims to increase the ------- of its manufacturing systems.",
+            "options": ["producer", "produced", "productive", "productivity"],
+            "correctAnswer": "C",
+            "explanation": "Productive is the correct adjective form."
+          },
+          {
+            "questionNumber": 117,
+            "questionType": "text-completion",
+            "questionText": "The board of directors has voted to award Mr. Mitrakos a bonus for his role ------- obtaining the international contract.",
+            "options": ["in", "at", "except", "apart"],
+            "correctAnswer": "A",
+            "explanation": "In is the correct preposition for 'role in obtaining'."
+          },
+          {
+            "questionNumber": 118,
+            "questionType": "text-completion",
+            "questionText": "The finance director gave his approval ------- the project can move forward.",
+            "options": ["along", "furthermore", "cautiously", "so that"],
+            "correctAnswer": "D",
+            "explanation": "So that is the correct conjunction showing purpose."
+          },
+          {
+            "questionNumber": 119,
+            "questionType": "text-completion",
+            "questionText": "The newspaper article describes ways job seekers can ------- for having little workplace experience.",
+            "options": ["reply", "capture", "compensate", "accumulate"],
+            "correctAnswer": "C",
+            "explanation": "Compensate is the correct verb meaning to make up for a deficiency."
+          },
+          {
+            "questionNumber": 120,
+            "questionType": "text-completion",
+            "questionText": "Mr. Ellis and Ms. Barnes were both highly qualified, but ------- got the job.",
+            "options": ["myself", "neither", "anybody", "whoever"],
+            "correctAnswer": "A",
+            "explanation": "Myself is the correct pronoun in this context."
+          },
+          {
+            "questionNumber": 121,
+            "questionType": "text-completion",
+            "questionText": "Ennis Photography purchased all new lighting equipment ------- the high cost.",
+            "options": ["even though", "however", "until", "despite"],
+            "correctAnswer": "D",
+            "explanation": "Despite is the correct preposition showing contrast."
+          },
+          {
+            "questionNumber": 122,
+            "questionType": "text-completion",
+            "questionText": "Marburton residents who wish to ------- a home should contact the award-winning team at Kwan Real Estate.",
+            "options": ["seller", "sold", "sell", "selling"],
+            "correctAnswer": "C",
+            "explanation": "Sell is the correct infinitive verb form after 'wish to'."
+          },
+          {
+            "questionNumber": 123,
+            "questionType": "text-completion",
+            "questionText": "Maswa Bistro began a ------- agreement with local farmers to purchase a set amount of produce each week.",
+            "options": ["disruptive", "cooperative", "grateful", "concerned"],
+            "correctAnswer": "B",
+            "explanation": "Cooperative is the correct adjective describing a mutually beneficial agreement."
+          },
+          {
+            "questionNumber": 124,
+            "questionType": "text-completion",
+            "questionText": "The City of Doyle's new downtown parking ------- have been met with opposition by residents and visitors.",
+            "options": [
+              "restricts",
+              "restricted",
+              "restrictions",
+              "restricting"
+            ],
+            "correctAnswer": "C",
+            "explanation": "Restrictions is the correct noun form as the subject of the sentence."
+          },
+          {
+            "questionNumber": 125,
+            "questionType": "text-completion",
+            "questionText": "The plumbing position requires extensive training, even for those who studied ------- in technical school.",
+            "options": [
+              "diligently",
+              "scientifically",
+              "objectively",
+              "decidedly"
+            ],
+            "correctAnswer": "A",
+            "explanation": "Diligently is the correct adverb describing how they studied."
+          },
+          {
+            "questionNumber": 126,
+            "questionType": "text-completion",
+            "questionText": "With its fixed price -------, Omega Cellular guarantees no phone bill increases for three years.",
+            "options": ["assurance", "assuredly", "assuring", "assures"],
+            "correctAnswer": "A",
+            "explanation": "Assurance is the correct noun meaning a guarantee or promise."
+          },
+          {
+            "questionNumber": 127,
+            "questionType": "text-completion",
+            "questionText": "As chief analytics officer, Mr. Ko has worked at Lochston Ltd. with great ------- for more than twenty years.",
+            "options": [
+              "deduction",
+              "duplication",
+              "declaration",
+              "dedication"
+            ],
+            "correctAnswer": "D",
+            "explanation": "Dedication is the correct noun meaning commitment and loyalty."
+          },
+          {
+            "questionNumber": 128,
+            "questionType": "text-completion",
+            "questionText": "Milltown Hospital's cafeteria serves lunch seven days a week ------- only on weekdays.",
+            "options": ["up to", "as though", "each time", "rather than"],
+            "correctAnswer": "D",
+            "explanation": "Rather than is the correct phrase showing contrast between seven days vs weekdays only."
+          },
+          {
+            "questionNumber": 129,
+            "questionType": "text-completion",
+            "questionText": "The store's entire inventory of lumber comes from a nearby ------- supplier.",
+            "options": ["financial", "promotional", "chemical", "commercial"],
+            "correctAnswer": "D",
+            "explanation": "Commercial is the correct adjective describing a business supplier."
+          },
+          {
+            "questionNumber": 130,
+            "questionType": "text-completion",
+            "questionText": "For a $95 fee, our mechanics will ------- determine what repairs are needed.",
+            "options": ["diagnosed", "diagnostic", "diagnosable", "diagnose"],
+            "correctAnswer": "B",
+            "explanation": "Diagnostic is the correct adjective modifying the process of determining repairs."
           }
         ]
       }
