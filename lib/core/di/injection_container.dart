@@ -82,12 +82,14 @@ Future<void> init() async {
   // Firebase services
   sl.registerLazySingleton(() => FirebaseAuth.instance);
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
-  sl.registerLazySingleton(() => FirebaseStorage.instance);
-  sl.registerLazySingleton(() => GoogleSignIn());
+  sl.registerLazySingleton(() => FirebaseStorage.instance);  sl.registerLazySingleton(() => GoogleSignIn());
   
   // Services
   sl.registerLazySingleton(() => AudioService());
-  sl.registerLazySingleton(() => PersonalVocabularyService(sl()));
+  sl.registerLazySingleton(() => PersonalVocabularyService(
+    sl(), // SharedPreferences
+    firestore: sl(), // FirebaseFirestore
+  ));
 
   // =============================================================================
   // Data Sources - Local

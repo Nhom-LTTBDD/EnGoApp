@@ -8,6 +8,7 @@ class FirebaseCollections {
   static const String users = 'users';
   static const String grammar = 'grammar';
   static const String vocabulary = 'vocabulary';
+  static const String personalVocabularies = 'personal_vocabularies'; // 🆕 Cloud backup cho bookmarks
 
   // Firebase Storage paths
   static const String toeicAudio = 'toeic_audio';

@@ -1,0 +1,50 @@
+// Firestore Security Rules
+// Copy nội dung này vào Firebase Console > Firestore Database > Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================================================
+    // USERS COLLECTION 
+    // ============================================================================
+    match /users/{userId} {
+      // Cho phép đọc nếu người dùng đã đăng nhập và đúng userId
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Cho phép tạo user mới khi đăng ký (phải trùng với auth uid)
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      // Cho phép cập nhật thông tin của chính mình
+      allow update: if request.auth != null && request.auth.uid == userId;
+
+      // Không cho phép xóa user
+      allow delete: if false;
+    }
+    
+    // ============================================================================
+    // PERSONAL VOCABULARIES COLLECTION (🆕 THÊM MỚI)
+    // ============================================================================
+    match /personal_vocabularies/{userId} {
+      // User chỉ được đọc/ghi bookmarks của chính họ
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+        // Validate data structure khi tạo mới
+      allow create: if request.auth != null 
+                    && request.auth.uid == userId
+                    && request.resource.data.keys().hasAll(['id', 'userId', 'vocabularyCardIds', 'createdAt', 'updatedAt'])
+                    && request.resource.data.vocabularyCardIds is list;
+      
+      // Validate khi update
+      allow update: if request.auth != null 
+                    && request.auth.uid == userId
+                    && request.resource.data.vocabularyCardIds is list;
+    }
+    
+    // ============================================================================
+    // DEFAULT DENY ALL (Bảo mật)
+    // ============================================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
