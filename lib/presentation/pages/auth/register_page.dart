@@ -167,6 +167,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     enabled: !isLoading,
                     textCapitalization: TextCapitalization.words,
                     textInputAction: TextInputAction.next,
+                    style: const TextStyle(color: Colors.black, fontSize: 16),
                     decoration: InputDecoration(
                       labelText: 'Họ và tên',
                       labelStyle: TextStyle(
@@ -221,6 +222,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     enabled: !isLoading,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
+                    style: const TextStyle(color: Colors.black, fontSize: 16),
                     decoration: InputDecoration(
                       labelText: 'Email',
                       labelStyle: TextStyle(
@@ -277,6 +279,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     enabled: !isLoading,
                     obscureText: _obscurePassword,
                     textInputAction: TextInputAction.next,
+                    style: const TextStyle(color: Colors.black, fontSize: 16),
                     decoration: InputDecoration(
                       labelText: 'Mật khẩu',
                       labelStyle: TextStyle(
@@ -376,6 +379,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     obscureText: _obscureConfirmPassword,
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) => _handleRegister(),
+                    style: const TextStyle(color: Colors.black, fontSize: 16),
                     decoration: InputDecoration(
                       labelText: 'Xác nhận mật khẩu',
                       labelStyle: TextStyle(

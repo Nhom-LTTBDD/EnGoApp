@@ -9,7 +9,7 @@ class TestPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MainLayout(
       title: "Test TOEIC - IELTS",
-      currentIndex: 1,
+      currentIndex: -1,
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.all(15),

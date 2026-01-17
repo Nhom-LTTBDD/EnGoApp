@@ -28,18 +28,20 @@ class GrammarPage extends StatelessWidget {
     );
   }
 
-
   Widget _buildGrammarTopics(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildTopicSection(context, 'Basic Grammar', [
-          GrammarTopic('Parts of Speech', 'Nouns, Verbs, Adjectives, Adverbs, etc.'),
+          GrammarTopic(
+            'Parts of Speech',
+            'Nouns, Verbs, Adjectives, Adverbs, etc.',
+          ),
           GrammarTopic('Sentence Structure', 'Subject + Verb + Object'),
           GrammarTopic('Articles', 'Using a, an, the correctly'),
           GrammarTopic('Pronouns', 'I, you, he, she, it, we, they'),
         ]),
-        
+
         _buildTopicSection(context, 'Tenses', [
           GrammarTopic('Present Simple', 'I work, He works'),
           GrammarTopic('Present Continuous', 'I am working'),
@@ -48,25 +50,32 @@ class GrammarPage extends StatelessWidget {
           GrammarTopic('Present Perfect', 'I have worked'),
           GrammarTopic('Future Simple', 'I will work'),
         ]),
-        
+
         _buildTopicSection(context, 'Advanced Topics', [
           GrammarTopic('Modal Verbs', 'can, could, must, should, would'),
           GrammarTopic('Conditional Sentences', 'If clauses and results'),
           GrammarTopic('Passive Voice', 'The book was written by...'),
           GrammarTopic('Reported Speech', 'He said that...'),
         ]),
-        
+
         _buildTopicSection(context, 'Common Mistakes', [
           GrammarTopic('Subject-Verb Agreement', 'Singular and plural forms'),
           GrammarTopic('Prepositions', 'in, on, at, by, for, with'),
           GrammarTopic('Word Order', 'Correct sentence arrangement'),
-          GrammarTopic('Countable vs Uncountable', 'many vs much, few vs little'),
+          GrammarTopic(
+            'Countable vs Uncountable',
+            'many vs much, few vs little',
+          ),
         ]),
       ],
     );
   }
 
-  Widget _buildTopicSection(BuildContext context, String title, List<GrammarTopic> topics) {
+  Widget _buildTopicSection(
+    BuildContext context,
+    String title,
+    List<GrammarTopic> topics,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -74,10 +83,10 @@ class GrammarPage extends StatelessWidget {
           padding: const EdgeInsets.only(left: 4, bottom: 12),
           child: Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: getTextPrimary(context),
             ),
           ),
         ),
@@ -93,12 +102,12 @@ class GrammarPage extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: getCardBackground(context),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: getDividerColor(context)),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: getDividerColor(context).withOpacity(0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -121,10 +130,10 @@ class GrammarPage extends StatelessWidget {
               children: [
                 Text(
                   topic.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: getTextPrimary(context),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -132,7 +141,7 @@ class GrammarPage extends StatelessWidget {
                   topic.description,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[600],
+                    color: getTextSecondary(context),
                   ),
                 ),
               ],
@@ -186,6 +195,7 @@ class GrammarPage extends StatelessWidget {
       ),
     );
   }
+
   String _getDetailedExplanation(String title) {
     switch (title) {
       // BASIC GRAMMAR TOPICS
@@ -989,6 +999,6 @@ DANH TỪ ĐẶC BIỆT:
 class GrammarTopic {
   final String title;
   final String description;
-  
+
   GrammarTopic(this.title, this.description);
 }

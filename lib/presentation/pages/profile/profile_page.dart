@@ -183,6 +183,24 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: Theme.of(context).iconTheme.color),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: kBody.copyWith(
+              color: Theme.of(context).textTheme.bodyLarge?.color,
+              fontSize: 14,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MainLayout(
@@ -244,267 +262,310 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(top: 50, bottom: 100),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 30,
+                  ),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Avatar mặc định với chữ cái đầu + button edit màu
-                      Stack(
+                      // Header Row: Avatar + Streak
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: kPrimaryColor.withOpacity(0.3),
-                                  blurRadius: 15,
-                                  spreadRadius: 3,
-                                ),
-                              ],
-                            ),
-                            child: CircleAvatar(
-                              radius: 75,
-                              backgroundColor: _getAvatarColor(user),
-                              child: Text(
-                                _getInitials(user?.name ?? 'User'),
-                                style: const TextStyle(
-                                  fontSize: 48,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                          // Button chọn màu
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: CustomIconButton(
-                              icon: Icons.palette,
-                              onTap: () => _showColorPicker(context),
-                              backgroundColor: Colors.white,
-                              iconColor: kPrimaryColor,
-                              size: 40,
-                              iconSize: 24,
-                              shadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
-                                  blurRadius: 4,
-                                  spreadRadius: 1,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 30),
-
-                      // User Info Container
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 40),
-                        child: Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: (themeExt?.cardBackground ?? Colors.white)
-                                .withOpacity(themeExt?.surfaceOpacity ?? 0.8),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          // Avatar với button chọn màu
+                          Stack(
                             children: [
-                              // Header với Edit button
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Thông tin cá nhân',
-                                    style: TextStyle(
-                                      fontSize: 18,
+                              Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: kPrimaryColor.withOpacity(0.3),
+                                      blurRadius: 12,
+                                      spreadRadius: 2,
+                                    ),
+                                  ],
+                                ),
+                                child: CircleAvatar(
+                                  radius: 55,
+                                  backgroundColor: _getAvatarColor(user),
+                                  child: Text(
+                                    _getInitials(user?.name ?? 'User'),
+                                    style: const TextStyle(
+                                      fontSize: 36,
                                       fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).primaryColor,
+                                      color: Colors.white,
                                     ),
                                   ),
-                                  CustomIconButton(
-                                    icon: Icons.edit,
-                                    onTap: () {
-                                      Navigator.pushNamed(
-                                        context,
-                                        AppRoutes.editProfile,
-                                      );
-                                    },
-                                    backgroundColor: Colors.white,
-                                    iconColor: kSuccess,
-                                    size: 36,
-                                    iconSize: 18,
-                                    shadow: [
-                                      BoxShadow(
-                                        color: kSuccess.withOpacity(0.2),
-                                        blurRadius: 4,
-                                        spreadRadius: 0,
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                ),
                               ),
-                              const SizedBox(height: 20),
-                              // User info
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.person,
-                                    color: Theme.of(context).iconTheme.color,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Text(
-                                    user?.name ?? 'N/A',
-                                    style: kBody.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).textTheme.bodyLarge?.color,
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: CustomIconButton(
+                                  icon: Icons.palette,
+                                  onTap: () => _showColorPicker(context),
+                                  backgroundColor: Colors.white,
+                                  iconColor: kPrimaryColor,
+                                  size: 36,
+                                  iconSize: 20,
+                                  shadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 4,
+                                      spreadRadius: 1,
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.cake,
-                                    color: Theme.of(context).iconTheme.color,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Text(
-                                    user?.birthDate ?? 'Chưa cập nhật',
-                                    style: kBody.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).textTheme.bodyLarge?.color,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.email,
-                                    color: Theme.of(context).iconTheme.color,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Text(
-                                    user?.email ?? 'N/A',
-                                    style: kBody.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).textTheme.bodyLarge?.color,
-                                    ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ],
                           ),
+
+                          // Streak
+                          Column(
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    '10',
+                                    style: TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      color: kDanger,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  SvgPicture.asset(
+                                    kIconFire,
+                                    width: 38,
+                                    height: 48,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Streak',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.color,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // User Info Card với Edit và Logout
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: (themeExt?.cardBackground ?? Colors.white)
+                              .withOpacity(themeExt?.surfaceOpacity ?? 0.8),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            // Header với Edit button
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Thông tin cá nhân',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).primaryColor,
+                                  ),
+                                ),
+                                CustomIconButton(
+                                  icon: Icons.edit,
+                                  onTap: () async {
+                                    final result = await Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.editProfile,
+                                    );
+                                    // Reload profile if update was successful
+                                    if (result == true && context.mounted) {
+                                      context
+                                          .read<ProfileProvider>()
+                                          .getUserProfile();
+                                    }
+                                  },
+                                  backgroundColor: Colors.white,
+                                  iconColor: kSuccess,
+                                  size: 32,
+                                  iconSize: 16,
+                                  shadow: [
+                                    BoxShadow(
+                                      color: kSuccess.withOpacity(0.2),
+                                      blurRadius: 4,
+                                      spreadRadius: 0,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            // User info
+                            _buildInfoRow(
+                              context,
+                              Icons.person,
+                              user?.name ?? 'N/A',
+                            ),
+                            const SizedBox(height: 8),
+                            _buildInfoRow(
+                              context,
+                              Icons.cake,
+                              user?.birthDate ?? 'Chưa cập nhật',
+                            ),
+                            const SizedBox(height: 8),
+                            _buildInfoRow(
+                              context,
+                              Icons.email,
+                              user?.email ?? 'N/A',
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 15),
+                      const SizedBox(height: 16),
+
+                      // Stats Card
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: (themeExt?.cardBackground ?? Colors.white)
+                              .withOpacity(themeExt?.surfaceOpacity ?? 0.8),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Thống kê học tập',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: AppButton(
+                                    onPressed: () {},
+                                    text: '20 bộ từ',
+                                    variant: AppButtonVariant.primary,
+                                    size: AppButtonSize.medium,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: AppButton(
+                                    onPressed: () {},
+                                    text: '15 bài học',
+                                    variant: AppButtonVariant.success,
+                                    size: AppButtonSize.medium,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: AppButton(
+                                onPressed: () {},
+                                text: 'Xem tiến trình học',
+                                variant: AppButtonVariant.accent,
+                                size: AppButtonSize.medium,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Settings Card
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: (themeExt?.cardBackground ?? Colors.white)
+                              .withOpacity(themeExt?.surfaceOpacity ?? 0.8),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Cài đặt',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Consumer<ThemeProvider>(
+                                    builder: (context, themeProvider, _) {
+                                      return AppButton(
+                                        onPressed: () =>
+                                            themeProvider.toggleTheme(),
+                                        icon: themeProvider.isDarkMode
+                                            ? Icons.light_mode
+                                            : Icons.dark_mode,
+                                        text: themeProvider.isDarkMode
+                                            ? 'Sáng'
+                                            : 'Tối',
+                                        variant: AppButtonVariant.accent,
+                                        size: AppButtonSize.small,
+                                      );
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: AppButton(
+                                    onPressed: () {},
+                                    icon: Icons.language,
+                                    text: 'Ngôn ngữ',
+                                    variant: AppButtonVariant.accent,
+                                    size: AppButtonSize.small,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
 
                       // Logout Button
                       Selector<AuthProvider, bool>(
                         selector: (_, provider) =>
                             provider.state is AuthLoading,
                         builder: (context, isLoading, _) {
-                          return AppButton(
-                            text: isLoading ? 'Đang đăng xuất...' : 'Logout',
-                            onPressed: isLoading
-                                ? null
-                                : () => _handleLogout(context),
-                            variant: AppButtonVariant.danger,
-                            size: AppButtonSize.small,
-                            isFullWidth: false,
+                          return SizedBox(
+                            width: double.infinity,
+                            child: AppButton(
+                              text: isLoading
+                                  ? 'Đang đăng xuất...'
+                                  : 'Đăng xuất',
+                              onPressed: isLoading
+                                  ? null
+                                  : () => _handleLogout(context),
+                              variant: AppButtonVariant.danger,
+                              size: AppButtonSize.medium,
+                            ),
                           );
                         },
                       ),
-                      const SizedBox(height: 30),
-
-                      // Streak
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            '10',
-                            style: TextStyle(
-                              fontSize: 36,
-                              fontWeight: FontWeight.bold,
-                              color: kDanger,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          SvgPicture.asset(kIconFire, width: 45, height: 55),
-                        ],
-                      ),
-                      const SizedBox(height: 30),
-
-                      // Settings buttons
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Consumer<ThemeProvider>(
-                            builder: (context, themeProvider, _) {
-                              return AppButton(
-                                onPressed: () => themeProvider.toggleTheme(),
-                                icon: themeProvider.isDarkMode
-                                    ? Icons.light_mode
-                                    : Icons.dark_mode,
-                                variant: AppButtonVariant.accent,
-                                size: AppButtonSize.small,
-                                isFullWidth: false,
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 20),
-                          AppButton(
-                            onPressed: () {},
-                            icon: Icons.language,
-                            variant: AppButtonVariant.accent,
-                            size: AppButtonSize.small,
-                            isFullWidth: false,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 30),
-
-                      // Stats
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          AppButton(
-                            onPressed: () {},
-                            text: '20 bộ từ',
-                            variant: AppButtonVariant.primary,
-                            size: AppButtonSize.xLarge,
-                            isFullWidth: false,
-                          ),
-                          const SizedBox(width: 20),
-                          AppButton(
-                            onPressed: () {},
-                            text: '15 bài học',
-                            variant: AppButtonVariant.success,
-                            size: AppButtonSize.xLarge,
-                            isFullWidth: false,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 15),
-                      AppButton(
-                        onPressed: () {},
-                        text: 'Xem tiến trình học',
-                        variant: AppButtonVariant.accent,
-                        size: AppButtonSize.xLarge,
-                        isFullWidth: false,
-                      ),
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),

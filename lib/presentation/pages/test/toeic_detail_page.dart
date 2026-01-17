@@ -2,18 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/routes/app_routes.dart';
 import '../../../domain/entities/toeic_test.dart';
-import '../../../data/datasources/toeic_sample_data.dart';
+import 'package:en_go_app/core/theme/theme_helper.dart';
+import 'package:en_go_app/core/theme/app_theme.dart';
 
 class ToeicDetailPage extends StatefulWidget {
   final String testId;
   final String testName;
   final ToeicTest? test;
+  final int? partNumber;
 
   const ToeicDetailPage({
     Key? key,
     required this.testId,
     required this.testName,
     this.test,
+    this.partNumber,
   }) : super(key: key);
 
   @override
@@ -27,17 +30,23 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeExt = Theme.of(context).extension<AppThemeExtension>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return MainLayout(
       title: "TOEIC",
-      currentIndex: 1,
+      currentIndex: -1,
       child: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF1E90FF), Color(0xFFE0E0E0)],
-            stops: [0.0, 0.3],
+            colors: isDark
+                ? (themeExt?.backgroundGradientColors ??
+                      [Colors.grey[900]!, Colors.grey[800]!])
+                : [const Color(0xFF1E90FF), const Color(0xFFB2E0FF)],
+            stops: const [0.0, 0.3],
           ),
         ),
         child: Column(
@@ -52,7 +61,7 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E90FF),
+                        color: Theme.of(context).primaryColor,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
@@ -98,8 +107,8 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: isPracticeMode
-                                      ? const Color(0xFF00BCD4)
-                                      : Colors.grey[400],
+                                      ? Theme.of(context).primaryColor
+                                      : getTextThird(context).withOpacity(0.5),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Center(
@@ -127,8 +136,8 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: !isPracticeMode
-                                      ? const Color(0xFF00BCD4)
-                                      : Colors.grey[400],
+                                      ? Theme.of(context).primaryColor
+                                      : getTextThird(context).withOpacity(0.5),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Center(
@@ -150,12 +159,12 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
 
                       // Listening Section (only show in practice mode)
                       if (isPracticeMode) ...[
-                        const Text(
+                        Text(
                           'Listening',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E90FF),
+                            color: Theme.of(context).primaryColor,
                           ),
                         ),
                         const SizedBox(height: 15),
@@ -177,12 +186,12 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
                         const SizedBox(height: 15),
 
                         // Reading Section
-                        const Text(
+                        Text(
                           'Reading',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E90FF),
+                            color: Theme.of(context).primaryColor,
                           ),
                         ),
                         const SizedBox(height: 15),
@@ -198,12 +207,12 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
                         const SizedBox(height: 15),
 
                         // Time Selection
-                        const Text(
+                        Text(
                           'Time',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.grey,
+                            color: getTextSecondary(context),
                           ),
                         ),
                         const SizedBox(height: 15),
@@ -245,23 +254,23 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
                                 'testId': widget.testId,
                                 'testName': widget.testName,
                                 'isFullTest': !isPracticeMode,
-                                'selectedParts': isPracticeMode
-                                    ? selectedParts.toList()
-                                    : [
-                                        1,
-                                        2,
-                                      ], // Available parts from sample data
+                                'selectedParts': widget.partNumber != null
+                                    ? [widget.partNumber!]
+                                    : (isPracticeMode
+                                          ? selectedParts.toList()
+                                          : [
+                                              1,
+                                              2,
+                                            ]), // Available parts from sample data
                                 'timeLimit': selectedTime == 0
                                     ? null
                                     : selectedTime,
-                                'questions': ToeicSampleData
-                                    .questions, // Pass real questions!
                                 'test': widget.test, // Pass test object
                               },
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF1E90FF),
+                            backgroundColor: Theme.of(context).primaryColor,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 50,
                               vertical: 14,
@@ -309,11 +318,13 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 15),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1E90FF) : Colors.white,
+          color: isSelected
+              ? Theme.of(context).primaryColor
+              : getSurfaceColor(context),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: getDividerColor(context).withOpacity(0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -325,7 +336,7 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.white : const Color(0xFF1E90FF),
+              color: isSelected ? Colors.white : Theme.of(context).primaryColor,
             ),
           ),
         ),
@@ -341,11 +352,13 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
         width: 50,
         height: 50,
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1E90FF) : Colors.white,
+          color: isSelected
+              ? Theme.of(context).primaryColor
+              : getSurfaceColor(context),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: getDividerColor(context).withOpacity(0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -357,7 +370,7 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.white : Colors.grey[600],
+              color: isSelected ? Colors.white : getTextSecondary(context),
             ),
           ),
         ),

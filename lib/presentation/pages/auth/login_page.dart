@@ -106,6 +106,7 @@ class _LoginPageState extends State<LoginPage> {
                     enabled: !isLoading,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
+                    style: const TextStyle(color: Colors.black, fontSize: 16),
                     decoration: InputDecoration(
                       labelText: 'Email',
                       hintText: 'vd: name@domain.com',
@@ -167,6 +168,7 @@ class _LoginPageState extends State<LoginPage> {
                     obscureText: _obscurePassword,
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) => _handleLogin(),
+                    style: const TextStyle(color: Colors.black, fontSize: 16),
                     decoration: InputDecoration(
                       labelText: 'Mật khẩu',
 
