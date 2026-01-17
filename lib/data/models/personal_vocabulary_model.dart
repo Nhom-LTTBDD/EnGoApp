@@ -1,7 +1,5 @@
 // lib/data/models/personal_vocabulary_model.dart
 
-import '../../domain/entities/vocabulary_card.dart';
-
 /// Model cho từ vựng cá nhân của người dùng
 class PersonalVocabularyModel {
   final String id;

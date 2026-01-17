@@ -37,6 +37,7 @@ import '../../presentation/providers/profile/profile_provider.dart';
 import '../../presentation/providers/vocabulary_provider.dart';
 import '../../presentation/providers/grammar_provider.dart';
 import '../../presentation/providers/personal_vocabulary_provider.dart';
+import '../../presentation/providers/streak_provider.dart';
 
 // Vocabulary Domain
 import '../../domain/repository_interfaces/vocabulary_repository.dart';
@@ -65,6 +66,7 @@ import '../../data/repositories/grammar_repository_impl.dart';
 // Services
 import '../services/audio_service.dart';
 import '../services/personal_vocabulary_service.dart';
+import '../services/streak_service.dart';
 
 final sl = GetIt.instance;
 
@@ -89,6 +91,12 @@ Future<void> init() async {
   sl.registerLazySingleton(() => AudioService());
   sl.registerLazySingleton(
     () => PersonalVocabularyService(
+      sl(), // SharedPreferences
+      firestore: sl(), // FirebaseFirestore
+    ),
+  );
+  sl.registerLazySingleton(
+    () => StreakService(
       sl(), // SharedPreferences
       firestore: sl(), // FirebaseFirestore
     ),
@@ -232,4 +240,6 @@ Future<void> init() async {
       grammarRepository: sl(),
     ),
   );
+
+  sl.registerFactory(() => StreakProvider(streakService: sl()));
 }

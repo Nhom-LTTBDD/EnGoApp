@@ -40,6 +40,25 @@ service cloud.firestore {
     }
     
     // ============================================================================
+    // USER STREAKS COLLECTION (🔥 Streak tracking)
+    // ============================================================================
+    match /user_streaks/{userId} {
+      // User chỉ được đọc/ghi streak của chính họ
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Validate data structure khi tạo mới
+      allow create: if request.auth != null 
+                    && request.auth.uid == userId
+                    && request.resource.data.keys().hasAll(['userId', 'currentStreak', 'longestStreak', 'createdAt', 'updatedAt']);
+      
+      // Validate khi update
+      allow update: if request.auth != null 
+                    && request.auth.uid == userId
+                    && request.resource.data.currentStreak is int
+                    && request.resource.data.longestStreak is int;
+    }
+    
+    // ============================================================================
     // DEFAULT DENY ALL (Bảo mật)
     // ============================================================================
     match /{document=**} {

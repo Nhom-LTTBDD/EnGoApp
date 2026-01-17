@@ -20,14 +20,15 @@ class PersonalVocabularyService {
   DateTime? _lastSyncTime;
 
   // Constants
-  static const String _storageKey = VocabularyConstants.personalVocabularyStorageKey;
-  static const String _firestoreCollection = VocabularyConstants.personalVocabulariesCollection;
-  static const Duration _syncInterval = VocabularyConstants.syncDebounceInterval;
+  static const String _storageKey =
+      VocabularyConstants.personalVocabularyStorageKey;
+  static const String _firestoreCollection =
+      VocabularyConstants.personalVocabulariesCollection;
+  static const Duration _syncInterval =
+      VocabularyConstants.syncDebounceInterval;
 
-  PersonalVocabularyService(
-    this._prefs, {
-    FirebaseFirestore? firestore,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance;
+  PersonalVocabularyService(this._prefs, {FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
   // ============================================================================
   // Public API - Read Operations
   // ============================================================================
@@ -38,7 +39,9 @@ class PersonalVocabularyService {
       // Strategy 1: Đọc từ local storage (fastest)
       final localModel = await _loadFromLocal();
       if (localModel != null && localModel.userId == userId) {
-        _logInfo('${VocabularyConstants.logLoadingFromLocal}: ${localModel.vocabularyCardIds.length} cards');
+        _logInfo(
+          '${VocabularyConstants.logLoadingFromLocal}: ${localModel.vocabularyCardIds.length} cards',
+        );
         return localModel;
       }
 
@@ -47,7 +50,9 @@ class PersonalVocabularyService {
       final cloudModel = await _loadFromCloud(userId);
       if (cloudModel != null) {
         await _saveToLocal(cloudModel);
-        _logInfo('${VocabularyConstants.logRestoredFromCloud}: ${cloudModel.vocabularyCardIds.length} cards');
+        _logInfo(
+          '${VocabularyConstants.logRestoredFromCloud}: ${cloudModel.vocabularyCardIds.length} cards',
+        );
         return cloudModel;
       }
 
@@ -63,15 +68,14 @@ class PersonalVocabularyService {
   // ============================================================================
   // SAVE - Hybrid: Local + Cloud
   // ============================================================================
-    /// Lưu personal vocabulary vào cả local và cloud
+  /// Lưu personal vocabulary vào cả local và cloud
   Future<void> savePersonalVocabulary(PersonalVocabularyModel model) async {
     try {
       // 1. Lưu vào local storage (always, synchronous)
       await _saveToLocal(model);
-      
+
       // 2. Sync lên cloud (with debouncing)
       _syncToCloud(model);
-      
     } catch (e) {
       _logError('${VocabularyConstants.errorSavingVocabulary}: $e');
       rethrow;
@@ -81,7 +85,7 @@ class PersonalVocabularyService {
   // ============================================================================
   // OPERATIONS - Add/Remove/Toggle
   // ============================================================================
-  
+
   /// Thêm card vào personal vocabulary
   Future<void> addCard(String userId, String cardId) async {
     final model = await getPersonalVocabulary(userId);
@@ -116,6 +120,27 @@ class PersonalVocabularyService {
     return model.vocabularyCardIds;
   }
 
+  /// Force load từ cloud và save vào local (dùng khi sync hoặc refresh)
+  Future<PersonalVocabularyModel> forceLoadFromCloud(String userId) async {
+    try {
+      print('🔄 Force loading from cloud for user: $userId');
+      final cloudModel = await _loadFromCloud(userId);
+
+      if (cloudModel != null) {
+        await _saveToLocal(cloudModel);
+        print(
+          '✅ Force loaded from cloud: ${cloudModel.vocabularyCardIds.length} cards',
+        );
+        return cloudModel;
+      }
+
+      return PersonalVocabularyModel.empty(userId);
+    } catch (e) {
+      print('⚠️ Error force loading from cloud: $e');
+      return PersonalVocabularyModel.empty(userId);
+    }
+  }
+
   /// Xóa tất cả bookmarks
   Future<void> clearAll(String userId) async {
     final model = PersonalVocabularyModel.empty(userId);
@@ -125,7 +150,7 @@ class PersonalVocabularyService {
   // ============================================================================
   // PRIVATE HELPERS - Local Storage
   // ============================================================================
-    Future<void> _saveToLocal(PersonalVocabularyModel model) async {
+  Future<void> _saveToLocal(PersonalVocabularyModel model) async {
     try {
       final jsonString = jsonEncode(model.toJson());
       await _prefs.setString(_storageKey, jsonString);
@@ -155,23 +180,26 @@ class PersonalVocabularyService {
 
       final data = docSnapshot.data()!;
       return PersonalVocabularyModel.fromJson(data);
-      
     } catch (e) {
       _logError('${VocabularyConstants.errorLoadingFromCloud}: $e');
       return null;
     }
-  }  /// Sync lên Firestore với debouncing
+  }
+
+  /// Sync lên Firestore với debouncing
   void _syncToCloud(PersonalVocabularyModel model) {
     _logInfo('🔄 _syncToCloud called for user: ${model.userId}');
-    
+
     // Debouncing: Chỉ sync nếu đã qua 5 giây kể từ lần sync cuối
     final now = DateTime.now();
     if (_lastSyncTime != null) {
       final timeSinceLastSync = now.difference(_lastSyncTime!);
       _logInfo('⏱️ Time since last sync: ${timeSinceLastSync.inSeconds}s');
-      
+
       if (timeSinceLastSync < _syncInterval) {
-        _logInfo('${VocabularyConstants.logSyncSkipped} - wait ${_syncInterval.inSeconds - timeSinceLastSync.inSeconds}s more)');
+        _logInfo(
+          '${VocabularyConstants.logSyncSkipped} - wait ${_syncInterval.inSeconds - timeSinceLastSync.inSeconds}s more)',
+        );
         return;
       }
     }
@@ -185,7 +213,9 @@ class PersonalVocabularyService {
         .doc(model.userId)
         .set(model.toJson(), SetOptions(merge: true))
         .then((_) {
-          _logInfo('${VocabularyConstants.logSyncedToCloud}: ${model.vocabularyCardIds.length} cards');
+          _logInfo(
+            '${VocabularyConstants.logSyncedToCloud}: ${model.vocabularyCardIds.length} cards',
+          );
         })
         .catchError((e) {
           _logError('${VocabularyConstants.logSyncFailed}: $e');
@@ -202,26 +232,28 @@ class PersonalVocabularyService {
   Future<void> forceSyncToCloud(String userId) async {
     try {
       final model = await getPersonalVocabulary(userId);
-      
+
       await _firestore
           .collection(_firestoreCollection)
           .doc(userId)
           .set(model.toJson(), SetOptions(merge: true))
           .timeout(VocabularyConstants.forceSyncTimeout);
-      
-      _logInfo('✅ Force synced to cloud: ${model.vocabularyCardIds.length} cards');
+
+      _logInfo(
+        '✅ Force synced to cloud: ${model.vocabularyCardIds.length} cards',
+      );
       _lastSyncTime = DateTime.now();
-      
     } catch (e) {
       _logError('${VocabularyConstants.errorForceSyncFailed}: $e');
       rethrow;
     }
   }
+
   /// Restore từ cloud về local (dùng khi cài lại app)
   Future<void> restoreFromCloud(String userId) async {
     try {
       final cloudModel = await _loadFromCloud(userId);
-      
+
       if (cloudModel != null) {
         await _saveToLocal(cloudModel);
         _logInfo('✅ Restored from cloud to local');
@@ -236,7 +268,7 @@ class PersonalVocabularyService {
   // ============================================================================
   // PRIVATE HELPERS - Load from Local
   // ============================================================================
-  
+
   /// Load từ SharedPreferences
   Future<PersonalVocabularyModel?> _loadFromLocal() async {
     try {
@@ -244,7 +276,7 @@ class PersonalVocabularyService {
       if (jsonString == null || jsonString.isEmpty) {
         return null;
       }
-      
+
       final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
       return PersonalVocabularyModel.fromJson(jsonMap);
     } catch (e) {
@@ -256,7 +288,7 @@ class PersonalVocabularyService {
   // ============================================================================
   // LOGGING HELPERS
   // ============================================================================
-  
+
   void _logInfo(String message) {
     print(message);
   }
