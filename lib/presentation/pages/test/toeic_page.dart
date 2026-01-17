@@ -106,86 +106,188 @@ class ToeicPage extends StatelessWidget {
 
             // Danh sách đề test ets toeic
             Expanded(
-              child: Column(
-                children: [
-                  // Main Test Card
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutes.toeicDetail,
-                        arguments: {
-                          'testId': ToeicSampleData.practiceTest1.id,
-                          'testName': ToeicSampleData.practiceTest1.name,
-                          'test': ToeicSampleData.practiceTest1,
-                        },
-                      );
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 20),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            blurRadius: 5,
-                            offset: const Offset(0, 2),
+              child: FutureBuilder(
+                future: ToeicSampleData.getPracticeTest1(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    // Loading state
+                    return const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF1E90FF),
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'Đang tải dữ liệu TOEIC...',
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
                           ),
                         ],
                       ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1E90FF).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(10),
+                    );
+                  } else if (snapshot.hasError) {
+                    // Error state
+                    return Center(
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.red.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              color: Colors.red,
+                              size: 48,
                             ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.quiz,
-                                color: Color(0xFF1E90FF),
-                                size: 28,
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Lỗi tải dữ liệu',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red,
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 15),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            const SizedBox(height: 8),
+                            Text(
+                              'Không thể tải dữ liệu TOEIC. Vui lòng kiểm tra file JSON và thử lại.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () {
+                                // Trigger rebuild to retry loading
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const ToeicPage(),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF1E90FF),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text('Thử lại'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  } else if (snapshot.hasData) {
+                    // Success state
+                    final test = snapshot.data!;
+                    return Column(
+                      children: [
+                        // Main Test Card
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutes.toeicDetail,
+                              arguments: {
+                                'testId': test.id,
+                                'testName': test.name,
+                                'test': test,
+                              },
+                            );
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 20),
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  blurRadius: 5,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
                               children: [
-                                Text(
-                                  ToeicSampleData.practiceTest1.name,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
+                                Container(
+                                  width: 50,
+                                  height: 50,
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFF1E90FF,
+                                    ).withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.quiz,
+                                      color: Color(0xFF1E90FF),
+                                      size: 28,
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(height: 5),
-                                Text(
-                                  '7 Parts • ${ToeicSampleData.practiceTest1.totalQuestions} Questions • ${ToeicSampleData.practiceTest1.duration} mins',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
+                                const SizedBox(width: 15),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        test.name,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        '7 Parts • ${test.totalQuestions} Questions • ${test.duration} mins',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                ),
+                                const Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Color(0xFF1E90FF),
+                                  size: 16,
                                 ),
                               ],
                             ),
                           ),
-                          const Icon(
-                            Icons.arrow_forward_ios,
-                            color: Color(0xFF1E90FF),
-                            size: 16,
-                          ),
-                        ],
+                        ),
+                      ],
+                    );
+                  } else {
+                    // No data state (shouldn't happen but just in case)
+                    return const Center(
+                      child: Text(
+                        'Không có dữ liệu',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
                       ),
-                    ),
-                  ),
-                ],
+                    );
+                  }
+                },
               ),
             ),
           ],
