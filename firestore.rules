@@ -1,5 +1,4 @@
 // Firestore Security Rules
-// Copy nội dung này vào Firebase Console > Firestore Database > Rules
 
 rules_version = '2';
 service cloud.firestore {

@@ -25,10 +25,9 @@ class PersonalVocabularyService {
   static const String _firestoreCollection = 'personal_vocabularies';
     final SharedPreferences _prefs;
   final FirebaseFirestore _firestore;
-  
-  /// Last sync timestamp để tránh sync quá thường xuyên
+    /// Last sync timestamp để tránh sync quá thường xuyên
   DateTime? _lastSyncTime;
-  static const _syncInterval = Duration(seconds: 5);
+  static const _syncInterval = Duration(seconds: 2); // Tạm thời giảm xuống 2s để test
 
   PersonalVocabularyService(
     this._prefs, {
@@ -180,18 +179,24 @@ class PersonalVocabularyService {
       return null;
     }
   }
-
   /// Sync lên Firestore với debouncing
   void _syncToCloud(PersonalVocabularyModel model) {
+    print('🔄 _syncToCloud called for user: ${model.userId}');
+    
     // Debouncing: Chỉ sync nếu đã qua 5 giây kể từ lần sync cuối
     final now = DateTime.now();
-    if (_lastSyncTime != null && 
-        now.difference(_lastSyncTime!) < _syncInterval) {
-      print('⏭️ Skipping cloud sync (debouncing)');
-      return;
+    if (_lastSyncTime != null) {
+      final timeSinceLastSync = now.difference(_lastSyncTime!);
+      print('⏱️ Time since last sync: ${timeSinceLastSync.inSeconds}s');
+      
+      if (timeSinceLastSync < _syncInterval) {
+        print('⏭️ Skipping cloud sync (debouncing - wait ${_syncInterval.inSeconds - timeSinceLastSync.inSeconds}s more)');
+        return;
+      }
     }
 
     _lastSyncTime = now;
+    print('🚀 Starting cloud sync...');
 
     // Fire-and-forget: Không await, không block UI
     _firestore
@@ -203,6 +208,8 @@ class PersonalVocabularyService {
         })
         .catchError((e) {
           print('⚠️ Cloud sync failed: $e');
+          print('⚠️ Error type: ${e.runtimeType}');
+          print('⚠️ Error details: ${e.toString()}');
         });
   }
 

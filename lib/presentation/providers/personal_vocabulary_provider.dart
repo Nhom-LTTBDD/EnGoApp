@@ -46,9 +46,18 @@ class PersonalVocabularyProvider with ChangeNotifier {
 
   // Set user ID
   void setUserId(String userId) {
-    _userId = userId;
-    loadPersonalVocabulary();
+    if (_userId != userId) {
+      print('🔄 PersonalVocabularyProvider: Switching user from $_userId to $userId');
+      _userId = userId;
+      loadPersonalVocabulary();
+    } else {
+      print('✅ PersonalVocabularyProvider: User ID already set to $userId');
+    }
   }
+  
+  // Get current userId (for debugging)
+  String get currentUserId => _userId;
+
   // Load personal vocabulary
   Future<void> loadPersonalVocabulary() async {
     try {
