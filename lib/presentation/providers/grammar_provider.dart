@@ -4,8 +4,8 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/grammar_lesson.dart';
 import '../../domain/entities/grammar_topic.dart';
-import '../../domain/use_cases/get_grammar_topics_use_case.dart';
-import '../../domain/use_cases/get_grammar_lessons_use_case.dart';
+import '../../domain/usecases/grammar/get_grammar_topics_use_case.dart';
+import '../../domain/usecases/grammar/get_grammar_lessons_use_case.dart';
 import '../../domain/repository_interfaces/grammar_repository.dart';
 
 /// Grammar provider cho state management
@@ -18,9 +18,9 @@ class GrammarProvider extends ChangeNotifier {
     required GetGrammarTopicsUseCase getGrammarTopicsUseCase,
     required GetGrammarLessonsUseCase getGrammarLessonsUseCase,
     required GrammarRepository grammarRepository,
-  })  : _getGrammarTopicsUseCase = getGrammarTopicsUseCase,
-        _getGrammarLessonsUseCase = getGrammarLessonsUseCase,
-        _grammarRepository = grammarRepository;
+  }) : _getGrammarTopicsUseCase = getGrammarTopicsUseCase,
+       _getGrammarLessonsUseCase = getGrammarLessonsUseCase,
+       _grammarRepository = grammarRepository;
 
   // Topics state
   List<GrammarTopic> _topics = [];
@@ -94,7 +94,7 @@ class GrammarProvider extends ChangeNotifier {
     try {
       _lessons = await _getGrammarLessonsUseCase(topicId);
       _lessonsError = null;
-      
+
       // Set first available lesson as current
       if (_lessons.isNotEmpty) {
         final availableLesson = _lessons.firstWhere(
@@ -202,6 +202,7 @@ class GrammarProvider extends ChangeNotifier {
   List<GrammarLesson> get availableLessons {
     return _lessons.where((lesson) => lesson.isAvailable).toList();
   }
+
   /// Get completed lessons
   List<GrammarLesson> get completedLessons {
     return _lessons.where((lesson) => lesson.isCompleted).toList();
@@ -215,15 +216,16 @@ class GrammarProvider extends ChangeNotifier {
       return null;
     }
   }
+
   /// Load lesson detail by ID
   Future<GrammarLesson?> loadLessonDetail(String lessonId) async {
     try {
       _isLoadingLessons = true;
       _lessonsError = null;
       notifyListeners();
-      
+
       final lesson = await _grammarRepository.getLessonById(lessonId);
-      
+
       if (lesson != null) {
         // Update lesson in current list if exists
         final index = _lessons.indexWhere((l) => l.id == lessonId);
@@ -234,7 +236,7 @@ class GrammarProvider extends ChangeNotifier {
         }
         notifyListeners();
       }
-      
+
       return lesson;
     } catch (e) {
       _lessonsError = e.toString();
@@ -243,11 +245,13 @@ class GrammarProvider extends ChangeNotifier {
       _isLoadingLessons = false;
       notifyListeners();
     }
-  }  /// Mark lesson as completed
+  }
+
+  /// Mark lesson as completed
   Future<void> markLessonAsCompleted(String lessonId) async {
     try {
       await _grammarRepository.markLessonCompleted(lessonId);
-      
+
       // Update lesson status in local list
       final index = _lessons.indexWhere((l) => l.id == lessonId);
       if (index != -1) {

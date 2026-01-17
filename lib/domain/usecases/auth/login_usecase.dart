@@ -6,7 +6,7 @@ import 'package:equatable/equatable.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/usecase/usecase.dart';
 import '../../entities/auth_result.dart';
-import '../../respository_interfaces/auth_repository.dart';
+import '../../repository_interfaces/auth_repository.dart';
 
 class LoginUseCase implements UseCase<AuthResult, LoginParams> {
   final AuthRepository repository;

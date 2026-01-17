@@ -3,12 +3,12 @@
 
 import 'package:flutter/foundation.dart';
 import '../../../core/usecase/usecase.dart';
-import '../../../domain/usecase/auth/forgot_password_usecase.dart';
-import '../../../domain/usecase/auth/get_current_user_usecase.dart';
-import '../../../domain/usecase/auth/login_usecase.dart';
-import '../../../domain/usecase/auth/logout_usecase.dart';
-import '../../../domain/usecase/auth/register_usecase.dart';
-import '../../../domain/usecase/auth/google_sign_in_usecase.dart';
+import '../../../domain/usecases/auth/forgot_password_usecase.dart';
+import '../../../domain/usecases/auth/get_current_user_usecase.dart';
+import '../../../domain/usecases/auth/login_usecase.dart';
+import '../../../domain/usecases/auth/logout_usecase.dart';
+import '../../../domain/usecases/auth/register_usecase.dart';
+import '../../../domain/usecases/auth/google_sign_in_usecase.dart';
 import 'auth_state.dart';
 
 class AuthProvider extends ChangeNotifier {

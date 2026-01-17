@@ -6,7 +6,7 @@ import 'package:equatable/equatable.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/usecase/usecase.dart';
 import '../../entities/user.dart';
-import '../../respository_interfaces/profile_repository.dart';
+import '../../repository_interfaces/profile_repository.dart';
 
 class UpdateAvatarColorUseCase
     implements UseCase<User, UpdateAvatarColorParams> {

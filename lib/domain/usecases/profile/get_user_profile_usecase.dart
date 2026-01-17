@@ -5,7 +5,7 @@ import 'package:dartz/dartz.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/usecase/usecase.dart';
 import '../../entities/user.dart';
-import '../../respository_interfaces/profile_repository.dart';
+import '../../repository_interfaces/profile_repository.dart';
 
 class GetUserProfileUseCase implements UseCase<User, NoParams> {
   final ProfileRepository repository;
