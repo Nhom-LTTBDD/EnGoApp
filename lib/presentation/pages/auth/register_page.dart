@@ -1,9 +1,7 @@
 // lib/presentation/pages/auth/register_page.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:en_go_app/presentation/layout/auth_layout.dart';
-import 'package:en_go_app/core/constants/app_assets.dart';
 import 'package:en_go_app/core/constants/app_text_styles.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/routes/app_routes.dart';
