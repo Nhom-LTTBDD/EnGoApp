@@ -711,19 +711,33 @@ class VocabularyRepositoryImpl implements VocabularyRepository {// ========== FO
 
     // Return cards for specific topic
     return _topicCardsMap[topicId] ?? [];
-  }
-  @override
+  }  @override
   Future<VocabularyCard?> getVocabularyCardById(String cardId) async {
     await Future.delayed(const Duration(milliseconds: 300));
 
+    print('🔍 [REPOSITORY] Searching for cardId: $cardId');
+    print('🔍 [REPOSITORY] Available topics: ${_topicCardsMap.keys.join(", ")}');
+
     // Search across all topics
-    for (var cards in _topicCardsMap.values) {
-      try {
-        return cards.firstWhere((card) => card.id == cardId);
-      } catch (e) {
-        continue;
+    var topicIndex = 0;
+    for (var entry in _topicCardsMap.entries) {
+      topicIndex++;
+      final topicName = entry.key;
+      final cards = entry.value;
+      
+      print('🔍 [REPOSITORY] Searching in topic $topicIndex: $topicName (${cards.length} cards)');
+      
+      for (var card in cards) {
+        if (card.id == cardId) {
+          print('✅ [REPOSITORY] FOUND! Card: ${card.english} in topic: $topicName');
+          return card;
+        }
       }
+      
+      print('❌ [REPOSITORY] Not found in topic: $topicName');
     }
+    
+    print('❌ [REPOSITORY] Card NOT FOUND in any topic: $cardId');
     return null;
   }
 

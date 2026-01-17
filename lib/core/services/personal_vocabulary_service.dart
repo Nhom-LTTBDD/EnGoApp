@@ -32,10 +32,11 @@ class PersonalVocabularyService {
   // ============================================================================
   // Public API - Read Operations
   // ============================================================================
-
   /// Lấy personal vocabulary với fallback strategy: Local → Cloud → Empty.
   Future<PersonalVocabularyModel> getPersonalVocabulary(String userId) async {
     try {
+      _logInfo('🔍 getPersonalVocabulary called for userId: $userId');
+      
       // Strategy 1: Đọc từ local storage (fastest)
       final localModel = await _loadFromLocal();
       if (localModel != null && localModel.userId == userId) {
@@ -49,6 +50,8 @@ class PersonalVocabularyService {
       _logInfo(VocabularyConstants.logLoadingFromCloud);
       final cloudModel = await _loadFromCloud(userId);
       if (cloudModel != null) {
+        _logInfo('☁️ Cloud model found: ${cloudModel.vocabularyCardIds.length} cards');
+        _logInfo('📋 Card IDs from cloud: ${cloudModel.vocabularyCardIds.join(", ")}');
         await _saveToLocal(cloudModel);
         _logInfo(
           '${VocabularyConstants.logRestoredFromCloud}: ${cloudModel.vocabularyCardIds.length} cards',
@@ -284,12 +287,15 @@ class PersonalVocabularyService {
       return null;
     }
   }
-
   // ============================================================================
   // LOGGING HELPERS
   // ============================================================================
 
   void _logInfo(String message) {
+    print(message);
+  }
+
+  void _logWarning(String message) {
     print(message);
   }
 
