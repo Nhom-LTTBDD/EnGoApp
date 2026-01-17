@@ -15,21 +15,24 @@ import '../../domain/repository_interfaces/dictionary_repository.dart';
 /// - Handle UI state (loading, error)
 class PersonalVocabularyProvider with ChangeNotifier {  final PersonalVocabularyService _service;
   final VocabularyRepository _vocabularyRepository;
-  final DictionaryRepository _dictionaryRepository;
-  // State variables
+  final DictionaryRepository _dictionaryRepository;  // State variables
   String _userId = 'default_user';
   List<String> _bookmarkedCardIds = [];
   List<VocabularyCard> _personalCards = [];
   bool _isLoading = false;
-  String? _error;PersonalVocabularyProvider({
+  String? _error;
+  
+  // Prevent race conditions
+  bool _isCurrentlyLoading = false;  PersonalVocabularyProvider({
     required PersonalVocabularyService service,
     required VocabularyRepository vocabularyRepository,
     required DictionaryRepository dictionaryRepository,
   })  : _service = service,
         _vocabularyRepository = vocabularyRepository,
         _dictionaryRepository = dictionaryRepository {
-    // Load personal vocabulary when provider is created
-    loadPersonalVocabulary();
+    // DON'T load here - wait for real userId from setUserId()
+    // Constructor runs BEFORE auth is ready, so userId would be 'default_user'
+    _logInfo('🎯 PersonalVocabularyProvider initialized (waiting for userId)');
   }
 
   // Getters
@@ -51,10 +54,22 @@ class PersonalVocabularyProvider with ChangeNotifier {  final PersonalVocabulary
   }
   
   // Get current userId (for debugging)
-  String get currentUserId => _userId;
-  // Load personal vocabulary
+  String get currentUserId => _userId;  // Load personal vocabulary
   Future<void> loadPersonalVocabulary() async {
+    // Don't load with default user - wait for real userId
+    if (_userId == 'default_user') {
+      _logWarning('⚠️ Skipping load with default_user - waiting for real userId');
+      return;
+    }
+    
+    // Prevent race condition: Skip if already loading
+    if (_isCurrentlyLoading) {
+      _logWarning('⚠️ Load already in progress, skipping duplicate request');
+      return;
+    }
+    
     try {
+      _isCurrentlyLoading = true;
       _isLoading = true;
       _error = null;
       notifyListeners();
@@ -63,25 +78,39 @@ class PersonalVocabularyProvider with ChangeNotifier {  final PersonalVocabulary
 
       // Get bookmarked card IDs
       _bookmarkedCardIds = await _service.getBookmarkedCardIds(_userId);
-      _logInfo('📚 Found ${_bookmarkedCardIds.length} bookmarked cards');
+      _logInfo('📚 Found ${_bookmarkedCardIds.length} bookmarked card IDs from service');
+      _logInfo('📋 Card IDs: ${_bookmarkedCardIds.join(", ")}');
 
       // Load and enrich all cards
       _personalCards = [];
+      var loadedCount = 0;
+      var failedCount = 0;
+      
       if (_bookmarkedCardIds.isNotEmpty) {
-        for (final cardId in _bookmarkedCardIds) {
+        for (var i = 0; i < _bookmarkedCardIds.length; i++) {
+          final cardId = _bookmarkedCardIds[i];
+          _logInfo('📖 Loading card ${i + 1}/${_bookmarkedCardIds.length}: $cardId');
+          
           final card = await _loadAndEnrichCard(cardId);
           if (card != null) {
             _personalCards.add(card);
+            loadedCount++;
+            _logInfo('  ✅ Success: ${card.english}');
+          } else {
+            failedCount++;
+            _logWarning('  ❌ Failed to load card: $cardId');
           }
         }
       }
 
       _isLoading = false;
-      _logInfo('✨ Personal vocabulary loaded successfully: ${_personalCards.length} cards');
+      _isCurrentlyLoading = false;
+      _logInfo('✨ Personal vocabulary loaded: $loadedCount cards (${failedCount} failed)');
       notifyListeners();
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
+      _isCurrentlyLoading = false;
       _logError('❌ Error loading personal vocabulary: $e');
       notifyListeners();
     }
@@ -177,28 +206,33 @@ class PersonalVocabularyProvider with ChangeNotifier {  final PersonalVocabulary
   // ============================================================================
   // PRIVATE HELPERS
   // ============================================================================
-
   /// Load và enrich một card từ ID
   Future<VocabularyCard?> _loadAndEnrichCard(String cardId) async {
     try {
+      _logInfo('    🔍 Fetching card from repository: $cardId');
       final card = await _vocabularyRepository.getVocabularyCardById(cardId);
+      
       if (card == null) {
-        _logWarning('Card not found: $cardId');
+        _logWarning('    ⚠️ Card not found in repository: $cardId');
         return null;
       }
+      
+      _logInfo('    📦 Card found: ${card.english}');
 
       // Enrich card với dictionary data
       try {
+        _logInfo('    🔄 Enriching card with dictionary data...');
         final enrichedCard = await _dictionaryRepository.enrichVocabularyCard(card);
-        _logInfo('✅ Loaded & enriched card: ${enrichedCard.english} - ${enrichedCard.phonetic ?? "no phonetic"}');
+        _logInfo('    ✅ Card enriched successfully with phonetic: ${enrichedCard.phonetic ?? "N/A"}');
         return enrichedCard;
       } catch (e) {
         // Nếu không enrich được, vẫn trả về card gốc
-        _logWarning('⚠️ Could not enrich card ${card.english}: $e');
+        _logWarning('    ⚠️ Could not enrich card ${card.english}, using original: $e');
         return card;
       }
     } catch (e) {
-      _logError('❌ Error loading card $cardId: $e');
+      _logError('    ❌ Error loading card $cardId: $e');
+      _logError('    ❌ Stack trace: ${StackTrace.current}');
       return null;
     }
   }

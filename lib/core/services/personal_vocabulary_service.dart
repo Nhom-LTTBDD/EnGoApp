@@ -31,21 +31,33 @@ class PersonalVocabularyService {
   // ============================================================================
   // Public API - Read Operations
   // ============================================================================
-
   /// Lấy personal vocabulary với fallback strategy: Local → Cloud → Empty.
   Future<PersonalVocabularyModel> getPersonalVocabulary(String userId) async {
     try {
+      _logInfo('🔍 getPersonalVocabulary called for userId: $userId');
+      
       // Strategy 1: Đọc từ local storage (fastest)
       final localModel = await _loadFromLocal();
-      if (localModel != null && localModel.userId == userId) {
-        _logInfo('${VocabularyConstants.logLoadingFromLocal}: ${localModel.vocabularyCardIds.length} cards');
-        return localModel;
+      if (localModel != null) {
+        _logInfo('📦 Local model found: userId=${localModel.userId}, cardIds=${localModel.vocabularyCardIds.length}');
+        
+        if (localModel.userId == userId) {
+          _logInfo('${VocabularyConstants.logLoadingFromLocal}: ${localModel.vocabularyCardIds.length} cards');
+          _logInfo('📋 Card IDs from local: ${localModel.vocabularyCardIds.join(", ")}');
+          return localModel;
+        } else {
+          _logWarning('⚠️ UserId mismatch! Local userId: ${localModel.userId}, requested: $userId');
+        }
+      } else {
+        _logInfo('📭 No local model found');
       }
 
       // Strategy 2: Fallback to cloud
       _logInfo(VocabularyConstants.logLoadingFromCloud);
       final cloudModel = await _loadFromCloud(userId);
       if (cloudModel != null) {
+        _logInfo('☁️ Cloud model found: ${cloudModel.vocabularyCardIds.length} cards');
+        _logInfo('📋 Card IDs from cloud: ${cloudModel.vocabularyCardIds.join(", ")}');
         await _saveToLocal(cloudModel);
         _logInfo('${VocabularyConstants.logRestoredFromCloud}: ${cloudModel.vocabularyCardIds.length} cards');
         return cloudModel;
@@ -252,12 +264,15 @@ class PersonalVocabularyService {
       return null;
     }
   }
-
   // ============================================================================
   // LOGGING HELPERS
   // ============================================================================
   
   void _logInfo(String message) {
+    print(message);
+  }
+
+  void _logWarning(String message) {
     print(message);
   }
 
