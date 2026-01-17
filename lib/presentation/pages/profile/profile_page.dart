@@ -471,8 +471,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                             AppRoutes.personalVocabByTopic,
                                           );
                                         },
-                                        text:
-                                            '${vocabProvider.topicCount} bộ từ',
+                                        text: '${vocabProvider.topicCount} từ',
                                         variant: AppButtonVariant.primary,
                                         size: AppButtonSize.medium,
                                       );
