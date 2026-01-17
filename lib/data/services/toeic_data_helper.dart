@@ -13,7 +13,7 @@ class ToeicDataHelper {
     _uploadService = ToeicUploadService(remoteDatasource: datasource);
   }
 
-  /// Upload TOEIC Test 1 with audio files from a directory
+  // Upload TOEIC Test 1 with audio files from a directory
   ///
   /// Expected directory structure:
   /// toeic_test_1_audio/
@@ -31,7 +31,7 @@ class ToeicDataHelper {
         throw Exception('Audio directory not found: $audioDirectoryPath');
       }
 
-      print('📁 Scanning audio directory: $audioDirectoryPath');
+      print('Scanning audio directory: $audioDirectoryPath');
 
       // Get all audio files (mp3, wav, m4a)
       final audioFiles = <File>[];
@@ -59,14 +59,14 @@ class ToeicDataHelper {
       }
 
       if (files.length != 31) {
-        print('⚠️ Warning: Expected 31 audio files, found ${files.length}');
+        print('Warning: Expected 31 audio files, found ${files.length}');
       }
 
       // Take only the first 31 files
       final first31Files = files.take(31).toList();
       audioFiles.addAll(first31Files);
 
-      print('🎵 Found ${audioFiles.length} audio files:');
+      print('Found ${audioFiles.length} audio files:');
       for (int i = 0; i < audioFiles.length; i++) {
         final fileName = path.basename(audioFiles[i].path);
         final partNumber = i < 6
@@ -84,8 +84,8 @@ class ToeicDataHelper {
             'TOEIC listening practice test with 31 questions (Part 1: 6 questions, Part 2: 25 questions)',
       );
 
-      print('\n✅ Upload completed successfully!');
-      print('📊 Test Data:');
+      print('\nUpload completed successfully!');
+      print('Test Data:');
       print('   - Test ID: toeic_test_001');
       print('   - Questions: 31 (Listening only)');
       print('   - Part 1: Questions 1-6 (Photos)');
@@ -93,7 +93,7 @@ class ToeicDataHelper {
       print('   - Audio files: Uploaded to Firebase Storage');
       print('   - Question data: Saved to Firestore');
     } catch (e) {
-      print('❌ Upload failed: $e');
+      print('Upload failed: $e');
       rethrow;
     }
   }

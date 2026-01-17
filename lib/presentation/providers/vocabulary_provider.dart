@@ -5,6 +5,13 @@ import '../../domain/entities/vocabulary_card.dart';
 import '../../domain/usecases/vocabulary/get_vocabulary_cards.dart';
 import '../../domain/usecases/vocabulary/enrich_vocabulary_card.dart';
 
+/// Provider quản lý state của Vocabulary Cards (learning mode).
+///
+/// **Responsibilities:**
+/// - Load vocabulary cards by topic
+/// - Enrich cards with dictionary data
+/// - Manage card navigation & flip states
+/// - Handle dots indicator logic
 class VocabularyProvider extends ChangeNotifier {
   final GetVocabularyCards getVocabularyCards;
   final EnrichVocabularyCard enrichVocabularyCard;
@@ -14,7 +21,10 @@ class VocabularyProvider extends ChangeNotifier {
     required this.enrichVocabularyCard,
   });
 
-  // State
+  // ============================================================================
+  // STATE
+  // ============================================================================
+  
   List<VocabularyCard> _vocabularyCards = [];
   bool _isLoading = false;
   String? _error;
@@ -23,7 +33,10 @@ class VocabularyProvider extends ChangeNotifier {
   bool _isCardFlipped = false;
   Map<int, bool> _cardFlipStates = {};
 
-  // Getters
+  // ============================================================================
+  // GETTERS
+  // ============================================================================
+  
   List<VocabularyCard> get vocabularyCards => _vocabularyCards;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -31,12 +44,12 @@ class VocabularyProvider extends ChangeNotifier {
   int get previousCardIndex => _previousCardIndex;
   bool get isCardFlipped => _isCardFlipped;
 
-  // Get flip state for specific card index
+  /// Get flip state for specific card index
   bool isCardFlippedAtIndex(int index) {
     return _cardFlipStates[index] ?? false;
   }
 
-  // Computed properties
+  /// Get current card being displayed
   VocabularyCard? get currentCard {
     if (_vocabularyCards.isEmpty ||
         _currentCardIndex >= _vocabularyCards.length) {
@@ -45,40 +58,44 @@ class VocabularyProvider extends ChangeNotifier {
     return _vocabularyCards[_currentCardIndex];
   }
 
+  /// Check if user is swiping forward (left to right)  /// Check if user is swiping forward (left to right)
   bool get isSwipingForward => _currentCardIndex > _previousCardIndex;
-  // Methods
+
+  // ============================================================================
+  // PUBLIC METHODS - Load Cards
+  // ============================================================================
+  
+  /// Load vocabulary cards for a specific topic and enrich them with dictionary data
   Future<void> loadVocabularyCards(String topicId) async {
     _setLoading(true);
     _setError(null);
 
     try {
+      _logInfo('📚 Loading vocabulary cards for topic: $topicId');
       final cards = await getVocabularyCards.call(topicId);
+      _logInfo('✅ Loaded ${cards.length} cards');
 
       // Enrich cards with dictionary data
-      final enrichedCards = <VocabularyCard>[];
-      for (var card in cards) {
-        try {
-          final enrichedCard = await enrichVocabularyCard.call(card);
-          enrichedCards.add(enrichedCard);
-        } catch (e) {
-          // If enrichment fails for a card, use original card
-          enrichedCards.add(card);
-        }
-      }
+      final enrichedCards = await _enrichCards(cards);
 
       _vocabularyCards = enrichedCards;
-      _currentCardIndex = 0;
-      _previousCardIndex = 0;
-      _isCardFlipped = false;
-      _cardFlipStates = {}; // Reset all card flip states
+      _resetNavigationState();
+      _logInfo('✨ Vocabulary cards loaded successfully: ${enrichedCards.length} cards');
+      
       notifyListeners();
     } catch (e) {
+      _logError('❌ Error loading vocabulary cards: $e');
       _setError(e.toString());
     } finally {
       _setLoading(false);
     }
   }
 
+  // ============================================================================
+  // PUBLIC METHODS - Navigation
+  // ============================================================================
+  
+  /// Set current card index for navigation
   void setCurrentCardIndex(int index) {
     if (index >= 0 && index < _vocabularyCards.length) {
       _previousCardIndex = _currentCardIndex;
@@ -88,34 +105,33 @@ class VocabularyProvider extends ChangeNotifier {
     }
   }
 
+  // ============================================================================
+  // PUBLIC METHODS - Card Flip
+  // ============================================================================
+  
+  /// Flip current card (toggle between front and back)
   void flipCard() {
     _isCardFlipped = !_isCardFlipped;
     notifyListeners();
   }
 
-  // Flip specific card by index
+  /// Flip specific card by index
   void flipCardAtIndex(int index) {
     _cardFlipStates[index] = !(_cardFlipStates[index] ?? false);
     notifyListeners();
   }
 
+  /// Reset card flip state  /// Reset card flip state
   void resetCardFlip() {
     _isCardFlipped = false;
     notifyListeners();
   }
 
-  // Private methods
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-
-  void _setError(String? error) {
-    _error = error;
-    notifyListeners();
-  }
-
-  // Dots logic for UI
+  // ============================================================================
+  // PUBLIC METHODS - Dots Indicator
+  // ============================================================================
+  
+  /// Get dot index for UI indicator (4-dot system with asymmetric logic)
   int getDotIndex() {
     if (_vocabularyCards.length <= 4) {
       return _currentCardIndex;
@@ -138,6 +154,72 @@ class VocabularyProvider extends ChangeNotifier {
         // Cards 3,4
         return isSwipingForward ? 2 : 1; // Dot 3 xuôi, Dot 2 ngược
       }
+    }
+  }
+
+  // ============================================================================
+  // PRIVATE HELPERS - State Management
+  // ============================================================================
+  
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  void _setError(String? error) {
+    _error = error;
+    notifyListeners();
+  }
+
+  void _resetNavigationState() {
+    _currentCardIndex = 0;
+    _previousCardIndex = 0;
+    _isCardFlipped = false;
+    _cardFlipStates = {};
+  }
+
+  // ============================================================================
+  // PRIVATE HELPERS - Card Enrichment
+  // ============================================================================
+  
+  /// Enrich multiple cards with dictionary data
+  Future<List<VocabularyCard>> _enrichCards(List<VocabularyCard> cards) async {
+    final enrichedCards = <VocabularyCard>[];
+    
+    for (var card in cards) {
+      try {
+        final enrichedCard = await enrichVocabularyCard.call(card);
+        enrichedCards.add(enrichedCard);
+        _logInfo('✅ Enriched card: ${card.english}');
+      } catch (e) {
+        // If enrichment fails for a card, use original card
+        enrichedCards.add(card);
+        _logWarning('⚠️ Could not enrich card ${card.english}: $e');
+      }
+    }
+    
+    return enrichedCards;
+  }
+
+  // ============================================================================
+  // LOGGING HELPERS
+  // ============================================================================
+  
+  void _logInfo(String message) {
+    if (kDebugMode) {
+      print(message);
+    }
+  }
+
+  void _logWarning(String message) {
+    if (kDebugMode) {
+      print(message);
+    }
+  }
+
+  void _logError(String message) {
+    if (kDebugMode) {
+      print(message);
     }
   }
 }

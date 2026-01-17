@@ -4,88 +4,63 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 import '../../data/models/personal_vocabulary_model.dart';
+import '../constants/vocabulary_constants.dart';
 
-/// Service quản lý từ vựng cá nhân với chiến lược Hybrid Storage:
+/// Service quản lý từ vựng cá nhân với chiến lược Hybrid Storage.
 ///
-/// **Local Storage (SharedPreferences):**
-/// - Lưu trữ offline, truy cập nhanh
-/// - Hoạt động ngay cả khi không có mạng
+/// **Architecture:**
+/// - Local-first: SharedPreferences cho truy cập nhanh offline
+/// - Cloud sync: Firestore cho backup và multi-device sync
+/// - Debouncing: Tối ưu Firestore writes
 ///
-/// **Cloud Storage (Firestore):**
-/// - Backup tự động lên cloud
-/// - Restore khi cài lại app hoặc đăng nhập từ thiết bị khác
-/// - Đảm bảo không mất dữ liệu khi clear app data
-///
-/// **Sync Strategy:**
-/// - Read: Local-first, fallback to cloud nếu local empty
-/// - Write: Local + Cloud (fire-and-forget)
-/// - Debouncing: Tránh sync quá nhiều lần (min 5s interval)
+/// **Thread-safe:** Service này không thread-safe, nên sử dụng từ main thread.
 class PersonalVocabularyService {
-  static const String _storageKey = 'personal_vocabulary';
-  static const String _firestoreCollection = 'personal_vocabularies';
   final SharedPreferences _prefs;
   final FirebaseFirestore _firestore;
-
-  /// Last sync timestamp để tránh sync quá thường xuyên
   DateTime? _lastSyncTime;
-  static const _syncInterval = Duration(
-    seconds: 2,
-  ); // Tạm thời giảm xuống 2s để test
+
+  // Constants
+  static const String _storageKey =
+      VocabularyConstants.personalVocabularyStorageKey;
+  static const String _firestoreCollection =
+      VocabularyConstants.personalVocabulariesCollection;
+  static const Duration _syncInterval =
+      VocabularyConstants.syncDebounceInterval;
 
   PersonalVocabularyService(this._prefs, {FirebaseFirestore? firestore})
     : _firestore = firestore ?? FirebaseFirestore.instance;
-
   // ============================================================================
-  // GET - Local-first với fallback to Cloud
+  // Public API - Read Operations
   // ============================================================================
 
-  /// Lấy personal vocabulary từ local, nếu empty thì load từ cloud
+  /// Lấy personal vocabulary với fallback strategy: Local → Cloud → Empty.
   Future<PersonalVocabularyModel> getPersonalVocabulary(String userId) async {
     try {
-      print('🔍 Getting personal vocabulary for user: $userId');
-
-      // 1. Đọc từ local storage trước (fast)
-      final jsonString = _prefs.getString(_storageKey);
-
-      if (jsonString != null && jsonString.isNotEmpty) {
-        try {
-          final json = jsonDecode(jsonString) as Map<String, dynamic>;
-          final model = PersonalVocabularyModel.fromJson(json);
-
-          // Verify userId matches
-          if (model.userId == userId) {
-            print(
-              '✅ Loaded from local storage: ${model.vocabularyCardIds.length} cards for user $userId',
-            );
-            return model;
-          } else {
-            print('⚠️ Local data userId mismatch: ${model.userId} vs $userId');
-          }
-        } catch (e) {
-          print('⚠️ Error parsing local data: $e');
-        }
-      } else {
-        print('📭 Local storage is empty');
+      // Strategy 1: Đọc từ local storage (fastest)
+      final localModel = await _loadFromLocal();
+      if (localModel != null && localModel.userId == userId) {
+        _logInfo(
+          '${VocabularyConstants.logLoadingFromLocal}: ${localModel.vocabularyCardIds.length} cards',
+        );
+        return localModel;
       }
 
-      // 2. Local empty hoặc wrong user → load from cloud
-      print('📡 Fetching from cloud for user: $userId...');
+      // Strategy 2: Fallback to cloud
+      _logInfo(VocabularyConstants.logLoadingFromCloud);
       final cloudModel = await _loadFromCloud(userId);
-
-      if (cloudModel != null && cloudModel.vocabularyCardIds.isNotEmpty) {
-        // Lưu vào local để lần sau dùng
+      if (cloudModel != null) {
         await _saveToLocal(cloudModel);
-        print(
-          '✅ Restored from cloud: ${cloudModel.vocabularyCardIds.length} cards',
+        _logInfo(
+          '${VocabularyConstants.logRestoredFromCloud}: ${cloudModel.vocabularyCardIds.length} cards',
         );
         return cloudModel;
       }
 
-      // 3. Cloud cũng empty → return empty model
-      print('📝 No data found in cloud, creating new empty model');
+      // Strategy 3: Return empty model
+      _logInfo(VocabularyConstants.logNoDataFound);
       return PersonalVocabularyModel.empty(userId);
     } catch (e) {
-      print('⚠️ Error loading personal vocabulary: $e');
+      _logError('${VocabularyConstants.errorLoadingVocabulary}: $e');
       return PersonalVocabularyModel.empty(userId);
     }
   }
@@ -93,7 +68,6 @@ class PersonalVocabularyService {
   // ============================================================================
   // SAVE - Hybrid: Local + Cloud
   // ============================================================================
-
   /// Lưu personal vocabulary vào cả local và cloud
   Future<void> savePersonalVocabulary(PersonalVocabularyModel model) async {
     try {
@@ -103,7 +77,7 @@ class PersonalVocabularyService {
       // 2. Sync lên cloud (with debouncing)
       _syncToCloud(model);
     } catch (e) {
-      print('⚠️ Error saving personal vocabulary: $e');
+      _logError('${VocabularyConstants.errorSavingVocabulary}: $e');
       rethrow;
     }
   }
@@ -176,14 +150,13 @@ class PersonalVocabularyService {
   // ============================================================================
   // PRIVATE HELPERS - Local Storage
   // ============================================================================
-
   Future<void> _saveToLocal(PersonalVocabularyModel model) async {
     try {
       final jsonString = jsonEncode(model.toJson());
       await _prefs.setString(_storageKey, jsonString);
-      print('💾 Saved to local storage');
+      _logInfo(VocabularyConstants.logSavedToLocal);
     } catch (e) {
-      print('⚠️ Error saving to local: $e');
+      _logError('${VocabularyConstants.errorSavingToLocal}: $e');
       rethrow;
     }
   }
@@ -198,41 +171,41 @@ class PersonalVocabularyService {
           .collection(_firestoreCollection)
           .doc(userId)
           .get()
-          .timeout(const Duration(seconds: 5));
+          .timeout(VocabularyConstants.cloudLoadTimeout);
 
       if (!docSnapshot.exists || docSnapshot.data() == null) {
-        print('📭 No cloud data found for user: $userId');
+        _logInfo('📭 No cloud data found for user: $userId');
         return null;
       }
 
       final data = docSnapshot.data()!;
       return PersonalVocabularyModel.fromJson(data);
     } catch (e) {
-      print('⚠️ Error loading from cloud: $e');
+      _logError('${VocabularyConstants.errorLoadingFromCloud}: $e');
       return null;
     }
   }
 
   /// Sync lên Firestore với debouncing
   void _syncToCloud(PersonalVocabularyModel model) {
-    print('🔄 _syncToCloud called for user: ${model.userId}');
+    _logInfo('🔄 _syncToCloud called for user: ${model.userId}');
 
     // Debouncing: Chỉ sync nếu đã qua 5 giây kể từ lần sync cuối
     final now = DateTime.now();
     if (_lastSyncTime != null) {
       final timeSinceLastSync = now.difference(_lastSyncTime!);
-      print('⏱️ Time since last sync: ${timeSinceLastSync.inSeconds}s');
+      _logInfo('⏱️ Time since last sync: ${timeSinceLastSync.inSeconds}s');
 
       if (timeSinceLastSync < _syncInterval) {
-        print(
-          '⏭️ Skipping cloud sync (debouncing - wait ${_syncInterval.inSeconds - timeSinceLastSync.inSeconds}s more)',
+        _logInfo(
+          '${VocabularyConstants.logSyncSkipped} - wait ${_syncInterval.inSeconds - timeSinceLastSync.inSeconds}s more)',
         );
         return;
       }
     }
 
     _lastSyncTime = now;
-    print('🚀 Starting cloud sync...');
+    _logInfo(VocabularyConstants.logStartingSync);
 
     // Fire-and-forget: Không await, không block UI
     _firestore
@@ -240,12 +213,14 @@ class PersonalVocabularyService {
         .doc(model.userId)
         .set(model.toJson(), SetOptions(merge: true))
         .then((_) {
-          print('☁️ Synced to cloud: ${model.vocabularyCardIds.length} cards');
+          _logInfo(
+            '${VocabularyConstants.logSyncedToCloud}: ${model.vocabularyCardIds.length} cards',
+          );
         })
         .catchError((e) {
-          print('⚠️ Cloud sync failed: $e');
-          print('⚠️ Error type: ${e.runtimeType}');
-          print('⚠️ Error details: ${e.toString()}');
+          _logError('${VocabularyConstants.logSyncFailed}: $e');
+          _logError('⚠️ Error type: ${e.runtimeType}');
+          _logError('⚠️ Error details: ${e.toString()}');
         });
   }
 
@@ -262,12 +237,14 @@ class PersonalVocabularyService {
           .collection(_firestoreCollection)
           .doc(userId)
           .set(model.toJson(), SetOptions(merge: true))
-          .timeout(const Duration(seconds: 10));
+          .timeout(VocabularyConstants.forceSyncTimeout);
 
-      print('✅ Force synced to cloud: ${model.vocabularyCardIds.length} cards');
+      _logInfo(
+        '✅ Force synced to cloud: ${model.vocabularyCardIds.length} cards',
+      );
       _lastSyncTime = DateTime.now();
     } catch (e) {
-      print('⚠️ Force sync failed: $e');
+      _logError('${VocabularyConstants.errorForceSyncFailed}: $e');
       rethrow;
     }
   }
@@ -279,12 +256,44 @@ class PersonalVocabularyService {
 
       if (cloudModel != null) {
         await _saveToLocal(cloudModel);
-        print('✅ Restored from cloud to local');
+        _logInfo('✅ Restored from cloud to local');
       } else {
-        print('📭 No cloud data to restore');
+        _logInfo('📭 No cloud data to restore');
       }
     } catch (e) {
-      print('⚠️ Restore failed: $e');
+      _logError('${VocabularyConstants.errorRestoreFailed}: $e');
     }
+  }
+
+  // ============================================================================
+  // PRIVATE HELPERS - Load from Local
+  // ============================================================================
+
+  /// Load từ SharedPreferences
+  Future<PersonalVocabularyModel?> _loadFromLocal() async {
+    try {
+      final jsonString = _prefs.getString(_storageKey);
+      if (jsonString == null || jsonString.isEmpty) {
+        return null;
+      }
+
+      final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
+      return PersonalVocabularyModel.fromJson(jsonMap);
+    } catch (e) {
+      _logError('${VocabularyConstants.errorSavingToLocal}: $e');
+      return null;
+    }
+  }
+
+  // ============================================================================
+  // LOGGING HELPERS
+  // ============================================================================
+
+  void _logInfo(String message) {
+    print(message);
+  }
+
+  void _logError(String message) {
+    print(message);
   }
 }
