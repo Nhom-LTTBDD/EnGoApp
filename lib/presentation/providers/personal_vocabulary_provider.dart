@@ -6,26 +6,22 @@ import '../../domain/entities/vocabulary_card.dart';
 import '../../domain/repository_interfaces/vocabulary_repository.dart';
 import '../../domain/repository_interfaces/dictionary_repository.dart';
 
-/// Provider quản lý state của Personal Vocabulary
-class PersonalVocabularyProvider with ChangeNotifier {
-  final PersonalVocabularyService _service;
+/// Provider quản lý state của Personal Vocabulary.
+///
+/// **Responsibilities:**
+/// - Quản lý danh sách card đã bookmark
+/// - Load card data từ repositories
+/// - Enrich card với dictionary data
+/// - Handle UI state (loading, error)
+class PersonalVocabularyProvider with ChangeNotifier {  final PersonalVocabularyService _service;
   final VocabularyRepository _vocabularyRepository;
   final DictionaryRepository _dictionaryRepository;
-
-  // Current user ID (sẽ get từ AuthProvider)
+  // State variables
   String _userId = 'default_user';
-  
-  // List of bookmarked card IDs
   List<String> _bookmarkedCardIds = [];
-  
-  // List of actual vocabulary cards
   List<VocabularyCard> _personalCards = [];
-  
-  // Loading state
   bool _isLoading = false;
-  
-  // Error message
-  String? _error;  PersonalVocabularyProvider({
+  String? _error;PersonalVocabularyProvider({
     required PersonalVocabularyService service,
     required VocabularyRepository vocabularyRepository,
     required DictionaryRepository dictionaryRepository,
@@ -43,21 +39,19 @@ class PersonalVocabularyProvider with ChangeNotifier {
   String? get error => _error;
   int get cardCount => _personalCards.length;
   bool get hasCards => _personalCards.isNotEmpty;
-
   // Set user ID
   void setUserId(String userId) {
     if (_userId != userId) {
-      print('🔄 PersonalVocabularyProvider: Switching user from $_userId to $userId');
+      _logInfo('🔄 PersonalVocabularyProvider: Switching user from $_userId to $userId');
       _userId = userId;
       loadPersonalVocabulary();
     } else {
-      print('✅ PersonalVocabularyProvider: User ID already set to $userId');
+      _logInfo('✅ PersonalVocabularyProvider: User ID already set to $userId');
     }
   }
   
   // Get current userId (for debugging)
   String get currentUserId => _userId;
-
   // Load personal vocabulary
   Future<void> loadPersonalVocabulary() async {
     try {
@@ -65,37 +59,30 @@ class PersonalVocabularyProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      print('🔄 Loading personal vocabulary for user: $_userId');
+      _logInfo('🔄 Loading personal vocabulary for user: $_userId');
 
       // Get bookmarked card IDs
       _bookmarkedCardIds = await _service.getBookmarkedCardIds(_userId);
-      print('📚 Found ${_bookmarkedCardIds.length} bookmarked cards');      // Get actual card data from all topics
+      _logInfo('📚 Found ${_bookmarkedCardIds.length} bookmarked cards');
+
+      // Load and enrich all cards
       _personalCards = [];
       if (_bookmarkedCardIds.isNotEmpty) {
         for (final cardId in _bookmarkedCardIds) {
-          final card = await _vocabularyRepository.getVocabularyCardById(cardId);
+          final card = await _loadAndEnrichCard(cardId);
           if (card != null) {
-            // Enrich card with dictionary data (phonetic, definitions, etc.)
-            try {
-              final enrichedCard = await _dictionaryRepository.enrichVocabularyCard(card);
-              _personalCards.add(enrichedCard);
-              print('✅ Loaded & enriched card: ${enrichedCard.english} - ${enrichedCard.phonetic ?? "no phonetic"}');
-            } catch (e) {
-              // Nếu không enrich được, vẫn thêm card gốc
-              _personalCards.add(card);
-              print('✅ Loaded card (no enrichment): ${card.english}');
-            }
+            _personalCards.add(card);
           }
         }
       }
 
       _isLoading = false;
-      print('✨ Personal vocabulary loaded successfully: ${_personalCards.length} cards');
+      _logInfo('✨ Personal vocabulary loaded successfully: ${_personalCards.length} cards');
       notifyListeners();
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
-      print('❌ Error loading personal vocabulary: $e');
+      _logError('❌ Error loading personal vocabulary: $e');
       notifyListeners();
     }
   }
@@ -103,46 +90,37 @@ class PersonalVocabularyProvider with ChangeNotifier {
   // Check if card is bookmarked
   bool isBookmarked(String cardId) {
     return _bookmarkedCardIds.contains(cardId);
-  }
-  // Toggle bookmark
+  }  // Toggle bookmark
   Future<void> toggleBookmark(String cardId) async {
     try {
-      print('⭐ Toggling bookmark for card: $cardId');
+      _logInfo('⭐ Toggling bookmark for card: $cardId');
       
       final isNowBookmarked = await _service.toggleBookmark(_userId, cardId);
-        if (isNowBookmarked) {
-        print('✅ Added to bookmarks: $cardId');
+        
+      if (isNowBookmarked) {
+        _logInfo('✅ Added to bookmarks: $cardId');
         // Added to bookmarks
         if (!_bookmarkedCardIds.contains(cardId)) {
           _bookmarkedCardIds.add(cardId);
           
-          // Load card data
-          final card = await _vocabularyRepository.getVocabularyCardById(cardId);
+          // Load and enrich card
+          final card = await _loadAndEnrichCard(cardId);
           if (card != null) {
-            // Enrich card with dictionary data
-            try {
-              final enrichedCard = await _dictionaryRepository.enrichVocabularyCard(card);
-              _personalCards.add(enrichedCard);
-              print('📚 Card loaded & enriched: ${enrichedCard.english} - ${enrichedCard.phonetic ?? "no phonetic"}');
-            } catch (e) {
-              // Nếu không enrich được, vẫn thêm card gốc
-              _personalCards.add(card);
-              print('📚 Card loaded (no enrichment): ${card.english}');
-            }
+            _personalCards.add(card);
           }
         }
       } else {
-        print('❌ Removed from bookmarks: $cardId');
+        _logInfo('❌ Removed from bookmarks: $cardId');
         // Removed from bookmarks
         _bookmarkedCardIds.remove(cardId);
         _personalCards.removeWhere((card) => card.id == cardId);
       }
 
-      print('📊 Total bookmarks: ${_bookmarkedCardIds.length}');
+      _logInfo('📊 Total bookmarks: ${_bookmarkedCardIds.length}');
       notifyListeners();
     } catch (e) {
       _error = e.toString();
-      print('❌ Error toggling bookmark: $e');
+      _logError('❌ Error toggling bookmark: $e');
       notifyListeners();
     }
   }
@@ -183,7 +161,6 @@ class PersonalVocabularyProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-
   // Clear all bookmarks
   Future<void> clearAll() async {
     try {
@@ -194,6 +171,57 @@ class PersonalVocabularyProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       notifyListeners();
+    }
+  }
+
+  // ============================================================================
+  // PRIVATE HELPERS
+  // ============================================================================
+
+  /// Load và enrich một card từ ID
+  Future<VocabularyCard?> _loadAndEnrichCard(String cardId) async {
+    try {
+      final card = await _vocabularyRepository.getVocabularyCardById(cardId);
+      if (card == null) {
+        _logWarning('Card not found: $cardId');
+        return null;
+      }
+
+      // Enrich card với dictionary data
+      try {
+        final enrichedCard = await _dictionaryRepository.enrichVocabularyCard(card);
+        _logInfo('✅ Loaded & enriched card: ${enrichedCard.english} - ${enrichedCard.phonetic ?? "no phonetic"}');
+        return enrichedCard;
+      } catch (e) {
+        // Nếu không enrich được, vẫn trả về card gốc
+        _logWarning('⚠️ Could not enrich card ${card.english}: $e');
+        return card;
+      }
+    } catch (e) {
+      _logError('❌ Error loading card $cardId: $e');
+      return null;
+    }
+  }
+
+  // ============================================================================
+  // LOGGING HELPERS
+  // ============================================================================
+
+  void _logInfo(String message) {
+    if (kDebugMode) {
+      print(message);
+    }
+  }
+
+  void _logWarning(String message) {
+    if (kDebugMode) {
+      print(message);
+    }
+  }
+
+  void _logError(String message) {
+    if (kDebugMode) {
+      print(message);
     }
   }
 }

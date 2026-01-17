@@ -1,4 +1,5 @@
 // lib/presentation/widgets/vocabulary/vocabulary_card_widget.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../domain/entities/vocabulary_card.dart';
@@ -9,6 +10,13 @@ import '../../providers/vocabulary_provider.dart';
 import '../../providers/personal_vocabulary_provider.dart';
 import 'base_card_widget.dart';
 
+/// Widget hiển thị một vocabulary card với flip animation và bookmark.
+///
+/// **Features:**
+/// - Flip animation khi tap vào card
+/// - Bookmark button
+/// - Audio playback button
+/// - Optional fullscreen expand button
 class VocabularyCardWidget extends StatefulWidget {
   final VocabularyCard card;
   final int index;
@@ -30,11 +38,17 @@ class _VocabularyCardWidgetState extends State<VocabularyCardWidget>
   late AnimationController _animationController;
   late Animation<double> _flipAnimation;
 
+  // Constants
+  static const _animationDuration = Duration(milliseconds: 300);
+  static const _cardHeight = 200.0;
+  static const _fullscreenIconSize = 30.0;
+  static const _fullscreenButtonSize = 32.0;
+
   @override
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: _animationDuration,
       vsync: this,
     );
     _flipAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -46,7 +60,7 @@ class _VocabularyCardWidgetState extends State<VocabularyCardWidget>
   void dispose() {
     _animationController.dispose();
     super.dispose();
-  }  @override
+  }@override
   Widget build(BuildContext context) {
     final audioService = sl<AudioService>();
     
@@ -65,19 +79,17 @@ class _VocabularyCardWidgetState extends State<VocabularyCardWidget>
         return GestureDetector(
           onTap: () {
             vocabProvider.flipCardAtIndex(widget.index);
-          },
-          child: BaseCardWidget(
+          },          child: BaseCardWidget(
             card: widget.card,
             flipAnimation: _flipAnimation,
             isFlipped: isFlipped,
             style: CardStyle.simple,
-            height: 200,
+            height: _cardHeight,
             isBookmarked: isBookmarked,
             onBookmarkPressed: () async {
               await personalProvider.toggleBookmark(widget.card.id);
             },
             onSoundPressed: () async {
-              // Phát audio khi nhấn nút loa
               await audioService.playAudio(widget.card.audioUrl);
             },
             extraWidget: widget.onExpand != null
@@ -86,12 +98,12 @@ class _VocabularyCardWidgetState extends State<VocabularyCardWidget>
                     right: 0,
                     child: TextButton(
                       onPressed: widget.onExpand,
-                      child: const SizedBox(
-                        width: 32,
-                        height: 32,
+                      child: SizedBox(
+                        width: _fullscreenButtonSize,
+                        height: _fullscreenButtonSize,
                         child: Icon(
                           Icons.fullscreen,
-                          size: 30,
+                          size: _fullscreenIconSize,
                           color: kFullscreenButtonColor,
                         ),
                       ),
