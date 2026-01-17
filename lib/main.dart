@@ -9,6 +9,7 @@ import 'presentation/providers/auth/auth_provider.dart';
 import 'presentation/providers/auth/auth_state.dart'; // 🆕 Import AuthState
 import 'presentation/providers/profile/profile_provider.dart';
 import 'presentation/providers/vocabulary_provider.dart';
+import 'presentation/providers/flashcard_provider.dart'; // 🆕 Import FlashcardProvider
 import 'presentation/providers/personal_vocabulary_provider.dart';
 import 'presentation/providers/grammar_provider.dart';
 import 'presentation/providers/theme/theme_provider.dart';
@@ -146,6 +147,9 @@ class _MyAppState extends State<MyApp> {
         ),
 
         ChangeNotifierProvider(create: (_) => di.sl<VocabularyProvider>()),
+        ChangeNotifierProvider(
+          create: (_) => FlashcardProvider(),
+        ), // 🆕 Add FlashcardProvider
         ChangeNotifierProvider(create: (_) => di.sl<GrammarProvider>()),
         ChangeNotifierProvider(create: (_) => ToeicTestProvider()),
       ],
