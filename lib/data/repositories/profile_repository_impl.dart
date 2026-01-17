@@ -4,7 +4,7 @@
 import 'package:dartz/dartz.dart';
 import '../../core/error/failure.dart';
 import '../../domain/entities/user.dart';
-import '../../domain/respository_interfaces/profile_repository.dart';
+import '../../domain/repository_interfaces/profile_repository.dart';
 import '../datasources/local/auth_local_datasource.dart';
 import '../datasources/local/profile_local_datasource.dart';
 import '../datasources/remote/profile_remote_datasource.dart';

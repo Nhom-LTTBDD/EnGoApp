@@ -5,7 +5,7 @@ import 'package:dartz/dartz.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/usecase/usecase.dart';
 import '../../entities/user.dart';
-import '../../respository_interfaces/auth_repository.dart';
+import '../../repository_interfaces/auth_repository.dart';
 
 class GetCurrentUserUseCase implements UseCase<User?, NoParams> {
   final AuthRepository repository;

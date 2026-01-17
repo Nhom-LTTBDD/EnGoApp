@@ -5,7 +5,7 @@ import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/usecase/usecase.dart';
-import '../../respository_interfaces/auth_repository.dart';
+import '../../repository_interfaces/auth_repository.dart';
 
 class VerifyOTPUseCase implements UseCase<bool, VerifyOTPParams> {
   final AuthRepository repository;

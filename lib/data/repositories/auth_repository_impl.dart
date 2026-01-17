@@ -5,7 +5,7 @@ import 'package:dartz/dartz.dart';
 import '../../core/error/failure.dart';
 import '../../domain/entities/auth_result.dart';
 import '../../domain/entities/user.dart';
-import '../../domain/respository_interfaces/auth_repository.dart';
+import '../../domain/repository_interfaces/auth_repository.dart';
 import '../datasources/local/auth_local_datasource.dart';
 import '../datasources/remote/auth_remote_datasource.dart';
 import '../models/user_model.dart';

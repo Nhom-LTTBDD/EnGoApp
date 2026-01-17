@@ -15,6 +15,7 @@ import '../../providers/auth/auth_state.dart';
 import '../../providers/profile/profile_provider.dart';
 import '../../providers/profile/profile_state.dart';
 import '../../providers/theme/theme_provider.dart';
+import '../../providers/personal_vocabulary_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/avatar_color_picker_dialog.dart';
 import '../../widgets/custom_icon_button.dart';
@@ -456,11 +457,21 @@ class _ProfilePageState extends State<ProfilePage> {
                             Row(
                               children: [
                                 Expanded(
-                                  child: AppButton(
-                                    onPressed: () {},
-                                    text: '20 bộ từ',
-                                    variant: AppButtonVariant.primary,
-                                    size: AppButtonSize.medium,
+                                  child: Consumer<PersonalVocabularyProvider>(
+                                    builder: (context, vocabProvider, _) {
+                                      return AppButton(
+                                        onPressed: () {
+                                          Navigator.pushNamed(
+                                            context,
+                                            AppRoutes.personalVocabulary,
+                                          );
+                                        },
+                                        text:
+                                            '${vocabProvider.cardCount} bộ từ',
+                                        variant: AppButtonVariant.primary,
+                                        size: AppButtonSize.medium,
+                                      );
+                                    },
                                   ),
                                 ),
                                 const SizedBox(width: 12),

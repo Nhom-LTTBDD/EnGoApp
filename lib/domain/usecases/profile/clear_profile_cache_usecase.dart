@@ -4,7 +4,7 @@
 import 'package:dartz/dartz.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/usecase/usecase.dart';
-import '../../respository_interfaces/profile_repository.dart';
+import '../../repository_interfaces/profile_repository.dart';
 
 class ClearProfileCacheUseCase implements UseCase<void, NoParams> {
   final ProfileRepository repository;

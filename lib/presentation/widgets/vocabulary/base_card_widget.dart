@@ -94,9 +94,9 @@ class BaseCardWidget extends StatelessWidget {
       width: width ?? double.infinity,
       height: height ?? double.infinity,
       decoration: BoxDecoration(
-        color: style == CardStyle.flashcard ? kSurfaceColor : kSurfaceColor,
+        color: getSurfaceColor(context),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: _getCardShadow(),
+        boxShadow: _getCardShadow(context),
       ),
       child: _buildCardContent(isShowingFront, context),
     );
@@ -123,13 +123,11 @@ class BaseCardWidget extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: style == CardStyle.flashcard
-                        ? Colors.white.withOpacity(0.9)
-                        : kSurfaceColor.withOpacity(0.8),
+                    color: getSurfaceColor(context).withOpacity(0.9),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: getTextPrimary(context).withOpacity(0.1),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -158,13 +156,11 @@ class BaseCardWidget extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: style == CardStyle.flashcard
-                        ? Colors.white.withOpacity(0.9)
-                        : kSurfaceColor.withOpacity(0.8),
+                    color: getSurfaceColor(context).withOpacity(0.9),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: getTextPrimary(context).withOpacity(0.1),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -187,6 +183,7 @@ class BaseCardWidget extends StatelessWidget {
 
     // Gradient chỉ cho flashcard style
     if (style == CardStyle.flashcard) {
+      final surfaceColor = getSurfaceColor(context);
       content = Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
@@ -194,9 +191,9 @@ class BaseCardWidget extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              kSurfaceColor,
-              kSurfaceColor.withOpacity(0.95),
-              kSurfaceColor.withOpacity(0.9),
+              surfaceColor,
+              surfaceColor.withOpacity(0.95),
+              surfaceColor.withOpacity(0.9),
             ],
           ),
         ),
@@ -216,47 +213,49 @@ class BaseCardWidget extends StatelessWidget {
   }
 
   Widget _buildFrontContent() {
-    // Cả hai style đều hiển thị tiếng Anh ở mặt trước
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          card.english,
-          style: const TextStyle(
-            fontSize: 25,
-            fontWeight: FontWeight.w500,
-            color: kTextPrimary,
-            letterSpacing: 1.2,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        // Hiển thị phonetic nếu có
-        if (card.phonetic != null) ...[
-          const SizedBox(height: 8),
+    // Cần context để dùng theme helpers - sẽ được pass từ _buildMainContent
+    return Builder(
+      builder: (context) => Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
           Text(
-            card.phonetic!,
+            card.english,
             style: TextStyle(
-              fontSize: 16,
-              color: kTextThird,
-              fontStyle: FontStyle.italic,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-        // Hiển thị part of speech nếu có
-        if (card.partsOfSpeech != null && card.partsOfSpeech!.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Text(
-            card.partsOfSpeech!.join(', '),
-            style: TextStyle(
-              fontSize: 14,
-              color: kTextSecondary,
+              fontSize: 25,
               fontWeight: FontWeight.w500,
+              color: getTextPrimary(context),
+              letterSpacing: 1.2,
             ),
             textAlign: TextAlign.center,
           ),
+          // Hiển thị phonetic nếu có
+          if (card.phonetic != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              card.phonetic!,
+              style: TextStyle(
+                fontSize: 16,
+                color: getTextThird(context),
+                fontStyle: FontStyle.italic,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+          // Hiển thị part of speech nếu có
+          if (card.partsOfSpeech != null && card.partsOfSpeech!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              card.partsOfSpeech!.join(', '),
+              style: TextStyle(
+                fontSize: 14,
+                color: getTextSecondary(context),
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 
@@ -289,12 +288,15 @@ class BaseCardWidget extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: kSurfaceColor.withOpacity(0.5),
+                  color: getBackgroundColor(context).withOpacity(0.5),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   card.definitions!.first,
-                  style: const TextStyle(fontSize: 14, color: kTextSecondary),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: getTextSecondary(context),
+                  ),
                   textAlign: TextAlign.center,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
@@ -314,10 +316,10 @@ class BaseCardWidget extends StatelessWidget {
         children: [
           Text(
             card.vietnamese,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 25,
               fontWeight: FontWeight.w500,
-              color: kTextPrimary,
+              color: getTextPrimary(context),
               letterSpacing: 0.5,
             ),
             textAlign: TextAlign.center,
@@ -327,7 +329,7 @@ class BaseCardWidget extends StatelessWidget {
             card.meaning,
             style: TextStyle(
               fontSize: 16,
-              color: kTextThird,
+              color: getTextThird(context),
               fontStyle: FontStyle.italic,
             ),
             textAlign: TextAlign.center,
@@ -349,9 +351,9 @@ class BaseCardWidget extends StatelessWidget {
                         Expanded(
                           child: Text(
                             definition,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
-                              color: kTextSecondary,
+                              color: getTextSecondary(context),
                             ),
                           ),
                         ),
@@ -363,12 +365,12 @@ class BaseCardWidget extends StatelessWidget {
           // Hiển thị examples từ dictionary
           if (card.examples != null && card.examples!.isNotEmpty) ...[
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Examples:',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: kTextPrimary,
+                color: getTextPrimary(context),
               ),
             ),
             const SizedBox(height: 4),
@@ -381,7 +383,7 @@ class BaseCardWidget extends StatelessWidget {
                       '"$example"',
                       style: TextStyle(
                         fontSize: 13,
-                        color: kTextThird,
+                        color: getTextThird(context),
                         fontStyle: FontStyle.italic,
                       ),
                       textAlign: TextAlign.center,
@@ -394,16 +396,18 @@ class BaseCardWidget extends StatelessWidget {
     );
   }
 
-  List<BoxShadow> _getCardShadow() {
+  List<BoxShadow> _getCardShadow(BuildContext context) {
+    // Sử dụng theme-aware color cho shadow
+    final shadowColor = getTextPrimary(context);
     if (style == CardStyle.flashcard) {
       return [
         BoxShadow(
-          color: Colors.black.withOpacity(0.15),
+          color: shadowColor.withOpacity(0.15),
           blurRadius: 12,
           offset: const Offset(0, 6),
         ),
         BoxShadow(
-          color: Colors.black.withOpacity(0.08),
+          color: shadowColor.withOpacity(0.08),
           blurRadius: 6,
           offset: const Offset(0, 3),
         ),
@@ -411,7 +415,7 @@ class BaseCardWidget extends StatelessWidget {
     } else {
       return [
         BoxShadow(
-          color: Colors.black.withOpacity(0.1),
+          color: shadowColor.withOpacity(0.1),
           blurRadius: 8,
           offset: const Offset(0, 4),
         ),

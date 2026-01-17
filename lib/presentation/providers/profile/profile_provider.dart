@@ -4,10 +4,10 @@
 import 'package:flutter/foundation.dart';
 import '../../../core/usecase/usecase.dart';
 import '../../../domain/entities/user.dart';
-import '../../../domain/usecase/profile/clear_profile_cache_usecase.dart';
-import '../../../domain/usecase/profile/get_user_profile_usecase.dart';
-import '../../../domain/usecase/profile/update_avatar_color_usecase.dart';
-import '../../../domain/usecase/profile/update_profile_usecase.dart';
+import '../../../domain/usecases/profile/clear_profile_cache_usecase.dart';
+import '../../../domain/usecases/profile/get_user_profile_usecase.dart';
+import '../../../domain/usecases/profile/update_avatar_color_usecase.dart';
+import '../../../domain/usecases/profile/update_profile_usecase.dart';
 import 'profile_state.dart';
 
 class ProfileProvider extends ChangeNotifier {

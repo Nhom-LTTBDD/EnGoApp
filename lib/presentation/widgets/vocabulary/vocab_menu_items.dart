@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../vocab_menu_item.dart';
 import '../../../routes/app_routes.dart';
+import '../../../core/theme/theme_helper.dart';
 
 class VocabMenuItems extends StatelessWidget {
   final String? topicId;
@@ -15,7 +16,7 @@ class VocabMenuItems extends StatelessWidget {
       children: [
         VocabMenuItem(
           icon: Icons.library_books_outlined,
-          backgroundColor: kSurfaceColor,
+          backgroundColor: getSurfaceColor(context),
           title: 'Thẻ ghi nhớ',
           iconColor: kIconFlashcardColor,
           onTap: () {
@@ -28,7 +29,7 @@ class VocabMenuItems extends StatelessWidget {
         ),
         VocabMenuItem(
           icon: Icons.school_rounded,
-          backgroundColor: kSurfaceColor,
+          backgroundColor: getSurfaceColor(context),
           title: 'Học',
           iconColor: kIconFlashcardColor,
           onTap: () {
@@ -37,7 +38,7 @@ class VocabMenuItems extends StatelessWidget {
         ),
         VocabMenuItem(
           icon: Icons.quiz,
-          backgroundColor: kSurfaceColor,
+          backgroundColor: getSurfaceColor(context),
           title: 'Kiểm tra',
           iconColor: kIconFlashcardColor,
           onTap: () {
@@ -46,7 +47,7 @@ class VocabMenuItems extends StatelessWidget {
         ),
         VocabMenuItem(
           icon: Icons.extension,
-          backgroundColor: kSurfaceColor,
+          backgroundColor: getSurfaceColor(context),
           title: 'Ghép thẻ',
           iconColor: kIconFlashcardColor,
           onTap: () {

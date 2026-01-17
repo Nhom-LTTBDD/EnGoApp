@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
+import '../../../core/theme/theme_helper.dart';
 
 class ProfileSection extends StatelessWidget {
   final int cardCount;
@@ -25,7 +26,7 @@ class ProfileSection extends StatelessWidget {
             color: kSecondaryColor,
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.person, color: Colors.white, size: 24),
+          child: Icon(Icons.person, color: getSurfaceColor(context), size: 24),
         ),
         const SizedBox(width: spaceMd),
         // Name and terms count

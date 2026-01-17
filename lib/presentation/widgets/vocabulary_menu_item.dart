@@ -194,8 +194,8 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
             widget.menuType.title,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: widget.isEnabled
-                  ? _effectiveConfig.textColor
-                  : Colors.grey,
+                  ? getTextPrimary(context)
+                  : getTextThird(context),
               fontWeight: FontWeight.w600,
             ),
           ),

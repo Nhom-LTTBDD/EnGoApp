@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_spacing.dart';
+import '../../core/theme/theme_helper.dart';
 
 class VocabMenuItem extends StatelessWidget {
   final IconData icon;
@@ -54,11 +55,11 @@ class VocabMenuItem extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w500,
                   fontFamily: 'Poppins',
-                  color: kTextPrimary,
+                  color: getTextPrimary(context),
                 ),
               ),
             ),

@@ -1,7 +1,7 @@
 // lib/domain/usecase/get_vocabulary_cards.dart
 
-import '../entities/vocabulary_card.dart';
-import '../repository_interfaces/vocabulary_repository.dart';
+import '../../entities/vocabulary_card.dart';
+import '../../repository_interfaces/vocabulary_repository.dart';
 
 class GetVocabularyCards {
   final VocabularyRepository repository;

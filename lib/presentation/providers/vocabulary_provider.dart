@@ -2,8 +2,8 @@
 
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/vocabulary_card.dart';
-import '../../domain/usecase/get_vocabulary_cards.dart';
-import '../../domain/usecase/enrich_vocabulary_card.dart';
+import '../../domain/usecases/vocabulary/get_vocabulary_cards.dart';
+import '../../domain/usecases/vocabulary/enrich_vocabulary_card.dart';
 
 class VocabularyProvider extends ChangeNotifier {
   final GetVocabularyCards getVocabularyCards;
@@ -53,7 +53,7 @@ class VocabularyProvider extends ChangeNotifier {
 
     try {
       final cards = await getVocabularyCards.call(topicId);
-      
+
       // Enrich cards with dictionary data
       final enrichedCards = <VocabularyCard>[];
       for (var card in cards) {
@@ -65,7 +65,7 @@ class VocabularyProvider extends ChangeNotifier {
           enrichedCards.add(card);
         }
       }
-      
+
       _vocabularyCards = enrichedCards;
       _currentCardIndex = 0;
       _previousCardIndex = 0;
