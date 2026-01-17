@@ -180,19 +180,23 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<bool> forgotPassword(String email) async {
     try {
+      print('🔄 Đang gửi email reset password đến: $email');
       await firebaseAuth.sendPasswordResetEmail(email: email);
+      print('✅ Email reset password đã được gửi thành công!');
       return true;
     } on firebase_auth.FirebaseAuthException catch (e) {
+      print('❌ FirebaseAuthException: ${e.code} - ${e.message}');
       if (e.code == 'user-not-found') {
         throw const NotFoundFailure('Email không tồn tại');
       } else if (e.code == 'invalid-email') {
         throw const ValidationFailure('Email không hợp lệ');
       } else {
-        throw AuthFailure('Lỗi: ${e.message}');
+        throw AuthFailure('Lỗi Firebase Auth: ${e.code} - ${e.message}');
       }
     } catch (e) {
+      print('❌ Lỗi không xác định: $e');
       if (e is Failure) rethrow;
-      throw const NetworkFailure('Không thể kết nối đến server');
+      throw NetworkFailure('Không thể kết nối đến server: $e');
     }
   }
 
