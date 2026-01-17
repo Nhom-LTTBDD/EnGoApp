@@ -466,6 +466,574 @@
             ],
             "correctAnswer": "B",
             "explanation": "The woman says she will contact a production manager."
+          },
+          {
+            "questionNumber": 35,
+            "audioFile": "35-37.mp3",
+            "questionType": "conversation",
+            "groupId": "35-37",
+            "audioTranscript": "M Hi. I'm calling to book three tickets for this Thursday's tennis match. Are there any seats left?\nW Just a few! Tickets for Thursday's match have been selling quickly.\nM I'm not surprised! After all, Ife Rotimi won the regional championship tournament last month. Everyone wants to see her play after her incredible performance. What seats are available?\nW Well, there's only one group of three seats together. Advance payment is required to hold them.",
+            "questionText": "Why is the man calling?",
+            "options": [
+              "To sign up for lessons",
+              "To enter a competition",
+              "To buy tickets to an event",
+              "To reserve a hotel room"
+            ],
+            "correctAnswer": "C",
+            "explanation": "The man says he is calling to book three tickets for a tennis match."
+          },
+          {
+            "questionNumber": 36,
+            "audioFile": "35-37.mp3",
+            "questionType": "conversation",
+            "groupId": "35-37",
+            "questionText": "What did Ife Rotimi do last month?",
+            "options": [
+              "She won a regional tournament.",
+              "She gave a television interview.",
+              "She started an institute.",
+              "She hired a new coach."
+            ],
+            "correctAnswer": "A",
+            "explanation": "The man mentions that Ife Rotimi won the regional championship tournament last month."
+          },
+          {
+            "questionNumber": 37,
+            "audioFile": "35-37.mp3",
+            "questionType": "conversation",
+            "groupId": "35-37",
+            "questionText": "What does the woman say is required?",
+            "options": [
+              "A parking permit",
+              "A photo ID",
+              "Contact information",
+              "Advance payment"
+            ],
+            "correctAnswer": "D",
+            "explanation": "The woman states that advance payment is required to hold the seats."
+          },
+
+          {
+            "questionNumber": 38,
+            "audioFile": "38-40.mp3",
+            "questionType": "conversation",
+            "groupId": "38-40",
+            "audioTranscript": "W Thanks for agreeing to help me organize the library's annual fund-raising dinner, Klaus. We hope the event brings in enough money to expand our children's book section.\nM What task would you like me to start with?\nW Well, I could use some help sending out the invitations.\nM OK, I can take care of that. Is there a list of attendees available?\nW It's in my computer files. I'll e-mail it to you.",
+            "questionText": "What event are the speakers planning?",
+            "options": [
+              "A fund-raising dinner",
+              "An art gallery opening",
+              "An awards ceremony",
+              "A children's book fair"
+            ],
+            "correctAnswer": "A",
+            "explanation": "The woman mentions organizing the library's annual fund-raising dinner."
+          },
+          {
+            "questionNumber": 39,
+            "audioFile": "38-40.mp3",
+            "questionType": "conversation",
+            "groupId": "38-40",
+            "questionText": "What task does the woman ask the man to help with?",
+            "options": [
+              "Arranging a shuttle service",
+              "Choosing a catering firm",
+              "Preparing a speech",
+              "Sending out invitations"
+            ],
+            "correctAnswer": "D",
+            "explanation": "The woman asks the man to help send out the invitations."
+          },
+          {
+            "questionNumber": 40,
+            "audioFile": "38-40.mp3",
+            "questionType": "conversation",
+            "groupId": "38-40",
+            "questionText": "What does the woman say she will do?",
+            "options": [
+              "E-mail a list",
+              "Speak with a colleague",
+              "Provide a password",
+              "Post a job opening"
+            ],
+            "correctAnswer": "A",
+            "explanation": "The woman says she will e-mail the list of attendees."
+          },
+
+          {
+            "questionNumber": 41,
+            "audioFile": "41-43.mp3",
+            "questionType": "conversation",
+            "groupId": "41-43",
+            "audioTranscript": "W Hey, Brian and Matteo. I found some great pens to give away at the community festival to promote our business.\nM1 Great. Can we put our cleaning service logo on them?\nW Yes, for no extra charge. And they're biodegradable. They're made from paper.\nM2 So when we hand them out, we can mention that.\nM1 As well as talk about the organic cleaning supplies our company uses.\nW OK. I'll go ahead and order several cases.",
+            "questionText": "What event are the speakers preparing for?",
+            "options": [
+              "A new-employee orientation",
+              "A grand opening",
+              "A community festival",
+              "A trade show"
+            ],
+            "correctAnswer": "C",
+            "explanation": "The woman says the pens will be given away at a community festival."
+          },
+          {
+            "questionNumber": 42,
+            "audioFile": "41-43.mp3",
+            "questionType": "conversation",
+            "groupId": "41-43",
+            "questionText": "What is mentioned about some pens?",
+            "options": [
+              "They are available in multiple colors.",
+              "They use permanent ink.",
+              "They are preferred by book authors.",
+              "They are made from paper."
+            ],
+            "correctAnswer": "D",
+            "explanation": "The woman mentions that the pens are biodegradable and made from paper."
+          },
+          {
+            "questionNumber": 43,
+            "audioFile": "41-43.mp3",
+            "questionType": "conversation",
+            "groupId": "41-43",
+            "questionText": "What does the woman offer to do?",
+            "options": [
+              "Reserve a booth",
+              "Place an order",
+              "Organize a focus group",
+              "Revise a budget"
+            ],
+            "correctAnswer": "B",
+            "explanation": "The woman says she will order several cases of pens."
+          },
+
+          {
+            "questionNumber": 44,
+            "audioFile": "44-46.mp3",
+            "questionType": "conversation",
+            "groupId": "44-46",
+            "audioTranscript": "W Jamestown Recycling Facility. How can I help you?\nM Hi. I'm preparing to move soon, and I have some electronics, such as televisions and computers, that I'd like to get rid of before I put my house on the market.\nW Yes, that's right. We'll take all electronics.\nM Great. Do you provide a pickup service?\nW No, unfortunately you'll have to bring everything here yourself. However, on our Web site we list a number of companies that can remove and dispose of the items for you.",
+            "questionText": "Where does the woman work?",
+            "options": [
+              "At a delivery service",
+              "At an electronics store",
+              "At a recycling facility",
+              "At a real estate agency"
+            ],
+            "correctAnswer": "C",
+            "explanation": "The woman answers the phone as a representative of a recycling facility."
+          },
+          {
+            "questionNumber": 45,
+            "audioFile": "44-46.mp3",
+            "questionType": "conversation",
+            "groupId": "44-46",
+            "questionText": "What does the man want to dispose of?",
+            "options": ["Yard waste", "Used furniture", "Electronics", "Books"],
+            "correctAnswer": "C",
+            "explanation": "The man says he wants to get rid of televisions and computers."
+          },
+          {
+            "questionNumber": 46,
+            "audioFile": "44-46.mp3",
+            "questionType": "conversation",
+            "groupId": "44-46",
+            "questionText": "What does the woman say can be found on a Web site?",
+            "options": [
+              "A list of companies",
+              "Hours of operation",
+              "A permit application",
+              "Directions to a site"
+            ],
+            "correctAnswer": "A",
+            "explanation": "The woman mentions a list of companies on the Web site."
+          },
+
+          {
+            "questionNumber": 47,
+            "audioFile": "47-49.mp3",
+            "questionType": "conversation",
+            "groupId": "47-49",
+            "audioTranscript": "M Zaina! What a surprise! I haven't seen you since we took that class for business owners together last year.\nW Great, thanks. I was just in the neighborhood and thought I'd stop in for a cookie or a piece of cake.\nM Thank you! It's been a good year for business.\nW Really? Well, I noticed that Sunnyvale Restaurant went out of business, and the building's up for lease. It's very close to the local university.",
+            "questionText": "How do the speakers know each other?",
+            "options": [
+              "They took a class together.",
+              "They used to work for the same company.",
+              "They grew up in the same neighborhood.",
+              "They met on a train."
+            ],
+            "correctAnswer": "A",
+            "explanation": "The man says they took a class for business owners together."
+          },
+          {
+            "questionNumber": 48,
+            "audioFile": "47-49.mp3",
+            "questionType": "conversation",
+            "groupId": "47-49",
+            "questionText": "What type of business does the man most likely own?",
+            "options": [
+              "A fitness center",
+              "A real estate agency",
+              "A culinary school",
+              "A bakery"
+            ],
+            "correctAnswer": "D",
+            "explanation": "The woman mentions cookies, cake, and baked goods, indicating the man owns a bakery."
+          },
+          {
+            "questionNumber": 49,
+            "audioFile": "47-49.mp3",
+            "questionType": "conversation",
+            "groupId": "47-49",
+            "questionText": "What advantage does the woman point out about a rental space?",
+            "options": ["Its price", "Its size", "Its location", "Its design"],
+            "correctAnswer": "C",
+            "explanation": "The woman says the rental space is very close to the local university."
+          },
+          {
+            "questionNumber": 50,
+            "audioFile": "50-52.mp3",
+            "questionType": "conversation",
+            "groupId": "50-52",
+            "audioTranscript": "W Hi, Koji. I think our new video game is nearly ready to be released. Are you aware of any improvements that need to be made before then?\nM Actually, I just finished testing the game this morning. I found a problem in the third stage of the game. There were a few times when my character couldn't move.\nW Oh, that's strange!\nM I double-checked the problem using a different controller. The same issue came up.\nW Oh. I think Pauline had a similar problem with a game she tested. Maybe you should ask her about it.",
+            "questionText": "Who most likely are the speakers?",
+            "options": [
+              "Film actors",
+              "Museum directors",
+              "Video game developers",
+              "Investigative journalists"
+            ],
+            "correctAnswer": "C",
+            "explanation": "They discuss testing and fixing a video game before release."
+          },
+          {
+            "questionNumber": 51,
+            "audioFile": "50-52.mp3",
+            "questionType": "conversation",
+            "groupId": "50-52",
+            "questionText": "What did the man recently do?",
+            "options": [
+              "He secured some funding.",
+              "He tested a product.",
+              "He read a script.",
+              "He conducted an interview."
+            ],
+            "correctAnswer": "B",
+            "explanation": "The man says he finished testing the game this morning."
+          },
+          {
+            "questionNumber": 52,
+            "audioFile": "50-52.mp3",
+            "questionType": "conversation",
+            "groupId": "50-52",
+            "questionText": "What does the woman suggest?",
+            "options": [
+              "Consulting a colleague",
+              "Planning an event",
+              "Negotiating a contract",
+              "Giving a client an update"
+            ],
+            "correctAnswer": "A",
+            "explanation": "She suggests asking Pauline, who had a similar problem."
+          },
+
+          {
+            "questionNumber": 53,
+            "audioFile": "53-55.mp3",
+            "questionType": "conversation",
+            "groupId": "53-55",
+            "audioTranscript": "M You've reached the maintenance office at Hillview Apartment Complex.\nW Hi. This is Palavi Sen from unit 35B. I'm calling because the new thermostat in my apartment isn't working. It keeps shutting off and turning on randomly.\nM When did this issue start?\nW A few hours ago. The thermostat was just installed yesterday.\nM OK. I can come and take a look at it tomorrow morning.\nW But it's supposed to be below freezing tonight!",
+            "questionText": "Who most likely is the man?",
+            "options": [
+              "A delivery driver",
+              "A security guard",
+              "A maintenance worker",
+              "A customer service representative"
+            ],
+            "correctAnswer": "C",
+            "explanation": "The man answers the phone at a maintenance office."
+          },
+          {
+            "questionNumber": 54,
+            "audioFile": "53-55.mp3",
+            "questionType": "conversation",
+            "groupId": "53-55",
+            "questionText": "What problem does the woman describe?",
+            "options": [
+              "A device is malfunctioning.",
+              "A key is missing.",
+              "A parking area is unavailable.",
+              "A package was not received."
+            ],
+            "correctAnswer": "A",
+            "explanation": "She says the thermostat keeps shutting off and turning on."
+          },
+          {
+            "questionNumber": 55,
+            "audioFile": "53-55.mp3",
+            "questionType": "conversation",
+            "groupId": "53-55",
+            "questionText": "What does the woman mean when she says, \"it's supposed to be below freezing tonight\"?",
+            "options": [
+              "She is surprised by the weather forecast.",
+              "She wants a service to be completed sooner.",
+              "She will move some items indoors.",
+              "She would prefer to park near her apartment."
+            ],
+            "correctAnswer": "B",
+            "explanation": "She wants the problem fixed sooner because of the cold weather."
+          },
+
+          {
+            "questionNumber": 59,
+            "audioFile": "59-61.mp3",
+            "questionType": "conversation",
+            "groupId": "59-61",
+            "audioTranscript": "M Many of our factory workers have expressed interest in upgrading their skills. I'd like to implement a peer-training program.\nW I'm afraid that might become a burden for our long-time employees. They'll have to slow down their work.\nM What if we videotaped experienced employees doing specific tasks? High-quality video can be recorded and edited with a smartphone.\nW I like that idea. It would allow us to capture expertise without slowing down the production line.",
+            "questionText": "What does the man want to do?",
+            "options": [
+              "Provide training opportunities",
+              "Upgrade machinery",
+              "Hire additional employees",
+              "Reorganize the factory layout"
+            ],
+            "correctAnswer": "A",
+            "explanation": "The man wants to implement a training program for workers."
+          },
+          {
+            "questionNumber": 60,
+            "audioFile": "59-61.mp3",
+            "questionType": "conversation",
+            "groupId": "59-61",
+            "questionText": "What is the woman concerned about?",
+            "options": [
+              "Increasing expenses",
+              "Introducing errors",
+              "Reducing productivity",
+              "Causing confusion"
+            ],
+            "correctAnswer": "C",
+            "explanation": "She worries experienced employees will have to slow down their work."
+          },
+          {
+            "questionNumber": 61,
+            "audioFile": "59-61.mp3",
+            "questionType": "conversation",
+            "groupId": "59-61",
+            "questionText": "What does the man mean when he says, \"High-quality video can be recorded and edited with a smartphone\"?",
+            "options": [
+              "A new policy should be established.",
+              "An idea is easy to implement.",
+              "Data security is a concern.",
+              "Some information should be verified."
+            ],
+            "correctAnswer": "B",
+            "explanation": "He means the idea is practical and easy to carry out."
+          },
+          {
+            "questionNumber": 62,
+            "audioFile": "62-64.mp3",
+            "imageFile": "test1_62_64.png",
+            "questionType": "conversation",
+            "groupId": "62-64",
+            "audioTranscript": "W Hi, Suresh. I'm at the airport waiting for my flight. I want to meet with a potential investor while I'm in Chicago. Her name's Marta Gomez.\nM OK. Which day would you prefer to meet with her?\nW How about right after my meeting with the Chicago staff?\nM OK. By the way, did you see that our company won an award for our contributions to the community?",
+            "questionText": "Where is the woman?",
+            "options": [
+              "At a restaurant",
+              "At a travel agency",
+              "At an airport",
+              "At a warehouse"
+            ],
+            "correctAnswer": "C",
+            "explanation": "The woman says she is at the airport waiting for her flight."
+          },
+          {
+            "questionNumber": 63,
+            "audioFile": "62-64.mp3",
+            "imageFile": "test1_62_64.png",
+            "questionType": "conversation",
+            "groupId": "62-64",
+            "questionText": "When does the woman prefer to meet with an investor?",
+            "options": [
+              "On Monday",
+              "On Tuesday",
+              "On Wednesday",
+              "On Thursday"
+            ],
+            "correctAnswer": "C",
+            "explanation": "She says she wants to meet right after her meeting with the Chicago staff, which is shown on the graphic as Wednesday."
+          },
+          {
+            "questionNumber": 64,
+            "audioFile": "62-64.mp3",
+            "imageFile": "test1_62_64.png",
+            "questionType": "conversation",
+            "groupId": "62-64",
+            "questionText": "What good news does the man share?",
+            "options": [
+              "A colleague received a promotion.",
+              "A conference proposal was accepted.",
+              "An airline ticket has been upgraded.",
+              "A company won an award."
+            ],
+            "correctAnswer": "D",
+            "explanation": "The man says their company won an award for community contributions."
+          },
+
+          {
+            "questionNumber": 65,
+            "audioFile": "65-67.mp3",
+            "questionType": "conversation",
+            "groupId": "65-67",
+            "audioTranscript": "M Marion, we keep getting calls from people who want to visit the botanical garden but can't find parking information.\nW It is on our Web site, but it's at the bottom of the About Us page.\nM I think we should move that information and make a separate page for directions and parking.\nW I'd be happy to make that change, but we're updating our software, so it will have to wait until Monday.",
+            "questionText": "Where do the speakers work?",
+            "options": [
+              "At an amusement park",
+              "At an art museum",
+              "At a concert hall",
+              "At a botanical garden"
+            ],
+            "correctAnswer": "D",
+            "explanation": "They talk about visitors to a botanical garden."
+          },
+          {
+            "questionNumber": 66,
+            "audioFile": "65-67.mp3",
+            "imageFile": "test1_65_67.png",
+            "questionType": "conversation",
+            "groupId": "65-67",
+            "questionText": "Which page on the Web site does the man want to change?",
+            "options": ["Page 1", "Page 2", "Page 3", "Page 4"],
+            "correctAnswer": "B",
+            "explanation": "He wants to move information currently on the About Us page, shown as Page 2 in the graphic."
+          },
+          {
+            "questionNumber": 67,
+            "audioFile": "65-67.mp3",
+            "questionType": "conversation",
+            "groupId": "65-67",
+            "questionText": "Why does the woman say she cannot complete a task until Monday?",
+            "options": [
+              "She requires approval from a manager.",
+              "She is attending a workshop.",
+              "Some software is being updated.",
+              "Some clients will be arriving soon."
+            ],
+            "correctAnswer": "C",
+            "explanation": "She says the software is being updated."
+          },
+
+          {
+            "questionNumber": 68,
+            "audioFile": "68-70.mp3",
+            "questionType": "conversation",
+            "groupId": "68-70",
+            "audioTranscript": "M Good news! We have finally received approval for our project to install bicycle racks at the train station downtown.\nW Great! Now we need to decide where to place them.\nM I think riders would prefer racks close to the platform.\nW Let's do that. I'll contact some companies for estimates.",
+            "questionText": "What news does the man share?",
+            "options": [
+              "A station road will be closed for repair.",
+              "A project has been approved.",
+              "A parking area has been expanded.",
+              "An office will relocate."
+            ],
+            "correctAnswer": "B",
+            "explanation": "The man says the project has been approved."
+          },
+          {
+            "questionNumber": 69,
+            "audioFile": "68-70.mp3",
+            "imageFile": "test1_68_70.png",
+            "questionType": "conversation",
+            "groupId": "68-70",
+            "questionText": "Where do the speakers decide to install some bicycle racks?",
+            "options": [
+              "Near the covered parking area",
+              "Near the long-term parking area",
+              "Near the short-term parking area",
+              "Near the overflow parking area"
+            ],
+            "correctAnswer": "C",
+            "explanation": "They decide on the location closest to the platform, shown as the short-term parking area."
+          },
+          {
+            "questionNumber": 70,
+            "audioFile": "68-70.mp3",
+            "questionType": "conversation",
+            "groupId": "68-70",
+            "questionText": "Why does the woman say she will contact some companies?",
+            "options": [
+              "To arrange a loan",
+              "To apply for a permit",
+              "To ask for estimates",
+              "To create a proposal"
+            ],
+            "correctAnswer": "C",
+            "explanation": "She says she will contact companies for cost estimates."
+          }
+        ]
+      },
+      "4": {
+        "name": "Part 4 - Conversations",
+        "questions": [
+          {
+            "questionNumber": 71,
+            "audioFile": "32-34.mp3",
+            "questionType": "conversation",
+            "groupId": "32-34",
+            "audioTranscript": "M Hi. I'm calling to book three tickets for this Thursday's tennis match. Are there any seats left?\nW Just a few! Tickets for Thursday's match have been selling quickly.\nM I'm not surprised! After all, Ife Rotimi won the regional championship tournament last month. Everyone wants to see her play after her incredible performance. What seats are available?\nW Well, there's only one group of three seats together. Advance payment is required to hold them.",
+            "questionText": "What type of food product does the speakers' company sell?",
+            "options": ["Candy", "Cheese", "Bread", "Pasta"],
+            "correctAnswer": "B",
+            "explanation": "The speakers discuss cheese products."
+          }
+        ]
+      },
+      "5": {
+        "name": "Part 5 - Conversations",
+        "questions": [
+          {
+            "questionNumber": 72,
+            "audioFile": "32-34.mp3",
+            "questionType": "conversation",
+            "groupId": "32-34",
+            "audioTranscript": "M Hi. I'm calling to book three tickets for this Thursday's tennis match. Are there any seats left?\nW Just a few! Tickets for Thursday's match have been selling quickly.\nM I'm not surprised! After all, Ife Rotimi won the regional championship tournament last month. Everyone wants to see her play after her incredible performance. What seats are available?\nW Well, there's only one group of three seats together. Advance payment is required to hold them.",
+            "questionText": "What type of food product does the speakers' company sell?",
+            "options": ["Candy", "Cheese", "Bread", "Pasta"],
+            "correctAnswer": "B",
+            "explanation": "The speakers discuss cheese products."
+          }
+        ]
+      },
+      "6": {
+        "name": "Part 4 - Conversations",
+        "questions": [
+          {
+            "questionNumber": 73,
+            "audioFile": "32-34.mp3",
+            "questionType": "conversation",
+            "groupId": "32-34",
+            "audioTranscript": "M Hi. I'm calling to book three tickets for this Thursday's tennis match. Are there any seats left?\nW Just a few! Tickets for Thursday's match have been selling quickly.\nM I'm not surprised! After all, Ife Rotimi won the regional championship tournament last month. Everyone wants to see her play after her incredible performance. What seats are available?\nW Well, there's only one group of three seats together. Advance payment is required to hold them.",
+            "questionText": "What type of food product does the speakers' company sell?",
+            "options": ["Candy", "Cheese", "Bread", "Pasta"],
+            "correctAnswer": "B",
+            "explanation": "The speakers discuss cheese products."
+          }
+        ]
+      },
+      "7": {
+        "name": "Part 7 - Conversations",
+        "questions": [
+          {
+            "questionNumber": 74,
+            "audioFile": "32-34.mp3",
+            "questionType": "conversation",
+            "groupId": "32-34",
+            "audioTranscript": "M Hi. I'm calling to book three tickets for this Thursday's tennis match. Are there any seats left?\nW Just a few! Tickets for Thursday's match have been selling quickly.\nM I'm not surprised! After all, Ife Rotimi won the regional championship tournament last month. Everyone wants to see her play after her incredible performance. What seats are available?\nW Well, there's only one group of three seats together. Advance payment is required to hold them.",
+            "questionText": "What type of food product does the speakers' company sell?",
+            "options": ["Candy", "Cheese", "Bread", "Pasta"],
+            "correctAnswer": "B",
+            "explanation": "The speakers discuss cheese products."
           }
         ]
       }
