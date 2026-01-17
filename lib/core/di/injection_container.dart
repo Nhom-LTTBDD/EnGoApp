@@ -18,18 +18,18 @@ import '../../data/repositories/auth_repository_impl.dart';
 import '../../data/repositories/profile_repository_impl.dart';
 
 // Domain Layer
-import '../../domain/respository_interfaces/auth_repository.dart';
-import '../../domain/respository_interfaces/profile_repository.dart';
-import '../../domain/usecase/auth/forgot_password_usecase.dart';
-import '../../domain/usecase/auth/get_current_user_usecase.dart';
-import '../../domain/usecase/auth/login_usecase.dart';
-import '../../domain/usecase/auth/logout_usecase.dart';
-import '../../domain/usecase/auth/register_usecase.dart';
-import '../../domain/usecase/auth/google_sign_in_usecase.dart';
-import '../../domain/usecase/profile/clear_profile_cache_usecase.dart';
-import '../../domain/usecase/profile/get_user_profile_usecase.dart';
-import '../../domain/usecase/profile/update_avatar_color_usecase.dart';
-import '../../domain/usecase/profile/update_profile_usecase.dart';
+import '../../domain/repository_interfaces/auth_repository.dart';
+import '../../domain/repository_interfaces/profile_repository.dart';
+import '../../domain/usecases/auth/forgot_password_usecase.dart';
+import '../../domain/usecases/auth/get_current_user_usecase.dart';
+import '../../domain/usecases/auth/login_usecase.dart';
+import '../../domain/usecases/auth/logout_usecase.dart';
+import '../../domain/usecases/auth/register_usecase.dart';
+import '../../domain/usecases/auth/google_sign_in_usecase.dart';
+import '../../domain/usecases/profile/clear_profile_cache_usecase.dart';
+import '../../domain/usecases/profile/get_user_profile_usecase.dart';
+import '../../domain/usecases/profile/update_avatar_color_usecase.dart';
+import '../../domain/usecases/profile/update_profile_usecase.dart';
 
 // Presentation Layer
 import '../../presentation/providers/auth/auth_provider.dart';
@@ -40,8 +40,8 @@ import '../../presentation/providers/personal_vocabulary_provider.dart';
 
 // Vocabulary Domain
 import '../../domain/repository_interfaces/vocabulary_repository.dart';
-import '../../domain/usecase/get_vocabulary_cards.dart';
-import '../../domain/usecase/enrich_vocabulary_card.dart';
+import '../../domain/usecases/vocabulary/get_vocabulary_cards.dart';
+import '../../domain/usecases/vocabulary/enrich_vocabulary_card.dart';
 
 // Vocabulary Data
 import '../../data/repositories/vocabulary_repository_impl.dart';
@@ -56,8 +56,8 @@ import '../../data/datasources/dictionary_local_data_source.dart';
 
 // Grammar Domain
 import '../../domain/repository_interfaces/grammar_repository.dart';
-import '../../domain/use_cases/get_grammar_topics_use_case.dart';
-import '../../domain/use_cases/get_grammar_lessons_use_case.dart';
+import '../../domain/usecases/grammar/get_grammar_topics_use_case.dart';
+import '../../domain/usecases/grammar/get_grammar_lessons_use_case.dart';
 
 // Grammar Data
 import '../../data/repositories/grammar_repository_impl.dart';
@@ -78,18 +78,21 @@ Future<void> init() async {
   sl.registerLazySingleton(() => sharedPreferences);
 
   sl.registerLazySingleton(() => http.Client());
-  
+
   // Firebase services
   sl.registerLazySingleton(() => FirebaseAuth.instance);
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
-  sl.registerLazySingleton(() => FirebaseStorage.instance);  sl.registerLazySingleton(() => GoogleSignIn());
-  
+  sl.registerLazySingleton(() => FirebaseStorage.instance);
+  sl.registerLazySingleton(() => GoogleSignIn());
+
   // Services
   sl.registerLazySingleton(() => AudioService());
-  sl.registerLazySingleton(() => PersonalVocabularyService(
-    sl(), // SharedPreferences
-    firestore: sl(), // FirebaseFirestore
-  ));
+  sl.registerLazySingleton(
+    () => PersonalVocabularyService(
+      sl(), // SharedPreferences
+      firestore: sl(), // FirebaseFirestore
+    ),
+  );
 
   // =============================================================================
   // Data Sources - Local
@@ -149,15 +152,11 @@ Future<void> init() async {
   );
 
   sl.registerLazySingleton<DictionaryRepository>(
-    () => DictionaryRepositoryImpl(
-      remoteDataSource: sl(),
-      localDataSource: sl(),
-    ),
+    () =>
+        DictionaryRepositoryImpl(remoteDataSource: sl(), localDataSource: sl()),
   );
 
-  sl.registerLazySingleton<GrammarRepository>(
-    () => GrammarRepositoryImpl(),
-  );
+  sl.registerLazySingleton<GrammarRepository>(() => GrammarRepositoryImpl());
 
   // =============================================================================
   // Use Cases - Auth
@@ -218,14 +217,14 @@ Future<void> init() async {
       enrichVocabularyCard: sl(),
     ),
   );
-        sl.registerFactory(
+  sl.registerFactory(
     () => PersonalVocabularyProvider(
       service: sl(),
       vocabularyRepository: sl(),
       dictionaryRepository: sl(),
     ),
   );
-      
+
   sl.registerFactory(
     () => GrammarProvider(
       getGrammarTopicsUseCase: sl(),

@@ -39,15 +39,15 @@ class TopicCard extends StatelessWidget {
         width: double.infinity,
         height: 240, // Tăng chiều cao để chứa thêm thông tin
         decoration: BoxDecoration(
-          color: backgroundColor ?? Colors.white,
+          color: backgroundColor ?? getSurfaceColor(context),
           borderRadius: kRadiusMedium,
           border: Border.all(
-            color: borderColor ?? Colors.grey.shade300,
+            color: borderColor ?? getBorderColor(context),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: getTextPrimary(context).withOpacity(0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -99,7 +99,14 @@ class TopicCard extends StatelessWidget {
                 children: [
                   // Emoji icon (nếu có)
                   if (emoji != null) ...[
-                    Text(emoji!, style: const TextStyle(fontSize: 32)),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: getBackgroundColor(context),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(emoji!, style: const TextStyle(fontSize: 24)),
+                    ),
                     const SizedBox(width: spaceSm),
                   ],
                   // Title và subtitle
@@ -110,10 +117,10 @@ class TopicCard extends StatelessWidget {
                       children: [
                         Text(
                           title,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: kTextPrimary,
+                            color: getTextPrimary(context),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -122,7 +129,10 @@ class TopicCard extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                             subtitle!,
-                            style: TextStyle(fontSize: 12, color: kTextThird),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: getTextThird(context),
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -158,12 +168,15 @@ class TopicCard extends StatelessWidget {
                     height: 32,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: kTextPrimary, width: 2),
+                      border: Border.all(
+                        color: getTextPrimary(context),
+                        width: 2,
+                      ),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.arrow_forward,
                       size: 16,
-                      color: kTextPrimary,
+                      color: getTextPrimary(context),
                     ),
                   ),
                 ],

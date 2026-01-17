@@ -5,7 +5,11 @@ import '../../domain/entities/vocabulary_topic.dart';
 import '../../domain/repository_interfaces/vocabulary_repository.dart';
 import '../models/vocabulary_card_model.dart';
 
-class VocabularyRepositoryImpl implements VocabularyRepository {  // ========== FOOD & DRINKS - Đồ ăn & Đồ uống ==========
+/// Implementation của VocabularyRepository với in-memory data.
+///
+/// **Data Source:** Hard-coded vocabulary cards và topics
+/// **Note:** Đây là mock implementation. Trong production nên dùng Firestore.
+class VocabularyRepositoryImpl implements VocabularyRepository {// ========== FOOD & DRINKS - Đồ ăn & Đồ uống ==========
   static final List<VocabularyCardModel> _foodCards = [
     // NOUNS
     VocabularyCardModel(

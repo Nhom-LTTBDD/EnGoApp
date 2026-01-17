@@ -152,7 +152,7 @@ class _FlashcardPageState extends State<FlashcardPage>
               },
               style: TextButton.styleFrom(
                 backgroundColor: kPrimaryColor,
-                foregroundColor: Colors.white,
+                foregroundColor: getSurfaceColor(context),
               ),
               child: const Text('Học lại'),
             ),
@@ -344,9 +344,9 @@ class _FlashcardPageState extends State<FlashcardPage>
                       // Nút X để đóng
                       IconButton(
                         onPressed: () => Navigator.pop(context),
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.close,
-                          color: Colors.black,
+                          color: getTextPrimary(context),
                           size: 28,
                         ),
                       ), // Progress hiển thị ở giữa
@@ -433,7 +433,9 @@ class _FlashcardPageState extends State<FlashcardPage>
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.08),
+                                  color: getTextPrimary(
+                                    context,
+                                  ).withOpacity(0.08),
                                   blurRadius: 8,
                                   offset: const Offset(0, 4),
                                 ),
@@ -476,7 +478,9 @@ class _FlashcardPageState extends State<FlashcardPage>
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withOpacity(0.15),
+                                          color: getTextPrimary(
+                                            context,
+                                          ).withOpacity(0.15),
                                           blurRadius: 12,
                                           offset: const Offset(0, 6),
                                         ),

@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'core/di/injection_container.dart' as di;
 import 'core/theme/app_theme.dart';
 import 'presentation/providers/auth/auth_provider.dart';
+import 'presentation/providers/auth/auth_state.dart'; // 🆕 Import AuthState
 import 'presentation/providers/profile/profile_provider.dart';
 import 'presentation/providers/vocabulary_provider.dart';
 import 'presentation/providers/personal_vocabulary_provider.dart';
@@ -91,11 +92,13 @@ class _MyAppState extends State<MyApp> {
         debugShowCheckedModeBanner: false,
         home: Scaffold(body: Center(child: Text('Initialization Error'))),
       );
-    } // App initialized successfully
+    }    // App initialized successfully
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()..loadTheme()),
         ChangeNotifierProvider(create: (_) => di.sl<ProfileProvider>()),
+        
+        // ⚠️ AuthProvider PHẢI được tạo TRƯỚC PersonalVocabularyProvider
         ChangeNotifierProxyProvider<ProfileProvider, AuthProvider>(
           create: (_) => di.sl<AuthProvider>(),
           update: (_, profileProvider, authProvider) {
@@ -106,8 +109,24 @@ class _MyAppState extends State<MyApp> {
             return authProvider;
           },
         ),
+        
+        // 🆕 PersonalVocabularyProvider listen AuthProvider để lấy userId
+        ChangeNotifierProxyProvider<AuthProvider, PersonalVocabularyProvider>(
+          create: (_) => di.sl<PersonalVocabularyProvider>(),
+          update: (_, authProvider, personalVocabProvider) {
+            // Khi user login/logout, update userId trong PersonalVocabularyProvider
+            if (authProvider.state is Authenticated) {
+              final user = (authProvider.state as Authenticated).user;
+              print('🔐 Auth state: Authenticated - Setting userId: ${user.id}');
+              personalVocabProvider?.setUserId(user.id);
+            } else {
+              print('⚠️ Auth state: Not authenticated - ${authProvider.state.runtimeType}');
+            }
+            return personalVocabProvider ?? di.sl<PersonalVocabularyProvider>();
+          },
+        ),
+        
         ChangeNotifierProvider(create: (_) => di.sl<VocabularyProvider>()),
-        ChangeNotifierProvider(create: (_) => di.sl<PersonalVocabularyProvider>()),
         ChangeNotifierProvider(create: (_) => di.sl<GrammarProvider>()),
         ChangeNotifierProvider(create: (_) => ToeicTestProvider()),
       ],
