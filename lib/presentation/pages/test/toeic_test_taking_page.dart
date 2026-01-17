@@ -181,8 +181,6 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
               ),
             ),
 
-
-
             // Debug: Check all questions for imageUrl
             Builder(
               builder: (context) {
@@ -316,7 +314,8 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
             ),
 
             // Audio player - for listening parts (Part 1-4)
-            if (groupQuestions.first.audioUrl != null && groupQuestions.first.partNumber <= 4)
+            if (groupQuestions.first.audioUrl != null &&
+                groupQuestions.first.partNumber <= 4)
               _buildAudioPlayer(provider, groupQuestions.first.audioUrl!),
 
             // Image for Part 3 groups (show only if first question has image)
@@ -370,7 +369,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
             ...groupQuestions.asMap().entries.map((entry) {
               final index = entry.key;
               final question = entry.value;
-              
+
               return Container(
                 margin: const EdgeInsets.only(bottom: 20),
                 padding: const EdgeInsets.all(16),

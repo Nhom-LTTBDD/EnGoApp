@@ -258,7 +258,15 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
                                     ? [widget.partNumber!]
                                     : (isPracticeMode
                                           ? selectedParts.toList()
-                                          : [1, 2, 3, 4, 5, 6, 7]), // All 7 parts for full test
+                                          : [
+                                              1,
+                                              2,
+                                              3,
+                                              4,
+                                              5,
+                                              6,
+                                              7,
+                                            ]), // All 7 parts for full test
                                 'timeLimit': selectedTime == 0
                                     ? null
                                     : selectedTime,
