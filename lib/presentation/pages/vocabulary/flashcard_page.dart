@@ -177,6 +177,35 @@ class _FlashcardPageState extends State<FlashcardPage>
     }
   }
 
+  void _handleUndo() {
+    final flashcardProvider = context.read<FlashcardProvider>();
+    final vocabProvider = context.read<VocabularyProvider>();
+
+    final success = flashcardProvider.undoLastAction();
+
+    if (success) {
+      // Sync với VocabularyProvider
+      vocabProvider.setCurrentCardIndex(flashcardProvider.currentCardIndex);
+      vocabProvider.resetCardFlip();
+
+      // Reset animation
+      _animationController.reset();
+
+      // Rebuild UI
+      setState(() {});
+
+      print('↩️ Undo: Quay lại thẻ #${flashcardProvider.currentCardIndex}');
+    } else {
+      // Không có gì để undo
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Không có thẻ nào để quay lại'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    }
+  }
+
   void _handleFlipCard() {
     final flashcardProvider = context.read<FlashcardProvider>();
 
@@ -556,7 +585,10 @@ class _FlashcardPageState extends State<FlashcardPage>
               const SizedBox(height: spaceLg),
 
               // Controls
-              FlashcardControls(onReset: _resetAndStudyAgain),
+              FlashcardControls(
+                onUndo: _handleUndo,
+                canUndo: flashcardProvider.canUndo,
+              ),
 
               const SizedBox(height: spaceMd),
             ],

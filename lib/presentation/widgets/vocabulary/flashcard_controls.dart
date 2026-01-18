@@ -2,33 +2,32 @@
 import 'package:flutter/material.dart';
 
 /// Widget chứa các nút điều khiển flashcard
-/// Bao gồm: Nút reset, nút play/pause
+/// Bao gồm: Nút undo (quay lại thẻ trước)
 class FlashcardControls extends StatelessWidget {
-  final VoidCallback onReset;
+  final VoidCallback onUndo;
   final VoidCallback? onPlayPause;
+  final bool canUndo;
 
-  const FlashcardControls({super.key, required this.onReset, this.onPlayPause});
+  const FlashcardControls({
+    super.key,
+    required this.onUndo,
+    this.onPlayPause,
+    this.canUndo = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Nút reset (quay lại)
+        // Nút undo (quay lại thẻ trước)
         IconButton(
-          onPressed: onReset,
-          icon: const Icon(Icons.replay, size: 32, color: Colors.grey),
-        ),
-
-        // Nút play/pause
-        IconButton(
-          onPressed:
-              onPlayPause ??
-              () {
-                // TODO: Auto play cards
-                print('Auto play flashcards');
-              },
-          icon: const Icon(Icons.play_arrow, size: 32, color: Colors.grey),
+          onPressed: canUndo ? onUndo : null,
+          icon: Icon(
+            Icons.replay,
+            size: 32,
+            color: canUndo ? Colors.orange : Colors.grey.shade300,
+          ),
         ),
       ],
     );
