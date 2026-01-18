@@ -142,7 +142,8 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Check if this is a group question (Part 3, 4, 6, 7 with groupId)
-                        if ((question.partNumber == 3 || question.partNumber == 4) ||
+                        if ((question.partNumber == 3 ||
+                                question.partNumber == 4) ||
                             (question.partNumber >= 6 &&
                                 question.groupId != null)) ...[
                           Builder(
@@ -842,7 +843,8 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
   Widget _buildNavigationButtons(ToeicTestProvider provider) {
     final currentQuestion = provider.currentQuestion;
     final isGroupQuestion =
-        (currentQuestion?.partNumber == 3 || currentQuestion?.partNumber == 4) ||
+        (currentQuestion?.partNumber == 3 ||
+            currentQuestion?.partNumber == 4) ||
         (currentQuestion != null &&
             currentQuestion.partNumber >= 6 &&
             currentQuestion.groupId != null);

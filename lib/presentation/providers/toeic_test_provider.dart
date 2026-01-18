@@ -104,19 +104,19 @@ class ToeicTestProvider extends ChangeNotifier {
       debugPrint('🎵 Audio player state changed: $state');
       notifyListeners();
     });
-    
+
     // Listen for player errors
     _audioPlayer!.onLog.listen((message) {
       debugPrint('🎵 Audio log: $message');
     });
-    
+
     // Listen for player complete events
     _audioPlayer!.onPlayerComplete.listen((_) {
       debugPrint('🎵 Audio playback completed');
       _isAudioPlaying = false;
       notifyListeners();
     });
-    
+
     debugPrint('🎵 Audio player initialized successfully');
   }
 
@@ -135,7 +135,8 @@ class ToeicTestProvider extends ChangeNotifier {
         final assetPath = audioUrl.replaceFirst('assets/', '');
         debugPrint('🎵 Playing as asset with path: $assetPath');
         await _audioPlayer!.play(AssetSource(assetPath));
-      } else if (audioUrl.startsWith('http://') || audioUrl.startsWith('https://')) {
+      } else if (audioUrl.startsWith('http://') ||
+          audioUrl.startsWith('https://')) {
         // For URLs, use UrlSource
         debugPrint('🎵 Playing as URL: $audioUrl');
         await _audioPlayer!.play(UrlSource(audioUrl));
