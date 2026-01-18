@@ -11,7 +11,7 @@ import '../../core/theme/theme_helper.dart';
 enum VocabularyMenuType {
   topics('Các chủ đề từ vựng', Icons.topic_outlined),
   personalCollection('Bộ từ của bạn', Icons.bookmark_outline),
-  flashCard('Flash Card', Icons.flip_to_front_outlined),
+
   quiz('Quiz', Icons.quiz_outlined);
 
   const VocabularyMenuType(this.title, this.icon);
@@ -223,7 +223,6 @@ extension VocabularyMenuTypeExtension on VocabularyMenuType {
         return VocabularyMenuItemConfig.success();
       case VocabularyMenuType.personalCollection:
         return VocabularyMenuItemConfig.warning();
-      case VocabularyMenuType.flashCard:
       case VocabularyMenuType.quiz:
         return VocabularyMenuItemConfig.special();
     }
