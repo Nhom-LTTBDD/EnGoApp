@@ -1,6 +1,8 @@
 // lib/presentation/pages/vocabulary/flashcard_result_page.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/theme/theme_helper.dart';
 
 /// Trang hiển thị kết quả học tập flashcard
@@ -27,7 +29,7 @@ class FlashcardResultPage extends StatelessWidget {
   }
 
   String get _getSubtitle {
-    if (_isPerfect) return 'Bạn đã biết hết tất cả các từ!';
+    if (_isPerfect) return 'Bạn đã đủ kiến thúc để làm bài kiểm tra rồi đó!';
     return 'Kết quả của bạn';
   }
 
@@ -72,45 +74,56 @@ class FlashcardResultPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Title
-                        Text(
-                          _getTitle,
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: getTextPrimary(context),
+                        if (_isPerfect)
+                          // Title
+                          Text(
+                            _getTitle,
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
+                          )
+                        else
+                          Text(
+                            _getTitle,
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: getTextPrimary(context),
+                            ),
                           ),
-                        ),
 
                         const SizedBox(height: 8),
 
                         // Subtitle
-                        Text(
-                          _getSubtitle,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: getTextSecondary(context),
+                        SizedBox(
+                          width: 300,
+                          child: Text(
+                            _getSubtitle,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: getTextSecondary(context),
+                            ),
                           ),
                         ),
 
                         const SizedBox(height: 40),
 
-                        // Circular progress with score cards
-                        _buildCircularProgressWithScores(),
+                        // Perfect score - Trophy or Normal score - Progress
+                        if (_isPerfect)
+                          _buildPerfectScoreDisplay()
+                        else
+                          _buildCircularProgressWithScores(),
 
-                        const SizedBox(height: 40),
+                        const SizedBox(height: 200),
 
-                        // Action buttons - only show if not perfect
-                        if (!_isPerfect) _buildActionButtons(context),
+                        // Action buttons
+                        _buildActionButtons(context),
                       ],
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 24),
-
-                // Bottom button - Continue or back
-                _buildBottomButton(context),
               ],
             ),
           ),
@@ -119,31 +132,57 @@ class FlashcardResultPage extends StatelessWidget {
     );
   }
 
+  // Perfect score display with trophy
+  Widget _buildPerfectScoreDisplay() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Trophy with gradient
+          ShaderMask(
+            shaderCallback: (Rect bounds) {
+              return kGoldCupGradient.createShader(bounds);
+            },
+            child: SvgPicture.asset(
+              kIconTrophy,
+              width: 200,
+              height: 200,
+              colorFilter: const ColorFilter.mode(
+                Colors.white,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // Circular progress with score cards beside
   Widget _buildCircularProgressWithScores() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      // crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Center - Circular progress
+        // Left - Circular progress
         TweenAnimationBuilder<double>(
           duration: const Duration(milliseconds: 1200),
           tween: Tween(begin: 0.0, end: _percentage / 100),
           curve: Curves.easeOutCubic,
           builder: (context, value, child) {
             return SizedBox(
-              width: 140,
-              height: 140,
+              width: 120,
+              height: 120,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   // Background circle
                   SizedBox(
-                    width: 140,
-                    height: 140,
+                    width: 120,
+                    height: 120,
                     child: CircularProgressIndicator(
                       value: 1.0,
-                      strokeWidth: 12,
+                      strokeWidth: 10,
                       backgroundColor: Colors.transparent,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         Colors.grey.shade300,
@@ -152,11 +191,11 @@ class FlashcardResultPage extends StatelessWidget {
                   ),
                   // Progress circle
                   SizedBox(
-                    width: 140,
-                    height: 140,
+                    width: 120,
+                    height: 120,
                     child: CircularProgressIndicator(
                       value: value,
-                      strokeWidth: 12,
+                      strokeWidth: 10,
                       backgroundColor: Colors.transparent,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         _getPercentageColor(),
@@ -164,18 +203,13 @@ class FlashcardResultPage extends StatelessWidget {
                     ),
                   ),
                   // Percentage text
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '${(value * 100).round()}%',
-                        style: TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.bold,
-                          color: _getPercentageColor(),
-                        ),
-                      ),
-                    ],
+                  Text(
+                    '${(value * 100).round()}%',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: _getPercentageColor(),
+                    ),
                   ),
                 ],
               ),
@@ -183,9 +217,9 @@ class FlashcardResultPage extends StatelessWidget {
           },
         ),
 
-        const SizedBox(width: 16),
+        const SizedBox(width: 24),
 
-        // right side - Score cards in column
+        // Right side - Score cards in column
         Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -219,27 +253,28 @@ class FlashcardResultPage extends StatelessWidget {
         return Transform.scale(scale: value, child: child);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        width: 150,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: color.shade50,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: color.shade200, width: 2),
         ),
-        child: Column(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               label,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 18,
                 color: color.shade700,
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 8),
             Text(
               '$count',
               style: TextStyle(
-                fontSize: 32,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: color.shade700,
               ),
@@ -251,127 +286,113 @@ class FlashcardResultPage extends StatelessWidget {
   }
 
   Widget _buildActionButtons(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: getSurfaceColor(context),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: getBorderColor(context)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          // Tiếp tục ôn thuật ngữ
-          _buildActionButton(
+    if (_isPerfect) {
+      // Khi đã biết hết - Hiển thị nút Làm bài kiểm tra
+      return Center(
+        child: SizedBox(
+          width: 300,
+          child: _buildActionButton(
             context: context,
-            icon: Icons.layers,
-            label: 'Tiếp tục ôn\nthuật ngữ',
-            color: kPrimaryColor,
+            icon: Icons.quiz_outlined,
+            label: 'Làm bài kiểm tra',
+            hasBackground: true,
             onTap: () => Navigator.pop(context, 'go_back'),
           ),
+        ),
+      );
+    } else {
+      // Khi chưa biết hết - Hiển thị 2 nút
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Tiếp tục ôn thuật ngữ - Elevated button with background
+            SizedBox(
+              width: 300,
+              child: _buildActionButton(
+                context: context,
+                icon: Icons.layers,
+                label: 'Tiếp tục ôn thuật ngữ',
+                hasBackground: true,
+                onTap: () => Navigator.pop(context, 'continue_learning'),
+              ),
+            ),
 
-          Container(width: 1, height: 60, color: getBorderColor(context)),
+            const SizedBox(height: 16),
 
-          // Đặt lại flashcard
-          _buildActionButton(
-            context: context,
-            icon: Icons.replay,
-            label: 'Đặt lại\nFlashcard',
-            color: Colors.orange.shade600,
-            onTap: () => Navigator.pop(context, 'study_again'),
-          ),
-        ],
-      ),
-    );
+            // Đặt lại flashcard - Text button without background
+            SizedBox(
+              width: 300,
+              child: _buildActionButton(
+                context: context,
+                label: 'Đặt lại Flashcard',
+                hasBackground: false,
+                onTap: () => Navigator.pop(context, 'study_again'),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Widget _buildActionButton({
     required BuildContext context,
-    required IconData icon,
+    IconData? icon,
     required String label,
-    required Color color,
+    required bool hasBackground,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        child: Column(
+    if (hasBackground) {
+      // Elevated button with background and shadow
+      return ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: kPrimaryColor,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 3,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 32, color: color),
+            Icon(icon, size: 28),
+            const SizedBox(width: 20),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                height: 1.3,
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // Text button without background
+      return TextButton(
+        onPressed: onTap,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 28),
             const SizedBox(height: 8),
             Text(
               label,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: getTextPrimary(context),
                 height: 1.3,
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomButton(BuildContext context) {
-    if (_isPerfect) {
-      // Nếu perfect, chỉ hiển thị nút Quay lại
-      return SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () => Navigator.pop(context, 'go_back'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: kPrimaryColor,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            elevation: 2,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(Icons.arrow_back, size: 24),
-              SizedBox(width: 8),
-              Text(
-                'Quay lại',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-        ),
-      );
-    } else {
-      // Nếu chưa perfect, hiển thị nút Đặt lại Flashcard
-      return SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () => Navigator.pop(context, 'study_again'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: kPrimaryColor,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            elevation: 2,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(Icons.replay, size: 24),
-              SizedBox(width: 8),
-              Text(
-                'Đặt lại Flashcard',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
         ),
       );
     }

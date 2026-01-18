@@ -11,6 +11,10 @@ class FlashcardProvider extends ChangeNotifier {
   int _currentCardIndex = 0;
   bool _isFlipped = false;
 
+  // Progress tracking - Track which cards are mastered
+  final Set<String> _masteredCardIds = {};
+  final Set<String> _learningCardIds = {};
+
   // Drag state
   double _dragOffset = 0.0;
   double _dragOffsetY = 0.0;
@@ -26,6 +30,27 @@ class FlashcardProvider extends ChangeNotifier {
   double get dragOffsetY => _dragOffsetY;
   bool get isDragging => _isDragging;
   bool get isCommittedToSwipe => _isCommittedToSwipe;
+  Set<String> get masteredCardIds => Set.from(_masteredCardIds);
+  Set<String> get learningCardIds => Set.from(_learningCardIds);
+
+  // Progress methods
+  void markCardAsMastered(String cardId) {
+    _masteredCardIds.add(cardId);
+    _learningCardIds.remove(cardId);
+    notifyListeners();
+  }
+
+  void markCardAsLearning(String cardId) {
+    _learningCardIds.add(cardId);
+    _masteredCardIds.remove(cardId);
+    notifyListeners();
+  }
+
+  void clearProgress() {
+    _masteredCardIds.clear();
+    _learningCardIds.clear();
+    notifyListeners();
+  }
 
   // Score methods
   void incrementCorrect() {
@@ -107,6 +132,8 @@ class FlashcardProvider extends ChangeNotifier {
     _dragOffsetY = 0.0;
     _isDragging = false;
     _isCommittedToSwipe = false;
+    _masteredCardIds.clear();
+    _learningCardIds.clear();
     notifyListeners();
   }
 }

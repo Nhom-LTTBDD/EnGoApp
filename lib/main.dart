@@ -15,6 +15,7 @@ import 'presentation/providers/grammar_provider.dart';
 import 'presentation/providers/theme/theme_provider.dart';
 import 'presentation/providers/toeic_test_provider.dart';
 import 'presentation/providers/streak_provider.dart';
+import 'presentation/providers/flashcard_progress_provider.dart';
 import 'routes/app_routes.dart';
 
 void main() {
@@ -143,6 +144,20 @@ class _MyAppState extends State<MyApp> {
               streakProvider?.setUserId(user.id);
             }
             return streakProvider ?? di.sl<StreakProvider>();
+          },
+        ),
+
+        // 🃏 FlashcardProgressProvider listen AuthProvider để lấy userId
+        ChangeNotifierProxyProvider<AuthProvider, FlashcardProgressProvider>(
+          create: (_) => di.sl<FlashcardProgressProvider>(),
+          update: (_, authProvider, progressProvider) {
+            // Khi user login/logout, update userId trong FlashcardProgressProvider
+            if (authProvider.state is Authenticated) {
+              final user = (authProvider.state as Authenticated).user;
+              print('🔐 FlashcardProgress: Setting userId: ${user.id}');
+              progressProvider?.setUserId(user.id);
+            }
+            return progressProvider ?? di.sl<FlashcardProgressProvider>();
           },
         ),
 

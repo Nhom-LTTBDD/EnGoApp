@@ -57,6 +57,37 @@ service cloud.firestore {
                     && request.resource.data.currentStreak is int
                     && request.resource.data.longestStreak is int;
     }
+
+    // ============================================================================
+    // 🆕 FLASHCARD PROGRESS COLLECTION (📊 Learning progress tracking)
+    // Document ID format: {userId}_{topicId}
+    // Example: Zgd3MQzrcLX4hKa8SiaPl3fYqs62_business
+    // ============================================================================
+    match /flashcard_progress/{documentId} {
+      // Helper function: Check if document belongs to current user
+      function isOwner() {
+        return request.auth != null 
+               && documentId.matches('^' + request.auth.uid + '_.*');
+      }
+      
+      // Allow read/write if document ID starts with user's UID
+      allow read, write: if isOwner();
+      
+      // Validate data structure khi tạo mới
+      allow create: if isOwner()
+                    && request.resource.data.keys().hasAll(['userId', 'topicId', 'masteredCardIds', 'learningCardIds', 'lastStudiedAt', 'createdAt'])
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.masteredCardIds is list
+                    && request.resource.data.learningCardIds is list;
+      
+      // Validate khi update
+      allow update: if isOwner()
+                    && request.resource.data.masteredCardIds is list
+                    && request.resource.data.learningCardIds is list;
+      
+      // Allow delete own progress (for reset functionality)
+      allow delete: if isOwner();
+    }
     
     // ============================================================================
     // DEFAULT DENY ALL (Bảo mật)
