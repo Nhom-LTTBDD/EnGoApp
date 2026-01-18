@@ -52,7 +52,8 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
   Widget build(BuildContext context) {
     return MainLayout(
       title: 'VOCABULARY TOPICS',
-      currentIndex: -1,      child: Container(
+      currentIndex: -1,
+      child: Container(
         width: double.infinity,
         decoration: BoxDecoration(color: getBackgroundColor(context)),
         child: Column(
@@ -66,7 +67,8 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [                  Text(
+                children: [
+                  Text(
                     'Chọn Chủ Đề',
                     style: TextStyle(
                       fontSize: 28,
@@ -84,16 +86,15 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
                 future: _topicsFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (snapshot.hasError) {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [                          Icon(
+                        children: [
+                          Icon(
                             Icons.error_outline,
                             size: 64,
                             color: getTextThird(context),
@@ -110,8 +111,8 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
                           ElevatedButton(
                             onPressed: () {
                               setState(() {
-                                _topicsFuture =
-                                    _vocabularyRepository.getVocabularyTopics();
+                                _topicsFuture = _vocabularyRepository
+                                    .getVocabularyTopics();
                               });
                             },
                             child: const Text('Thử lại'),
@@ -127,7 +128,8 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [                          Icon(
+                        children: [
+                          Icon(
                             Icons.inbox_outlined,
                             size: 64,
                             color: getTextThird(context),
@@ -143,7 +145,8 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
                         ],
                       ),
                     );
-                  }                  return ListView.builder(
+                  }
+                  return ListView.builder(
                     padding: const EdgeInsets.symmetric(
                       horizontal: spaceMd,
                       vertical: spaceSm,
@@ -162,17 +165,18 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
                           emoji: emoji,
                           imageAsset: topic.imageUrl,
                           onTap: () {
-                            // Navigate to vocab menu with topic
+                            // Navigate directly to flashcard page
                             Navigator.pushNamed(
                               context,
-                              AppRoutes.vocabMenu,
+                              AppRoutes.flashcard,
                               arguments: {'topicId': topic.id},
                             );
                           },
                         ),
                       );
                     },
-                  );},
+                  );
+                },
               ),
             ),
           ],
