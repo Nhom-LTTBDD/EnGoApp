@@ -8,6 +8,7 @@ class ToeicQuestion {
   final String questionType; // 'single', 'group', 'image'
   final String? questionText;
   final String? imageUrl;
+  final List<String>? imageUrls; // For multiple images in a group
   final String? audioUrl;
   final List<String> options; // A, B, C, D
   final String correctAnswer;
@@ -25,6 +26,7 @@ class ToeicQuestion {
     required this.questionType,
     this.questionText,
     this.imageUrl,
+    this.imageUrls,
     this.audioUrl,
     required this.options,
     required this.correctAnswer,

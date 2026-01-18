@@ -1,5 +1,6 @@
 // lib/presentation/pages/test/toeic_test_taking_page.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/toeic_test_provider.dart';
@@ -128,7 +129,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
             color: getBackgroundColor(context),
             child: Column(
               children: [
-                _buildHeader(session, provider),
+                _buildHeader(context, session, provider),
                 Expanded(
                   child: Container(
                     margin: const EdgeInsets.all(12),
@@ -140,11 +141,30 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Check if this is Part 3 (conversation)
-                        if (question.partNumber == 3)
-                          _buildPart3Questions(provider)
-                        else
-                          _buildSingleQuestion(provider, question),
+                        // Check if this is a group question (Part 3, 4, 6, 7 with groupId)
+                        if ((question.partNumber == 3 || question.partNumber == 4) ||
+                            (question.partNumber >= 6 &&
+                                question.groupId != null)) ...[
+                          Builder(
+                            builder: (context) {
+                              print(
+                                '📱 Using _buildGroupQuestions for Part ${question.partNumber}, Question ${question.questionNumber}, GroupId: ${question.groupId}',
+                              );
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                          _buildGroupQuestions(context, provider),
+                        ] else ...[
+                          Builder(
+                            builder: (context) {
+                              print(
+                                'Using _buildSingleQuestion for Part ${question.partNumber}, Question ${question.questionNumber}',
+                              );
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                          _buildSingleQuestion(context, provider, question),
+                        ],
 
                         const SizedBox(height: 16),
                         // Navigation buttons
@@ -163,6 +183,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
 
   // Build UI for single question (Part 1, 2, 4-7)
   Widget _buildSingleQuestion(
+    BuildContext context,
     ToeicTestProvider provider,
     ToeicQuestion question,
   ) {
@@ -259,7 +280,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
               _buildSimpleOptions(provider, question)
             // Part 3+: Show full options with text
             else
-              _buildOptions(provider, question),
+              _buildOptions(context, provider, question),
 
             const SizedBox(height: 24),
             // Question grid - moved to scrollable area
@@ -271,22 +292,39 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     );
   }
 
-  // Build UI for Part 3 conversation questions (3 questions per audio)
-  Widget _buildPart3Questions(ToeicTestProvider provider) {
+  // Build UI for group questions (Part 3, 4, 6, 7 with groupId)
+  Widget _buildGroupQuestions(
+    BuildContext context,
+    ToeicTestProvider provider,
+  ) {
     final currentQuestion = provider.currentQuestion;
     if (currentQuestion == null) return Container();
 
-    // Find all questions in the same group (conversation)
+    print(
+      '_buildGroupQuestions called for question ${currentQuestion.questionNumber}, part ${currentQuestion.partNumber}, groupId: ${currentQuestion.groupId}',
+    );
+
+    // Find all questions in the same group (for Part 3, 4, 6, 7)
     final groupQuestions =
         provider.questions
             .where(
-              (q) => q.partNumber == 3 && q.groupId == currentQuestion.groupId,
+              (q) =>
+                  q.partNumber == currentQuestion.partNumber &&
+                  q.groupId == currentQuestion.groupId,
             )
             .toList()
           ..sort((a, b) => a.questionNumber.compareTo(b.questionNumber));
 
     if (groupQuestions.isEmpty)
-      return _buildSingleQuestion(provider, currentQuestion);
+      return _buildSingleQuestion(context, provider, currentQuestion);
+
+    // Find a question in the group that has images
+    final questionWithImages = groupQuestions.firstWhere(
+      (q) =>
+          q.imageUrl != null ||
+          (q.imageUrls != null && q.imageUrls!.isNotEmpty),
+      orElse: () => groupQuestions.first,
+    );
 
     return Expanded(
       child: SingleChildScrollView(
@@ -318,51 +356,139 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                 groupQuestions.first.partNumber <= 4)
               _buildAudioPlayer(provider, groupQuestions.first.audioUrl!),
 
-            // Image for Part 3 groups (show only if first question has image)
-            if (groupQuestions.first.imageUrl != null) ...[
+            // Debug: Check image data before showing
+            Builder(
+              builder: (context) {
+                print('🔍 GROUP IMAGE CHECK:');
+                print(
+                  '   First question: ${groupQuestions.first.questionNumber}',
+                );
+                print('   Part: ${groupQuestions.first.partNumber}');
+                print('   imageUrl: ${groupQuestions.first.imageUrl}');
+                print('   imageUrls: ${groupQuestions.first.imageUrls}');
+                print(
+                  '   imageUrl != null: ${groupQuestions.first.imageUrl != null}',
+                );
+                print(
+                  '   imageUrls != null && not empty: ${groupQuestions.first.imageUrls != null && groupQuestions.first.imageUrls!.isNotEmpty}',
+                );
+                return const SizedBox.shrink();
+              },
+            ),
+
+            // Images for group questions - check if any question in group has images
+            if (questionWithImages.imageUrl != null ||
+                (questionWithImages.imageUrls != null &&
+                    questionWithImages.imageUrls!.isNotEmpty)) ...[
               Builder(
                 builder: (context) {
                   print(
-                    '🖼️ SHOWING GROUP IMAGE: ${groupQuestions.first.imageUrl}',
+                    'SHOWING GROUP IMAGES: imageUrl=${questionWithImages.imageUrl}, imageUrls=${questionWithImages.imageUrls}',
                   );
                   return const SizedBox.shrink();
                 },
               ),
-              Container(
-                height: 200,
-                width: double.infinity,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(
-                    groupQuestions.first.imageUrl!,
-                    fit: BoxFit.contain,
-                    width: double.infinity,
-                    height: double.infinity,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 200,
-                        color: Colors.grey[300],
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.error, color: Colors.red),
-                              Text(
-                                'Error loading image:\n${groupQuestions.first.imageUrl}',
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
+
+              // Multiple images (for Part 7 with imageFiles array)
+              if (questionWithImages.imageUrls != null &&
+                  questionWithImages.imageUrls!.isNotEmpty)
+                Column(
+                  children: questionWithImages.imageUrls!
+                      .map(
+                        (imageUrl) => Container(
+                          height: 250,
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.asset(
+                              imageUrl,
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                              height: double.infinity,
+                              errorBuilder: (context, error, stackTrace) {
+                                print(
+                                  '❌ Error loading image: $imageUrl, Error: $error',
+                                );
+                                return Container(
+                                  height: 200,
+                                  color: Colors.grey[300],
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(
+                                          Icons.image_not_supported,
+                                          size: 48,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Image not found: ${imageUrl.split('/').last}',
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ),
-                      );
-                    },
+                      )
+                      .toList(),
+                )
+              // Single image (for Part 3, Part 6 with single imageFile)
+              else if (questionWithImages.imageUrl != null)
+                Container(
+                  height: 250,
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset(
+                      questionWithImages.imageUrl!,
+                      fit: BoxFit.contain,
+                      width: double.infinity,
+                      height: double.infinity,
+                      errorBuilder: (context, error, stackTrace) {
+                        print(
+                          '❌ Error loading image: ${questionWithImages.imageUrl}, Error: $error',
+                        );
+                        return Container(
+                          height: 250,
+                          color: Colors.grey[300],
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.image_not_supported,
+                                  size: 48,
+                                  color: Colors.grey,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Image not found: ${questionWithImages.imageUrl!.split('/').last}',
+                                  style: const TextStyle(color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
             ],
 
             // All 3 questions
@@ -382,7 +508,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                   children: [
                     // Question number and text
                     Text(
-                      '${question.questionNumber}. ${question.questionText ?? 'Listen to the conversation and choose the best answer.'}',
+                      '${question.questionText ?? 'Question ${question.questionNumber}'}',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -390,7 +516,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                     ),
                     const SizedBox(height: 12),
                     // Options for this question
-                    _buildOptions(provider, question),
+                    _buildOptions(context, provider, question),
                   ],
                 ),
               );
@@ -406,7 +532,11 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     );
   }
 
-  Widget _buildHeader(ToeicTestSession session, ToeicTestProvider provider) {
+  Widget _buildHeader(
+    BuildContext context,
+    ToeicTestSession session,
+    ToeicTestProvider provider,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
       decoration: BoxDecoration(color: Theme.of(context).primaryColor),
@@ -458,42 +588,57 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
   Widget _buildAudioPlayer(ToeicTestProvider provider, String audioUrl) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Play/Pause button
-          Container(
-            width: 40,
-            height: 40,
-            child: IconButton(
-              onPressed: () {
-                if (provider.isAudioPlaying) {
-                  provider.pauseAudio();
-                } else {
-                  provider.playAudio(audioUrl);
-                }
-              },
-              icon: Icon(
-                provider.isAudioPlaying ? Icons.pause : Icons.play_arrow,
-                size: 30,
-                color: Colors.grey[400],
+          // Debug info
+          if (kDebugMode)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                'Audio: $audioUrl',
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
-              padding: EdgeInsets.zero,
             ),
-          ),
-          const SizedBox(width: 12),
-          // Thanh audio
-          Expanded(
-            child: LinearProgressIndicator(
-              value: provider.audioDuration.inSeconds > 0
-                  ? provider.audioPosition.inSeconds /
-                        provider.audioDuration.inSeconds
-                  : 0.3,
-              backgroundColor: Colors.grey[300],
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                Color(0xFF4CAF50),
+          Row(
+            children: [
+              // Play/Pause button
+              Container(
+                width: 40,
+                height: 40,
+                child: IconButton(
+                  onPressed: () {
+                    debugPrint('🎵 Audio button pressed: $audioUrl');
+                    if (provider.isAudioPlaying) {
+                      provider.pauseAudio();
+                    } else {
+                      provider.playAudio(audioUrl);
+                    }
+                  },
+                  icon: Icon(
+                    provider.isAudioPlaying ? Icons.pause : Icons.play_arrow,
+                    size: 30,
+                    color: Colors.grey[400],
+                  ),
+                  padding: EdgeInsets.zero,
+                ),
               ),
-              minHeight: 8,
-            ),
+              const SizedBox(width: 12),
+              // Thanh audio
+              Expanded(
+                child: LinearProgressIndicator(
+                  value: provider.audioDuration.inSeconds > 0
+                      ? provider.audioPosition.inSeconds /
+                            provider.audioDuration.inSeconds
+                      : 0.3,
+                  backgroundColor: Colors.grey[300],
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    Color(0xFF4CAF50),
+                  ),
+                  minHeight: 8,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -570,7 +715,11 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     );
   }
 
-  Widget _buildOptions(ToeicTestProvider provider, ToeicQuestion question) {
+  Widget _buildOptions(
+    BuildContext context,
+    ToeicTestProvider provider,
+    ToeicQuestion question,
+  ) {
     final userAnswer = provider.getAnswer(question.questionNumber);
 
     return Column(
@@ -692,7 +841,11 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
 
   Widget _buildNavigationButtons(ToeicTestProvider provider) {
     final currentQuestion = provider.currentQuestion;
-    final isPart3 = currentQuestion?.partNumber == 3;
+    final isGroupQuestion =
+        (currentQuestion?.partNumber == 3 || currentQuestion?.partNumber == 4) ||
+        (currentQuestion != null &&
+            currentQuestion.partNumber >= 6 &&
+            currentQuestion.groupId != null);
 
     return Align(
       alignment: Alignment.centerRight,
@@ -705,9 +858,9 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
         ),
         child: IconButton(
           onPressed: () {
-            if (isPart3) {
-              // For Part 3, jump to next conversation group
-              _moveToNextConversationGroup(provider);
+            if (isGroupQuestion) {
+              // For group questions (Part 3, 6, 7), jump to next group
+              _moveToNextGroup(provider);
             } else if (provider.hasNextQuestion) {
               provider.nextQuestion();
             } else {
@@ -720,15 +873,17 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     );
   }
 
-  void _moveToNextConversationGroup(ToeicTestProvider provider) {
+  void _moveToNextGroup(ToeicTestProvider provider) {
     final currentQuestion = provider.currentQuestion;
     if (currentQuestion == null) return;
 
-    // Find the last question in current group
+    // Find all questions in current group (for any part with groups)
     final currentGroupQuestions =
         provider.questions
             .where(
-              (q) => q.partNumber == 3 && q.groupId == currentQuestion.groupId,
+              (q) =>
+                  q.partNumber == currentQuestion.partNumber &&
+                  q.groupId == currentQuestion.groupId,
             )
             .toList()
           ..sort((a, b) => a.questionNumber.compareTo(b.questionNumber));

@@ -88,9 +88,11 @@ class ToeicTestProvider extends ChangeNotifier {
   }
 
   void _initAudioPlayer() {
+    debugPrint('🎵 Initializing audio player...');
     _audioPlayer = AudioPlayer();
     _audioPlayer!.onDurationChanged.listen((duration) {
       _audioDuration = duration;
+      debugPrint('🎵 Audio duration changed: ${duration.inSeconds}s');
       notifyListeners();
     });
     _audioPlayer!.onPositionChanged.listen((position) {
@@ -99,26 +101,55 @@ class ToeicTestProvider extends ChangeNotifier {
     });
     _audioPlayer!.onPlayerStateChanged.listen((state) {
       _isAudioPlaying = state == PlayerState.playing;
+      debugPrint('🎵 Audio player state changed: $state');
       notifyListeners();
     });
+    
+    // Listen for player errors
+    _audioPlayer!.onLog.listen((message) {
+      debugPrint('🎵 Audio log: $message');
+    });
+    
+    // Listen for player complete events
+    _audioPlayer!.onPlayerComplete.listen((_) {
+      debugPrint('🎵 Audio playback completed');
+      _isAudioPlaying = false;
+      notifyListeners();
+    });
+    
+    debugPrint('🎵 Audio player initialized successfully');
   }
 
   Future<void> playAudio(String audioUrl) async {
     if (_audioPlayer == null) return;
     try {
+      debugPrint('🎵 Attempting to play audio: $audioUrl');
       await _audioPlayer!.stop();
+
+      // Set volume to maximum for testing
+      await _audioPlayer!.setVolume(1.0);
 
       // Check if it's an asset or URL
       if (audioUrl.startsWith('assets/')) {
         // For local assets, use AssetSource and remove 'assets/' prefix
         final assetPath = audioUrl.replaceFirst('assets/', '');
+        debugPrint('🎵 Playing as asset with path: $assetPath');
         await _audioPlayer!.play(AssetSource(assetPath));
-      } else {
+      } else if (audioUrl.startsWith('http://') || audioUrl.startsWith('https://')) {
         // For URLs, use UrlSource
+        debugPrint('🎵 Playing as URL: $audioUrl');
         await _audioPlayer!.play(UrlSource(audioUrl));
+      } else {
+        // For local audio files without assets/ prefix, assume it's in audio/toeic_test1/
+        final assetPath = 'audio/toeic_test1/$audioUrl';
+        debugPrint('🎵 Playing as asset: $assetPath');
+        await _audioPlayer!.play(AssetSource(assetPath));
       }
+      debugPrint('🎵 Audio play command executed successfully');
+      debugPrint('🎵 Volume set to maximum (1.0)');
     } catch (e) {
-      debugPrint('Error playing audio: $e');
+      debugPrint('❌ Error playing audio: $e');
+      debugPrint('❌ Audio URL was: $audioUrl');
     }
   }
 

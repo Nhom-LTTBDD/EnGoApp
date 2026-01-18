@@ -101,11 +101,28 @@ class ToeicJsonService {
 
       for (var questionData in questionsData) {
         try {
-          final imageUrl = _getImagePath(questionData['imageFile']);
+          // Handle both imageFile (single) and imageFiles (array)
+          String? imageUrl;
+          List<String>? imageUrls;
+
+          if (questionData['imageFile'] != null) {
+            imageUrl = _getImagePath(questionData['imageFile']);
+          } else if (questionData['imageFiles'] != null &&
+              questionData['imageFiles'] is List) {
+            imageUrls = (questionData['imageFiles'] as List<dynamic>)
+                .map((file) => _getImagePath(file))
+                .where((url) => url != null)
+                .cast<String>()
+                .toList();
+            if (imageUrls.isNotEmpty) {
+              imageUrl = imageUrls.first; // Use first image as primary
+            }
+          }
+
           final audioUrl = _getAudioPath(questionData['audioFile']);
 
           print(
-            'Question ${questionData['questionNumber']}: imageFile=${questionData['imageFile']}, imageUrl=$imageUrl',
+            'Question ${questionData['questionNumber']}: imageFile=${questionData['imageFile']}, imageFiles=${questionData['imageFiles']}, imageUrl=$imageUrl',
           );
 
           final question = ToeicQuestion(
@@ -116,13 +133,15 @@ class ToeicJsonService {
             questionType: questionData['questionType'] ?? 'multiple-choice',
             questionText: questionData['questionText'],
             imageUrl: imageUrl,
+            imageUrls: imageUrls,
             audioUrl: audioUrl,
             options: List<String>.from(questionData['options'] ?? []),
             correctAnswer: questionData['correctAnswer'] ?? 'A',
             explanation: questionData['explanation'] ?? '',
             order: questionData['questionNumber'],
             groupId: questionData['groupId'],
-            passageText: questionData['audioTranscript'],
+            passageText:
+                questionData['passageText'] ?? questionData['audioTranscript'],
           );
           questions.add(question);
         } catch (e) {
