@@ -69,7 +69,8 @@ class StreakProvider with ChangeNotifier {
   }
 
   /// Record activity (gọi khi hoàn thành flashcard)
-  Future<void> recordActivity() async {
+  /// Returns: Map with 'increased' (bool), 'oldStreak' (int), 'newStreak' (int)
+  Future<Map<String, dynamic>> recordActivity() async {
     try {
       print('🎯 Recording activity for user: $_userId');
 
@@ -82,14 +83,25 @@ class StreakProvider with ChangeNotifier {
       _streak = updatedStreak;
       notifyListeners();
 
+      final increased = newStreak > oldStreak;
+
       // Show celebration if streak increased
-      if (newStreak > oldStreak) {
+      if (increased) {
         print('🎉 Streak increased from $oldStreak to $newStreak!');
+      } else if (newStreak == oldStreak && oldStreak > 0) {
+        print('🔥 Streak maintained: $newStreak days');
       }
+
+      return {
+        'increased': increased,
+        'oldStreak': oldStreak,
+        'newStreak': newStreak,
+      };
     } catch (e) {
       _error = e.toString();
       print('❌ Error recording activity: $e');
       notifyListeners();
+      return {'increased': false, 'oldStreak': 0, 'newStreak': 0};
     }
   }
 
@@ -114,6 +126,19 @@ class StreakProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       print('❌ Error syncing to cloud: $e');
+    }
+  }
+
+  /// Clear local streak (when user logs out)
+  Future<void> clearLocalStreak() async {
+    try {
+      await _streakService.clearLocalStreak(_userId);
+      _streak = null;
+      notifyListeners();
+      print('🗑️ Local streak cleared');
+    } catch (e) {
+      _error = e.toString();
+      print('❌ Error clearing local streak: $e');
     }
   }
 }

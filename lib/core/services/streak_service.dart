@@ -7,7 +7,8 @@ import '../../domain/entities/user_streak.dart';
 
 /// Service quản lý streak với Hybrid Storage (Local + Firebase)
 class StreakService {
-  static const String _storageKey = 'user_streak';
+  static const String _storageKeyPrefix =
+      'user_streak_'; // Thêm prefix để tránh conflict
   static const String _firestoreCollection = 'user_streaks';
 
   final SharedPreferences _prefs;
@@ -16,6 +17,9 @@ class StreakService {
   StreakService(this._prefs, {FirebaseFirestore? firestore})
     : _firestore = firestore ?? FirebaseFirestore.instance;
 
+  /// Get storage key for specific user
+  String _getStorageKey(String userId) => '$_storageKeyPrefix$userId';
+
   // ============================================================================
   // GET Streak
   // ============================================================================
@@ -23,8 +27,9 @@ class StreakService {
   /// Lấy streak từ local, fallback to cloud nếu không có
   Future<UserStreak> getStreak(String userId) async {
     try {
-      // 1. Đọc từ local storage
-      final jsonString = _prefs.getString(_storageKey);
+      // 1. Đọc từ local storage (với key riêng cho từng user)
+      final storageKey = _getStorageKey(userId);
+      final jsonString = _prefs.getString(storageKey);
 
       if (jsonString != null && jsonString.isNotEmpty) {
         final json = jsonDecode(jsonString) as Map<String, dynamic>;
@@ -81,12 +86,18 @@ class StreakService {
   }
 
   /// Tính toán streak mới dựa vào logic ngày
+  /// Logic:
+  /// - Lần đầu học: streak = 1
+  /// - Học cùng ngày với lastActivityDate: giữ nguyên streak, chỉ update updatedAt
+  /// - Học ngày tiếp theo liên tiếp: tăng streak +1
+  /// - Bỏ lỡ ngày (daysDiff > 1): reset streak về 1
   UserStreak _calculateNewStreak(UserStreak current) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    // Chưa có activity trước đó
+    // Chưa có activity trước đó (lần đầu học)
     if (current.lastActivityDate == null) {
+      print('🎯 First time learning! Streak = 1');
       return current.copyWith(
         currentStreak: 1,
         longestStreak: 1,
@@ -104,17 +115,22 @@ class StreakService {
     final daysDiff = today.difference(lastDate).inDays;
 
     if (daysDiff == 0) {
-      // Cùng ngày → không thay đổi streak
-      print('⏭️ Already counted today');
-      return current;
+      // Cùng ngày → giữ nguyên streak, chỉ update updatedAt
+      // Điều này cho phép người dùng học nhiều lần trong ngày mà không ảnh hưởng streak
+      print(
+        '⏭️ Already learned today, maintaining streak: ${current.currentStreak}',
+      );
+      return current.copyWith(
+        updatedAt: now, // Chỉ cập nhật thời gian, không thay đổi streak
+      );
     } else if (daysDiff == 1) {
-      // Ngày tiếp theo → tăng streak
+      // Ngày tiếp theo liên tiếp → tăng streak
       final newStreak = current.currentStreak + 1;
       final newLongest = newStreak > current.longestStreak
           ? newStreak
           : current.longestStreak;
 
-      print('⬆️ Streak increased to $newStreak days');
+      print('🔥 Streak increased: ${current.currentStreak} → $newStreak days');
       return current.copyWith(
         currentStreak: newStreak,
         longestStreak: newLongest,
@@ -122,8 +138,8 @@ class StreakService {
         updatedAt: now,
       );
     } else {
-      // Bỏ lỡ ngày → reset về 1
-      print('💔 Streak broken! Resetting to 1');
+      // Bỏ lỡ ngày (daysDiff > 1) → reset về 1
+      print('💔 Streak broken! (missed ${daysDiff - 1} day(s)) Resetting to 1');
       return current.copyWith(
         currentStreak: 1,
         lastActivityDate: today,
@@ -144,9 +160,10 @@ class StreakService {
 
   Future<void> _saveToLocal(UserStreak streak) async {
     try {
+      final storageKey = _getStorageKey(streak.userId);
       final jsonString = jsonEncode(streak.toJson());
-      await _prefs.setString(_storageKey, jsonString);
-      print('💾 Saved streak to local');
+      await _prefs.setString(storageKey, jsonString);
+      print('💾 Saved streak to local (key: $storageKey)');
     } catch (e) {
       print('⚠️ Error saving to local: $e');
       rethrow;
@@ -215,5 +232,16 @@ class StreakService {
     final resetStreak = UserStreak.initial(userId);
     await _saveStreak(resetStreak);
     print('🔄 Streak reset to 0');
+  }
+
+  /// Clear local streak data (when user logs out)
+  Future<void> clearLocalStreak(String userId) async {
+    try {
+      final storageKey = _getStorageKey(userId);
+      await _prefs.remove(storageKey);
+      print('🗑️ Cleared local streak for user: $userId');
+    } catch (e) {
+      print('⚠️ Error clearing local streak: $e');
+    }
   }
 }
