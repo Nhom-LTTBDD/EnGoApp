@@ -6,10 +6,10 @@ import 'firebase_options.dart';
 import 'core/di/injection_container.dart' as di;
 import 'core/theme/app_theme.dart';
 import 'presentation/providers/auth/auth_provider.dart';
-import 'presentation/providers/auth/auth_state.dart'; // 🆕 Import AuthState
+import 'presentation/providers/auth/auth_state.dart'; // Import AuthState
 import 'presentation/providers/profile/profile_provider.dart';
 import 'presentation/providers/vocabulary_provider.dart';
-import 'presentation/providers/flashcard_provider.dart'; // 🆕 Import FlashcardProvider
+import 'presentation/providers/flashcard_provider.dart'; // Import FlashcardProvider
 import 'presentation/providers/personal_vocabulary_provider.dart';
 import 'presentation/providers/grammar_provider.dart';
 import 'presentation/providers/theme/theme_provider.dart';

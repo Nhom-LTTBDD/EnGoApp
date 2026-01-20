@@ -9,8 +9,21 @@ import '../../../domain/repository_interfaces/vocabulary_repository.dart';
 import '../../../domain/entities/vocabulary_topic.dart';
 import '../../widgets/topic_card.dart';
 
+/// Enum để phân biệt chế độ sử dụng của page
+enum TopicSelectionMode {
+  flashcard, // Học flashcard
+  quiz, // Làm quiz
+}
+
+/// Page chọn topic - có thể dùng cho Flashcard hoặc Quiz
 class VocabByTopicPage extends StatefulWidget {
-  const VocabByTopicPage({super.key});
+  final TopicSelectionMode mode;
+
+  const VocabByTopicPage({
+    super.key,
+    this.mode = TopicSelectionMode
+        .flashcard, // Mặc định là flashcard để tương thích ngược
+  });
 
   @override
   State<VocabByTopicPage> createState() => _VocabByTopicPageState();
@@ -50,8 +63,21 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Dynamic title và subtitle dựa vào mode
+    final String pageTitle = widget.mode == TopicSelectionMode.flashcard
+        ? 'VOCABULARY TOPICS'
+        : 'QUIZ BY TOPIC';
+
+    final String headerTitle = widget.mode == TopicSelectionMode.flashcard
+        ? 'Chọn Chủ Đề'
+        : 'Chọn Chủ Đề Quiz';
+
+    final String headerSubtitle = widget.mode == TopicSelectionMode.flashcard
+        ? 'Chọn chủ đề để học flashcard'
+        : 'Chọn chủ đề để làm bài kiểm tra';
+
     return MainLayout(
-      title: 'VOCABULARY TOPICS',
+      title: pageTitle,
       currentIndex: -1,
       child: Container(
         width: double.infinity,
@@ -69,11 +95,19 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Chọn Chủ Đề',
+                    headerTitle,
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                       color: getTextPrimary(context),
+                    ),
+                  ),
+                  const SizedBox(height: spaceSm),
+                  Text(
+                    headerSubtitle,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: getTextThird(context),
                     ),
                   ),
                 ],
@@ -165,12 +199,26 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
                           emoji: emoji,
                           imageAsset: topic.imageUrl,
                           onTap: () {
-                            // Navigate directly to flashcard page
-                            Navigator.pushNamed(
-                              context,
-                              AppRoutes.flashcard,
-                              arguments: {'topicId': topic.id},
-                            );
+                            // Navigate dựa vào mode
+                            if (widget.mode == TopicSelectionMode.flashcard) {
+                              // Mode Flashcard: Navigate to flashcard page
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.flashcard,
+                                arguments: {'topicId': topic.id},
+                              );
+                            } else {
+                              // Mode Quiz: Navigate to quiz settings page
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.quizSettings,
+                                arguments: {
+                                  'topicId': topic.id,
+                                  'topicName': topic.name,
+                                  'cardCount': topic.cards.length,
+                                },
+                              );
+                            }
                           },
                         ),
                       );

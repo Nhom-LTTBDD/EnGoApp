@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import '../../../routes/app_routes.dart';
 import '../../widgets/vocabulary_menu_item.dart';
+import 'vocab_by_topic_page.dart'; // Import để dùng TopicSelectionMode
 
 /// Abstract base class cho vocabulary menu actions
 abstract class VocabularyMenuAction {
@@ -41,29 +42,16 @@ class PersonalCollectionMenuAction extends VocabularyMenuAction {
 class QuizMenuAction extends VocabularyMenuAction {
   @override
   Future<void> execute(BuildContext context) async {
-    // Navigator.pushNamed(context, AppRoutes.quiz);
-    _showComingSoonDialog(context, 'Quiz');
+    // Navigate to vocab by topic page with Quiz mode
+    Navigator.pushNamed(
+      context,
+      AppRoutes.vocabByTopic,
+      arguments: {'mode': TopicSelectionMode.quiz},
+    );
   }
 
   @override
   String get analyticsEvent => 'quiz_opened';
-}
-
-/// Helper function for coming soon dialog
-void _showComingSoonDialog(BuildContext context, String feature) {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text(feature),
-      content: const Text('Tính năng này sẽ sớm được cập nhật!'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Đóng'),
-        ),
-      ],
-    ),
-  );
 }
 
 /// Factory class để tạo actions
