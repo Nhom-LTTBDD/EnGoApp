@@ -4,58 +4,16 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import '../../domain/entities/toeic_question.dart';
 import '../../domain/entities/toeic_test.dart';
+import 'firebase_storage_service.dart';
 
 class ToeicJsonService {
+  // Use Firebase Storage service for data loading
   static Future<Map<String, dynamic>> loadJsonData() async {
-    try {
-      print('Loading JSON from assets/toeic_questions.json...');
-      String jsonString = await rootBundle.loadString(
-        'assets/toeic_questions.json',
-      );
-      print('Raw JSON string length: ${jsonString.length}');
-      final data = json.decode(jsonString);
-      print('JSON decoded successfully');
-      print('Available tests: ${data.keys.toList()}');
-
-      // Check if test1 exists
-      if (data['test1'] != null) {
-        final test1 = data['test1'];
-        print('Test1 found with keys: ${test1.keys.toList()}');
-        if (test1['parts'] != null) {
-          final parts = test1['parts'];
-          print('Available parts: ${parts.keys.toList()}');
-        }
-      }
-
-      return data;
-    } catch (e) {
-      print('Error loading JSON: $e');
-      print('Error type: ${e.runtimeType}');
-      return {};
-    }
+    return await FirebaseStorageService.loadJsonData();
   }
 
   static Future<ToeicTest> loadTest(String testId) async {
-    final data = await loadJsonData();
-    final testData = data[testId];
-
-    if (testData == null) {
-      throw Exception('Test $testId not found');
-    }
-
-    return ToeicTest(
-      id: testId,
-      name: testData['name'],
-      description: 'TOEIC Practice Test',
-      totalQuestions: testData['totalQuestions'],
-      listeningQuestions: 100, // Part 1-4
-      readingQuestions: 100, // Part 5-7
-      duration: testData['duration'],
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      isActive: true,
-      year: 2025,
-    );
+    return await FirebaseStorageService.loadTest(testId);
   }
 
   static Future<List<ToeicQuestion>> loadQuestionsByPart(
@@ -63,8 +21,28 @@ class ToeicJsonService {
     int partNumber,
   ) async {
     try {
-      print('Loading questions for test: $testId, part: $partNumber');
-      final data = await loadJsonData();
+      print('🔥 Loading questions for test: $testId, part: $partNumber from Firebase');
+      
+      // Use Firebase Storage service
+      return await FirebaseStorageService.loadQuestionsByPart(partNumber);
+    } catch (e) {
+      print('❌ Error loading questions for part $partNumber from Firebase: $e');
+      
+      // Fallback to local loading
+      print('🔄 Falling back to local assets...');
+      return await _loadQuestionsFromLocalAssets(testId, partNumber);
+    }
+  }
+
+  /// Fallback method to load from local assets
+  static Future<List<ToeicQuestion>> _loadQuestionsFromLocalAssets(
+    String testId,
+    int partNumber,
+  ) async {
+    try {
+      print('Loading questions from local assets for test: $testId, part: $partNumber');
+      final String jsonString = await rootBundle.loadString('assets/toeic_questions.json');
+      final data = json.decode(jsonString);
 
       if (data.isEmpty) {
         print('No JSON data loaded');
@@ -153,7 +131,7 @@ class ToeicJsonService {
       print('Successfully created ${questions.length} ToeicQuestion objects');
       return questions;
     } catch (e) {
-      print('Error loading questions for part $partNumber: $e');
+      print('Error loading questions for part $partNumber from local assets: $e');
       return [];
     }
   }

@@ -17,6 +17,8 @@ import '../presentation/pages/test/toeic_page.dart';
 import '../presentation/pages/test/toeic_detail_page.dart';
 import '../presentation/pages/test/toeic_test_taking_page.dart';
 import '../presentation/pages/test/toeic_result_page.dart';
+import '../presentation/pages/test/toeic/toeic_review_page.dart';
+import '../domain/entities/toeic_question.dart';
 //Vocabulary
 import '../presentation/pages/vocabulary/vocabulary_page.dart';
 import '../presentation/pages/vocabulary/vocab_by_topic_page.dart';
@@ -48,6 +50,7 @@ class AppRoutes {
   static const String toeicDetail = '/toeic/detail';
   static const String toeicTestTaking = '/toeic/test-taking';
   static const String toeicResult = '/toeic/result';
+  static const String toeicReview = '/toeic/review';
   static const String vocab = '/vocabulary'; //Vocabulary
   static const String vocabByTopic =
       '/vocabulary/by-topic'; //Vocabulary by topic
@@ -134,6 +137,18 @@ class RouteGenerator {
             readingUnanswered: args?['readingUnanswered'] as int? ?? 0,
             listeningTotal: args?['listeningTotal'] as int? ?? 100,
             readingTotal: args?['readingTotal'] as int? ?? 100,
+            questions: args?['questions'] as List<ToeicQuestion>?,
+            userAnswers: args?['userAnswers'] as Map<int, String>?,
+            sessionLog: args?['sessionLog'] as List<dynamic>?,
+          ),
+        );
+      case AppRoutes.toeicReview:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => ToeicReviewPage(
+            questions: args?['questions'] as List<ToeicQuestion>? ?? [],
+            userAnswers: args?['userAnswers'] as Map<int, String>? ?? {},
+            sessionLog: args?['sessionLog'] as List<dynamic>? ?? [],
           ),
         );
       //case Vocab

@@ -13,6 +13,7 @@ class ToeicQuestion {
   final List<String> options; // A, B, C, D
   final String correctAnswer;
   final String? explanation;
+  final String? transcript; // Audio transcript
   final int order;
 
   final String? groupId;
@@ -31,6 +32,7 @@ class ToeicQuestion {
     required this.options,
     required this.correctAnswer,
     this.explanation,
+    this.transcript,
     required this.order,
     this.groupId,
     this.passageText,

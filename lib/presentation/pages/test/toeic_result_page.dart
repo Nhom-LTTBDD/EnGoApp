@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/routes/app_routes.dart';
 import '../../../domain/entities/toeic_test_session.dart';
+import '../../../domain/entities/toeic_question.dart';
 
 class ToeicResultPage extends StatelessWidget {
-  final ToeicTestSession session;
+  final ToeicTestSession? session;
   final String testName;
   final int listeningScore;
   final int readingScore;
@@ -19,10 +20,13 @@ class ToeicResultPage extends StatelessWidget {
   final int readingUnanswered;
   final int listeningTotal;
   final int readingTotal;
+  final List<ToeicQuestion>? questions;
+  final Map<int, String>? userAnswers;
+  final List<dynamic>? sessionLog;
 
   const ToeicResultPage({
     Key? key,
-    required this.session,
+    this.session,
     required this.testName,
     required this.listeningScore,
     required this.readingScore,
@@ -35,10 +39,17 @@ class ToeicResultPage extends StatelessWidget {
     required this.readingUnanswered,
     required this.listeningTotal,
     required this.readingTotal,
+    this.questions,
+    this.userAnswers,
+    this.sessionLog,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    print('🔍 ToeicResultPage Build:');
+    print('   questions: ${questions?.length ?? 'null'}');
+    print('   userAnswers: ${userAnswers?.length ?? 'null'}');
+
     return MainLayout(
       title: "TOEIC",
       currentIndex: 1,
@@ -274,15 +285,34 @@ class ToeicResultPage extends StatelessWidget {
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () {
-                              // TODO: Navigate to test review page
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Review functionality coming soon!',
-                                  ),
-                                  backgroundColor: Colors.green,
-                                ),
+                              print('🔍 Debug ToeicResultPage Review Button:');
+                              print(
+                                '   questions: ${questions?.length ?? 'null'}',
                               );
+                              print(
+                                '   userAnswers: ${userAnswers?.length ?? 'null'}',
+                              );
+
+                              if (questions != null && userAnswers != null) {
+                                Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.toeicReview,
+                                  arguments: {
+                                    'questions': questions,
+                                    'userAnswers': userAnswers,
+                                    'sessionLog': sessionLog ?? [],
+                                  },
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Không có dữ liệu để xem lại bài làm!',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
@@ -294,7 +324,7 @@ class ToeicResultPage extends StatelessWidget {
                               elevation: 2,
                             ),
                             child: const Text(
-                              'Review Test',
+                              'Xem lại bài làm',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,

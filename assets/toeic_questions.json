@@ -12,6 +12,7 @@
             "audioFile": "001.mp3",
             "imageFile": "test1_1.jpg",
             "questionType": "image-audio",
+            "transcript": "Look at the picture marked number 1 in your test book. A) The woman is carrying a tray of food. B) The woman is wearing a jacket. C) The woman is tying up her hair. D) The woman is removing her hat.",
             "options": [
               "The woman is carrying a tray of food.",
               "The woman is wearing a jacket.",
@@ -26,6 +27,7 @@
             "audioFile": "002.mp3",
             "imageFile": "test1_2.jpg",
             "questionType": "image-audio",
+            "transcript": "Look at the picture marked number 2 in your test book. A) Some people are standing next to a filing cabinet. B) Some people are searching through a desk. C) Some people are watching a presentation. D) Some people are looking at a book.",
             "options": [
               "Some people are standing next to a filing cabinet.",
               "Some people are searching through a desk.",
