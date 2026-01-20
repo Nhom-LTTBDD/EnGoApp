@@ -186,13 +186,10 @@ class RouteGenerator {
         final args = settings.arguments as Map<String, dynamic>?;
         final topicId = args?['topicId'] as String? ?? '1';
         final topicName = args?['topicName'] as String? ?? 'Quiz';
-        final cardCount = args?['cardCount'] as int? ?? 0;
+        // final cardCount = args?['cardCount'] as int? ?? 0;
         return MaterialPageRoute(
-          builder: (_) => QuizSettingsPage(
-            topicId: topicId,
-            topicName: topicName,
-            cardCount: cardCount,
-          ),
+          builder: (_) =>
+              QuizSettingsPage(topicId: topicId, topicName: topicName),
         );
 
       // Quiz case
