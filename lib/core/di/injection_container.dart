@@ -38,6 +38,7 @@ import '../../presentation/providers/vocabulary_provider.dart';
 import '../../presentation/providers/grammar_provider.dart';
 import '../../presentation/providers/personal_vocabulary_provider.dart';
 import '../../presentation/providers/streak_provider.dart';
+import '../../presentation/providers/flashcard_progress_provider.dart';
 
 // Vocabulary Domain
 import '../../domain/repository_interfaces/vocabulary_repository.dart';
@@ -62,6 +63,16 @@ import '../../domain/usecases/grammar/get_grammar_lessons_use_case.dart';
 
 // Grammar Data
 import '../../data/repositories/grammar_repository_impl.dart';
+
+// Flashcard Progress Domain
+import '../../domain/repository_interfaces/flashcard_progress_repository.dart';
+import '../../domain/usecases/flashcard/get_flashcard_progress.dart';
+import '../../domain/usecases/flashcard/save_flashcard_progress.dart';
+import '../../domain/usecases/flashcard/update_card_progress.dart';
+import '../../domain/usecases/flashcard/reset_flashcard_progress.dart';
+
+// Flashcard Progress Data
+import '../../data/repositories/flashcard_progress_repository_impl.dart';
 
 // Services
 import '../services/audio_service.dart';
@@ -166,6 +177,10 @@ Future<void> init() async {
 
   sl.registerLazySingleton<GrammarRepository>(() => GrammarRepositoryImpl());
 
+  sl.registerLazySingleton<FlashcardProgressRepository>(
+    () => FlashcardProgressRepositoryImpl(firestore: sl(), prefs: sl()),
+  );
+
   // =============================================================================
   // Use Cases - Auth
   // =============================================================================
@@ -195,6 +210,14 @@ Future<void> init() async {
   // =============================================================================
   sl.registerLazySingleton(() => GetGrammarTopicsUseCase(sl()));
   sl.registerLazySingleton(() => GetGrammarLessonsUseCase(sl()));
+
+  // =============================================================================
+  // Use Cases - Flashcard Progress
+  // =============================================================================
+  sl.registerLazySingleton(() => GetFlashcardProgress(sl()));
+  sl.registerLazySingleton(() => SaveFlashcardProgress(sl()));
+  sl.registerLazySingleton(() => UpdateCardProgress(sl()));
+  sl.registerLazySingleton(() => ResetFlashcardProgress(sl()));
 
   // =============================================================================
   // Providers (State Management) - MUST BE LAST
@@ -242,4 +265,13 @@ Future<void> init() async {
   );
 
   sl.registerFactory(() => StreakProvider(streakService: sl()));
+
+  sl.registerFactory(
+    () => FlashcardProgressProvider(
+      getProgress: sl(),
+      saveProgress: sl(),
+      updateProgress: sl(),
+      resetProgress: sl(),
+    ),
+  );
 }

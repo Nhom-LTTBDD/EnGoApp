@@ -18,7 +18,7 @@ class TopicsMenuAction extends VocabularyMenuAction {
   Future<void> execute(BuildContext context) async {
     // Analytics tracking
     // AnalyticsService.trackEvent(analyticsEvent);
-    
+
     // Navigate to vocab by topic page (topic selection)
     Navigator.pushNamed(context, AppRoutes.vocabByTopic);
   }
@@ -38,23 +38,13 @@ class PersonalCollectionMenuAction extends VocabularyMenuAction {
   String get analyticsEvent => 'personal_collection_opened';
 }
 
-class FlashCardMenuAction extends VocabularyMenuAction {
-  @override
-  Future<void> execute(BuildContext context) async {
-    // Navigator.pushNamed(context, AppRoutes.flashCard);
-    _showComingSoonDialog(context, 'Flash Card');
-  }
-
-  @override
-  String get analyticsEvent => 'flashcard_opened';
-}
-
 class QuizMenuAction extends VocabularyMenuAction {
   @override
   Future<void> execute(BuildContext context) async {
     // Navigator.pushNamed(context, AppRoutes.quiz);
     _showComingSoonDialog(context, 'Quiz');
   }
+
   @override
   String get analyticsEvent => 'quiz_opened';
 }
@@ -64,7 +54,7 @@ void _showComingSoonDialog(BuildContext context, String feature) {
   showDialog(
     context: context,
     builder: (context) => AlertDialog(
-      title: Text('$feature'),
+      title: Text(feature),
       content: const Text('Tính năng này sẽ sớm được cập nhật!'),
       actions: [
         TextButton(
@@ -81,7 +71,6 @@ class VocabularyMenuActionFactory {
   static final Map<VocabularyMenuType, VocabularyMenuAction> _actions = {
     VocabularyMenuType.topics: TopicsMenuAction(),
     VocabularyMenuType.personalCollection: PersonalCollectionMenuAction(),
-    VocabularyMenuType.flashCard: FlashCardMenuAction(),
     VocabularyMenuType.quiz: QuizMenuAction(),
   };
 
@@ -127,7 +116,8 @@ class VocabularyMenuData {
 
 /// Manager class chính
 class VocabularyMenuManager {
-  static final VocabularyMenuManager _instance = VocabularyMenuManager._internal();
+  static final VocabularyMenuManager _instance =
+      VocabularyMenuManager._internal();
   factory VocabularyMenuManager() => _instance;
   VocabularyMenuManager._internal();
 
@@ -140,7 +130,7 @@ class VocabularyMenuManager {
 
   /// Execute action for specific menu type
   Future<void> executeMenuAction(
-    BuildContext context, 
+    BuildContext context,
     VocabularyMenuType type,
   ) async {
     final action = VocabularyMenuActionFactory.getAction(type);

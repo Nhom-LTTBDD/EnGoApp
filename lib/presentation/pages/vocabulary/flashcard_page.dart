@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/flashcard_provider.dart';
 import '../../providers/streak_provider.dart';
+import '../../providers/flashcard_progress_provider.dart';
 import '../../widgets/vocabulary/flashcard_header.dart';
 import '../../widgets/vocabulary/flashcard_score_display.dart';
 import '../../widgets/vocabulary/flashcard_swipe_card.dart';
@@ -26,6 +27,9 @@ class _FlashcardPageState extends State<FlashcardPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _flipAnimation;
+
+  // Store the current cards being studied (for checking completion)
+  List<dynamic> _currentCards = [];
 
   @override
   void initState() {
@@ -51,14 +55,22 @@ class _FlashcardPageState extends State<FlashcardPage>
 
   void _loadVocabularyCards() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final progressProvider = context.read<FlashcardProgressProvider>();
+      final userId = progressProvider.userId;
+      final topicId = widget.topicId ?? '1';
+
       // Reset flashcard state when entering the page
       context.read<FlashcardProvider>().resetAll();
       context.read<VocabularyProvider>().setCurrentCardIndex(0);
       context.read<VocabularyProvider>().resetCardFlip();
 
-      context.read<VocabularyProvider>().loadVocabularyCards(
-        widget.topicId ?? '1',
-      );
+      // Load vocabulary cards
+      context.read<VocabularyProvider>().loadVocabularyCards(topicId);
+
+      // Load progress if user is authenticated
+      if (userId != 'default_user') {
+        progressProvider.loadProgress(userId: userId, topicId: topicId);
+      }
     });
   }
 
@@ -70,9 +82,52 @@ class _FlashcardPageState extends State<FlashcardPage>
 
   void _showResultDialog() async {
     final flashcardProvider = context.read<FlashcardProvider>();
+    final streakProvider = context.read<StreakProvider>();
+    final progressProvider = context.read<FlashcardProgressProvider>();
+
+    // Get userId from FlashcardProgressProvider (already set by main.dart)
+    final userId = progressProvider.userId;
+    final topicId = widget.topicId ?? '1';
+
+    print('🔥🔥🔥 ========== FLASHCARD SESSION ENDED ========== 🔥🔥🔥');
+    print('📊 User ID (from FlashcardProgressProvider): $userId');
+    print('📚 Topic ID: $topicId');
 
     // Record activity to update streak
-    context.read<StreakProvider>().recordActivity();
+    streakProvider.recordActivity();
+
+    // Save progress if user is authenticated
+    if (userId != 'default_user') {
+      // Get tracked card IDs from FlashcardProvider
+      final masteredCardIds = flashcardProvider.masteredCardIds.toList();
+      final learningCardIds = flashcardProvider.learningCardIds.toList();
+
+      print('✅ Mastered Cards: $masteredCardIds');
+      print('📖 Learning Cards: $learningCardIds');
+      print('🔄 Saving to Firebase...');
+
+      try {
+        // Update progress in Firebase
+        await progressProvider.updateCards(
+          userId: userId,
+          topicId: topicId,
+          masteredCardIds: masteredCardIds,
+          learningCardIds: learningCardIds,
+        );
+
+        print('✅ SAVED TO FIREBASE SUCCESSFULLY!');
+        print('🔍 Check Firebase Console:');
+        print('   Collection: flashcard_progress');
+        print('   Document ID: ${userId}_$topicId');
+        print('🔥🔥🔥 ========================================= 🔥🔥🔥');
+      } catch (e) {
+        print('❌ ERROR SAVING TO FIREBASE: $e');
+        print('🔥🔥🔥 ========================================= 🔥🔥🔥');
+      }
+    } else {
+      print('⚠️ User not authenticated - skipping Firebase save');
+      print('🔥🔥🔥 ========================================= 🔥🔥🔥');
+    }
 
     final result = await Navigator.push(
       context,
@@ -89,17 +144,66 @@ class _FlashcardPageState extends State<FlashcardPage>
       if (mounted) Navigator.of(context).pop(); // Go back to previous page
     } else if (result == 'study_again') {
       _resetAndStudyAgain();
+    } else if (result == 'continue_learning') {
+      // Continue learning with remaining cards (do nothing, just reload the page)
+      if (mounted) {
+        // Reset flashcard state to start from beginning of remaining cards
+        flashcardProvider.resetAll();
+        context.read<VocabularyProvider>().setCurrentCardIndex(0);
+        context.read<VocabularyProvider>().resetCardFlip();
+        _animationController.reset();
+
+        // Trigger rebuild to show remaining cards
+        setState(() {});
+      }
     }
   }
 
   void _resetAndStudyAgain() {
     final flashcardProvider = context.read<FlashcardProvider>();
     final vocabProvider = context.read<VocabularyProvider>();
+    final progressProvider = context.read<FlashcardProgressProvider>();
+    final userId = progressProvider.userId;
+    final topicId = widget.topicId ?? '1';
 
     flashcardProvider.resetAll();
     vocabProvider.setCurrentCardIndex(0);
     vocabProvider.resetCardFlip();
     _animationController.reset();
+
+    // Reset progress in Firebase if user is authenticated
+    if (userId != 'default_user') {
+      progressProvider.resetProgress(userId: userId, topicId: topicId);
+    }
+  }
+
+  void _handleUndo() {
+    final flashcardProvider = context.read<FlashcardProvider>();
+    final vocabProvider = context.read<VocabularyProvider>();
+
+    final success = flashcardProvider.undoLastAction();
+
+    if (success) {
+      // Sync với VocabularyProvider
+      vocabProvider.setCurrentCardIndex(flashcardProvider.currentCardIndex);
+      vocabProvider.resetCardFlip();
+
+      // Reset animation
+      _animationController.reset();
+
+      // Rebuild UI
+      setState(() {});
+
+      print('↩️ Undo: Quay lại thẻ #${flashcardProvider.currentCardIndex}');
+    } else {
+      // Không có gì để undo
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Không có thẻ nào để quay lại'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    }
   }
 
   void _handleFlipCard() {
@@ -204,6 +308,10 @@ class _FlashcardPageState extends State<FlashcardPage>
       const Duration(milliseconds: FlashcardConstants.transitionDelay),
       () {
         if (mounted) {
+          // Get current card and mark as mastered
+          final currentCard = _currentCards[flashcardProvider.currentCardIndex];
+          flashcardProvider.markCardAsMastered(currentCard.id);
+
           flashcardProvider.incrementCorrect();
           flashcardProvider.nextCard();
           flashcardProvider.resetFlip();
@@ -213,9 +321,8 @@ class _FlashcardPageState extends State<FlashcardPage>
           _animationController.reset();
           vocabProvider.resetCardFlip();
 
-          // Check if finished
-          if (flashcardProvider.currentCardIndex >=
-              vocabProvider.vocabularyCards.length) {
+          // Check if finished (use _currentCards instead of all vocabulary cards)
+          if (flashcardProvider.currentCardIndex >= _currentCards.length) {
             Future.delayed(
               const Duration(milliseconds: FlashcardConstants.transitionDelay),
               () {
@@ -241,6 +348,10 @@ class _FlashcardPageState extends State<FlashcardPage>
       const Duration(milliseconds: FlashcardConstants.transitionDelay),
       () {
         if (mounted) {
+          // Get current card and mark as learning
+          final currentCard = _currentCards[flashcardProvider.currentCardIndex];
+          flashcardProvider.markCardAsLearning(currentCard.id);
+
           flashcardProvider.incrementWrong();
           flashcardProvider.nextCard();
           flashcardProvider.resetFlip();
@@ -250,9 +361,8 @@ class _FlashcardPageState extends State<FlashcardPage>
           _animationController.reset();
           vocabProvider.resetCardFlip();
 
-          // Check if finished
-          if (flashcardProvider.currentCardIndex >=
-              vocabProvider.vocabularyCards.length) {
+          // Check if finished (use _currentCards instead of all vocabulary cards)
+          if (flashcardProvider.currentCardIndex >= _currentCards.length) {
             Future.delayed(
               const Duration(milliseconds: FlashcardConstants.transitionDelay),
               () {
@@ -267,26 +377,83 @@ class _FlashcardPageState extends State<FlashcardPage>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<VocabularyProvider, FlashcardProvider>(
-      builder: (context, vocabProvider, flashcardProvider, child) {
-        // Loading state
-        if (vocabProvider.isLoading) {
-          return _buildLoadingState();
-        }
+    return Consumer3<
+      VocabularyProvider,
+      FlashcardProvider,
+      FlashcardProgressProvider
+    >(
+      builder:
+          (context, vocabProvider, flashcardProvider, progressProvider, child) {
+            // Loading state
+            if (vocabProvider.isLoading) {
+              return _buildLoadingState();
+            }
 
-        // Error state
-        if (vocabProvider.error != null) {
-          return _buildErrorState(vocabProvider);
-        }
+            // Error state
+            if (vocabProvider.error != null) {
+              return _buildErrorState(vocabProvider);
+            }
 
-        // Empty state
-        if (vocabProvider.vocabularyCards.isEmpty) {
-          return _buildEmptyState();
-        }
+            // Empty state
+            if (vocabProvider.vocabularyCards.isEmpty) {
+              return _buildEmptyState();
+            }
 
-        // Main flashcard UI
-        return _buildFlashcardUI(vocabProvider, flashcardProvider);
-      },
+            // Filter cards based on progress (only show learning cards)
+            final allCards = vocabProvider.vocabularyCards;
+            final learningCardIds = progressProvider.getCardsToStudy();
+            final cardsToStudy = learningCardIds.isEmpty
+                ? allCards // If no progress, study all cards
+                : allCards
+                      .where((card) => learningCardIds.contains(card.id))
+                      .toList();
+
+            // If all cards are mastered, auto-reset and show all cards
+            if (cardsToStudy.isEmpty && progressProvider.hasProgress) {
+              // Auto reset progress to allow re-study
+              final userId = progressProvider.userId;
+              final topicId = widget.topicId ?? '1';
+
+              if (userId != 'default_user') {
+                // Reset progress in background
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  context.read<FlashcardProgressProvider>().resetProgress(
+                    userId: userId,
+                    topicId: topicId,
+                  );
+                  // Reset flashcard provider state
+                  context.read<FlashcardProvider>().clearProgress();
+
+                  // // Show notification to user
+                  // ScaffoldMessenger.of(context).showSnackBar(
+                  //   SnackBar(
+                  //     content: Row(
+                  //       children: const [
+                  //         Icon(Icons.restart_alt, color: Colors.white),
+                  //         SizedBox(width: 12),
+                  //         Expanded(
+                  //           child: Text(
+                  //             'Bạn đã học hết! Đang khởi động lại để ôn tập từ đầu',
+                  //             style: TextStyle(fontSize: 14),
+                  //           ),
+                  //         ),
+                  //       ],
+                  //     ),
+                  //     backgroundColor: Colors.green.shade600,
+                  //     duration: const Duration(seconds: 3),
+                  //     behavior: SnackBarBehavior.floating,
+                  //   ),
+                  // );
+                });
+              }
+
+              // Show all cards for re-study
+              return _buildFlashcardUI(allCards, flashcardProvider);
+            }
+
+            // Main flashcard UI with filtered cards
+            return _buildFlashcardUI(cardsToStudy, flashcardProvider);
+          },
     );
   }
 
@@ -349,10 +516,11 @@ class _FlashcardPageState extends State<FlashcardPage>
   }
 
   Widget _buildFlashcardUI(
-    VocabularyProvider vocabProvider,
+    List<dynamic> vocabularyCards,
     FlashcardProvider flashcardProvider,
   ) {
-    final vocabularyCards = vocabProvider.vocabularyCards;
+    // Store current cards for completion checking
+    _currentCards = vocabularyCards;
 
     return Scaffold(
       backgroundColor: getBackgroundColor(context),
@@ -417,7 +585,10 @@ class _FlashcardPageState extends State<FlashcardPage>
               const SizedBox(height: spaceLg),
 
               // Controls
-              FlashcardControls(onReset: _resetAndStudyAgain),
+              FlashcardControls(
+                onUndo: _handleUndo,
+                canUndo: flashcardProvider.canUndo,
+              ),
 
               const SizedBox(height: spaceMd),
             ],

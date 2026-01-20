@@ -15,3 +15,4 @@ const String kIconEagleLight = '$_iconsDir/eagle-light.svg';
 const String kIconEagleDark = '$_iconsDir/eagle-dark.svg';
 const String kIconSwiftLogo = '$_iconsDir/swift-logo.svg';
 const String kIconBirdWelcome = '$_iconsDir/bird-welcome.svg';
+const String kIconTrophy = '$_iconsDir/ic_trophy.svg';
