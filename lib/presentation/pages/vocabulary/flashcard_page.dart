@@ -93,8 +93,38 @@ class _FlashcardPageState extends State<FlashcardPage>
     print('📊 User ID (from FlashcardProgressProvider): $userId');
     print('📚 Topic ID: $topicId');
 
-    // Record activity to update streak
-    streakProvider.recordActivity();
+    // Record activity to update streak ONLY if user has studied at least 1 card
+    final totalStudied =
+        flashcardProvider.correctCount + flashcardProvider.wrongCount;
+    if (totalStudied > 0) {
+      print(
+        '📚 User studied $totalStudied card(s) → Recording activity for streak',
+      );
+      final streakResult = await streakProvider.recordActivity();
+
+      // Show celebration if streak increased
+      if (streakResult['increased'] == true && mounted) {
+        final newStreak = streakResult['newStreak'] as int;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.local_fire_department, color: Colors.orange),
+                const SizedBox(width: 8),
+                Text(
+                  '🎉 Chuỗi học tăng lên $newStreak ngày!',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.orange.shade700,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } else {
+      print('⚠️ No cards studied → Skipping streak update');
+    }
 
     // Save progress if user is authenticated
     if (userId != 'default_user') {
