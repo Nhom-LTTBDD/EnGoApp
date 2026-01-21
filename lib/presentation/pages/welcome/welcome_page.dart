@@ -255,7 +255,6 @@ class _WelcomePageState extends State<WelcomePage>
         },
         variant: AppButtonVariant.accent,
         size: AppButtonSize.xLarge,
-        isFullWidth: false,
       ),
     );
   }
