@@ -159,8 +159,9 @@ class RouteGenerator {
       case AppRoutes.flashcard:
         final args = settings.arguments as Map<String, dynamic>?;
         final topicId = args?['topicId'] as String?;
+        final topicName = args?['topicName'] as String?;
         return MaterialPageRoute(
-          builder: (_) => FlashcardPage(topicId: topicId),
+          builder: (_) => FlashcardPage(topicId: topicId, topicName: topicName),
         );
       case AppRoutes.personalVocabulary:
         return MaterialPageRoute(
@@ -186,13 +187,10 @@ class RouteGenerator {
         final args = settings.arguments as Map<String, dynamic>?;
         final topicId = args?['topicId'] as String? ?? '1';
         final topicName = args?['topicName'] as String? ?? 'Quiz';
-        final cardCount = args?['cardCount'] as int? ?? 0;
+        // final cardCount = args?['cardCount'] as int? ?? 0;
         return MaterialPageRoute(
-          builder: (_) => QuizSettingsPage(
-            topicId: topicId,
-            topicName: topicName,
-            cardCount: cardCount,
-          ),
+          builder: (_) =>
+              QuizSettingsPage(topicId: topicId, topicName: topicName),
         );
 
       // Quiz case
