@@ -32,15 +32,16 @@ class _WelcomePageState extends State<WelcomePage>
   }
 
   void _initAnimations() {
-    // Logo animation
+    // Logo animation - Giảm duration để mượt hơn
     _logoController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
 
-    _logoScaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _logoController, curve: Curves.easeOutBack),
-    );
+    _logoScaleAnimation = Tween<double>(
+      begin: 0.5,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeOut));
 
     _logoFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -49,9 +50,9 @@ class _WelcomePageState extends State<WelcomePage>
       ),
     );
 
-    // Content animation
+    // Content animation - Giảm duration để mượt hơn
     _contentController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
 
@@ -95,8 +96,10 @@ class _WelcomePageState extends State<WelcomePage>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Precache images to avoid jank
-    precacheImage(const AssetImage(kBackgroundJpg), context);
+    // Precache images ASYNC để không block UI
+    Future.microtask(() {
+      precacheImage(const AssetImage(kBackgroundJpg), context);
+    });
   }
 
   @override

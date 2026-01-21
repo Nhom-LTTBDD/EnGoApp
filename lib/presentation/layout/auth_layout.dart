@@ -16,19 +16,20 @@ class AuthLayout extends StatelessWidget {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppHeader(title: 'EnGo App', elevation: 0),
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(gradient: kBackgroundGradient),
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: const EdgeInsets.all(16),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: IntrinsicHeight(
+      body: RepaintBoundary(
+        child: Container(
+          width: double.infinity,
+          decoration: const BoxDecoration(gradient: kBackgroundGradient),
+          child: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // Chỉ scroll khi màn hình nhỏ để giảm overhead
+                final needsScroll = constraints.maxHeight < 600;
+
+                if (!needsScroll) {
+                  // Không cần scroll - tiết kiệm tài nguyên
+                  return Padding(
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -37,10 +38,32 @@ class AuthLayout extends StatelessWidget {
                         child,
                       ],
                     ),
+                  );
+                }
+
+                // Cần scroll cho màn hình nhỏ
+                return SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: const EdgeInsets.all(16),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(title, style: kFormTitle),
+                          const SizedBox(height: 20),
+                          child,
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
