@@ -70,7 +70,7 @@ class _QuizPageState extends State<QuizPage> {
       if (mounted &&
           !_questionsGenerated &&
           provider.vocabularyCards.isNotEmpty) {
-        debugPrint('🎯 Cards loaded, now generating questions...');
+        debugPrint('Cards loaded, now generating questions...');
         _generateQuestions(provider.vocabularyCards);
       }
     });

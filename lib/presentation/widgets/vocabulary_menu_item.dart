@@ -122,7 +122,8 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
           child: GestureDetector(
             onTapDown: _handleTapDown,
             onTapUp: _handleTapUp,
-            onTapCancel: _handleTapCancel,            onTap: widget.isEnabled ? widget.onTap : null,
+            onTapCancel: _handleTapCancel,            
+            onTap: widget.isEnabled ? widget.onTap : null,
             child: AnimatedContainer(
               duration: AnimationUtils.normalDuration,
               width: double.infinity,

@@ -30,33 +30,33 @@ class PersonalVocabularyMigration {
       final hasMigrated = prefs.getBool('$_migrationKey\_$userId') ?? false;
 
       if (hasMigrated) {
-        print('✅ User đã được migrate trước đó');
+        print('User đã được migrate trước đó');
         return true;
       }
 
-      print('🔄 Bắt đầu migration cho user: $userId');
+      print('Bắt đầu migration cho user: $userId');
 
       // 1. Load data local hiện tại
       final localModel = await service.getPersonalVocabulary(userId);
 
       if (localModel.vocabularyCardIds.isEmpty) {
-        print('📭 Không có data local để migrate');
+        print('Không có data local để migrate');
         await _markAsMigrated(prefs, userId);
         return true;
       }
 
       // 2. Force sync lên cloud
-      print('☁️ Syncing ${localModel.vocabularyCardIds.length} cards to cloud...');
+      print('Syncing ${localModel.vocabularyCardIds.length} cards to cloud...');
       await service.forceSyncToCloud(userId);
 
       // 3. Đánh dấu đã migrate
       await _markAsMigrated(prefs, userId);
 
-      print('✅ Migration completed: ${localModel.vocabularyCardIds.length} cards');
+      print('Migration completed: ${localModel.vocabularyCardIds.length} cards');
       return true;
 
     } catch (e) {
-      print('⚠️ Migration failed: $e');
+      print('Migration failed: $e');
       return false;
     }
   }
@@ -75,7 +75,7 @@ class PersonalVocabularyMigration {
   static Future<void> resetMigrationFlag(String userId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('$_migrationKey\_$userId');
-    print('🔄 Reset migration flag for user: $userId');
+    print('Reset migration flag for user: $userId');
   }
 
   /// Check xem user đã migrate chưa
@@ -89,6 +89,6 @@ class PersonalVocabularyMigration {
     String userId,
   ) async {
     await prefs.setBool('$_migrationKey\_$userId', true);
-    print('✅ Đã đánh dấu migration completed cho user: $userId');
+    print('Đã đánh dấu migration completed cho user: $userId');
   }
 }

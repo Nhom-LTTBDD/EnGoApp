@@ -46,12 +46,12 @@ class PersonalVocabularyProvider with ChangeNotifier {
   void setUserId(String userId) {
     if (_userId != userId) {
       _logInfo(
-        '🔄 PersonalVocabularyProvider: Switching user from $_userId to $userId',
+        'PersonalVocabularyProvider: Switching user from $_userId to $userId',
       );
       _userId = userId;
       loadPersonalVocabulary();
     } else {
-      _logInfo('✅ PersonalVocabularyProvider: User ID already set to $userId');
+      _logInfo('PersonalVocabularyProvider: User ID already set to $userId');
     }
   }
 
@@ -61,14 +61,14 @@ class PersonalVocabularyProvider with ChangeNotifier {
     // Don't load with default user - wait for real userId
     if (_userId == 'default_user') {
       _logWarning(
-        '⚠️ Skipping load with default_user - waiting for real userId',
+        'Skipping load with default_user - waiting for real userId',
       );
       return;
     }
 
     // Prevent race condition: Skip if already loading
     if (_isCurrentlyLoading) {
-      _logWarning('⚠️ Load already in progress, skipping duplicate request');
+      _logWarning('Load already in progress, skipping duplicate request');
       return;
     }
 
@@ -78,14 +78,14 @@ class PersonalVocabularyProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      _logInfo('🔄 Loading personal vocabulary for user: $_userId');
+      _logInfo('Loading personal vocabulary for user: $_userId');
 
       // Get bookmarked card IDs
       _bookmarkedCardIds = await _service.getBookmarkedCardIds(_userId);
       _logInfo(
-        '📚 Found ${_bookmarkedCardIds.length} bookmarked card IDs from service',
+        'Found ${_bookmarkedCardIds.length} bookmarked card IDs from service',
       );
-      _logInfo('📋 Card IDs: ${_bookmarkedCardIds.join(", ")}');
+      _logInfo('Card IDs: ${_bookmarkedCardIds.join(", ")}');
 
       // Load and enrich all cards
       _personalCards = [];
@@ -95,18 +95,16 @@ class PersonalVocabularyProvider with ChangeNotifier {
       if (_bookmarkedCardIds.isNotEmpty) {
         for (var i = 0; i < _bookmarkedCardIds.length; i++) {
           final cardId = _bookmarkedCardIds[i];
-          _logInfo(
-            '📖 Loading card ${i + 1}/${_bookmarkedCardIds.length}: $cardId',
-          );
+          _logInfo('Loading card ${i + 1}/${_bookmarkedCardIds.length}: $cardId');
 
           final card = await _loadAndEnrichCard(cardId);
           if (card != null) {
             _personalCards.add(card);
             loadedCount++;
-            _logInfo('  ✅ Success: ${card.english}');
+            _logInfo('Success: ${card.english}');
           } else {
             failedCount++;
-            _logWarning('  ❌ Failed to load card: $cardId');
+            _logWarning('Failed to load card: $cardId');
           }
         }
       }
@@ -121,7 +119,7 @@ class PersonalVocabularyProvider with ChangeNotifier {
       _error = e.toString();
       _isLoading = false;
       _isCurrentlyLoading = false;
-      _logError('❌ Error loading personal vocabulary: $e');
+      _logError('Error loading personal vocabulary: $e');
       notifyListeners();
     }
   }
@@ -133,12 +131,12 @@ class PersonalVocabularyProvider with ChangeNotifier {
 
   Future<void> toggleBookmark(String cardId) async {
     try {
-      _logInfo('⭐ Toggling bookmark for card: $cardId');
+      _logInfo('Toggling bookmark for card: $cardId');
 
       final isNowBookmarked = await _service.toggleBookmark(_userId, cardId);
 
       if (isNowBookmarked) {
-        _logInfo('✅ Added to bookmarks: $cardId');
+        _logInfo('Added to bookmarks: $cardId');
         // Added to bookmarks
         if (!_bookmarkedCardIds.contains(cardId)) {
           _bookmarkedCardIds.add(cardId);
@@ -150,17 +148,17 @@ class PersonalVocabularyProvider with ChangeNotifier {
           }
         }
       } else {
-        _logInfo('❌ Removed from bookmarks: $cardId');
+        _logInfo('Removed from bookmarks: $cardId');
         // Removed from bookmarks
         _bookmarkedCardIds.remove(cardId);
         _personalCards.removeWhere((card) => card.id == cardId);
       }
 
-      _logInfo('📊 Total bookmarks: ${_bookmarkedCardIds.length}');
+      _logInfo('Total bookmarks: ${_bookmarkedCardIds.length}');
       notifyListeners();
     } catch (e) {
       _error = e.toString();
-      _logError('❌ Error toggling bookmark: $e');
+      _logError('Error toggling bookmark: $e');
       notifyListeners();
     }
   }
@@ -221,36 +219,32 @@ class PersonalVocabularyProvider with ChangeNotifier {
   /// Load và enrich một card từ ID
   Future<VocabularyCard?> _loadAndEnrichCard(String cardId) async {
     try {
-      _logInfo('    🔍 Fetching card from repository: $cardId');
+      _logInfo('Fetching card from repository: $cardId');
       final card = await _vocabularyRepository.getVocabularyCardById(cardId);
 
       if (card == null) {
-        _logWarning('    ⚠️ Card not found in repository: $cardId');
+        _logWarning('Card not found in repository: $cardId');
         return null;
       }
 
-      _logInfo('    📦 Card found: ${card.english}');
+      _logInfo('Card found: ${card.english}');
 
       // Enrich card với dictionary data
       try {
-        _logInfo('    🔄 Enriching card with dictionary data...');
+        _logInfo('Enriching card with dictionary data...');
         final enrichedCard = await _dictionaryRepository.enrichVocabularyCard(
           card,
         );
-        _logInfo(
-          '    ✅ Card enriched successfully with phonetic: ${enrichedCard.phonetic ?? "N/A"}',
-        );
+        _logInfo(' enriched successfully with phonetic: ${enrichedCard.phonetic ?? "N/A"}');
         return enrichedCard;
       } catch (e) {
         // Nếu không enrich được, vẫn trả về card gốc
-        _logWarning(
-          '    ⚠️ Could not enrich card ${card.english}, using original: $e',
-        );
+        _logWarning('Could not enrich card ${card.english}, using original: $e');
         return card;
       }
     } catch (e) {
-      _logError('    ❌ Error loading card $cardId: $e');
-      _logError('    ❌ Stack trace: ${StackTrace.current}');
+      _logError('Error loading card $cardId: $e');
+      _logError('Stack trace: ${StackTrace.current}');
       return null;
     }
   }

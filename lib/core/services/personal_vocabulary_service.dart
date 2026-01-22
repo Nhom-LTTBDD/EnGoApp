@@ -126,20 +126,20 @@ class PersonalVocabularyService {
   /// Force load từ cloud và save vào local (dùng khi sync hoặc refresh)
   Future<PersonalVocabularyModel> forceLoadFromCloud(String userId) async {
     try {
-      print('🔄 Force loading from cloud for user: $userId');
+      print('Force loading from cloud for user: $userId');
       final cloudModel = await _loadFromCloud(userId);
 
       if (cloudModel != null) {
         await _saveToLocal(cloudModel);
         print(
-          '✅ Force loaded from cloud: ${cloudModel.vocabularyCardIds.length} cards',
+          'Force loaded from cloud: ${cloudModel.vocabularyCardIds.length} cards',
         );
         return cloudModel;
       }
 
       return PersonalVocabularyModel.empty(userId);
     } catch (e) {
-      print('⚠️ Error force loading from cloud: $e');
+      print('Error force loading from cloud: $e');
       return PersonalVocabularyModel.empty(userId);
     }
   }
@@ -177,7 +177,7 @@ class PersonalVocabularyService {
           .timeout(VocabularyConstants.cloudLoadTimeout);
 
       if (!docSnapshot.exists || docSnapshot.data() == null) {
-        _logInfo('📭 No cloud data found for user: $userId');
+        _logInfo('No cloud data found for user: $userId');
         return null;
       }
 
@@ -191,13 +191,13 @@ class PersonalVocabularyService {
 
   /// Sync lên Firestore với debouncing
   void _syncToCloud(PersonalVocabularyModel model) {
-    _logInfo('🔄 _syncToCloud called for user: ${model.userId}');
+    _logInfo('_syncToCloud called for user: ${model.userId}');
 
     // Debouncing: Chỉ sync nếu đã qua 5 giây kể từ lần sync cuối
     final now = DateTime.now();
     if (_lastSyncTime != null) {
       final timeSinceLastSync = now.difference(_lastSyncTime!);
-      _logInfo('⏱️ Time since last sync: ${timeSinceLastSync.inSeconds}s');
+      _logInfo('Time since last sync: ${timeSinceLastSync.inSeconds}s');
 
       if (timeSinceLastSync < _syncInterval) {
         _logInfo(
@@ -222,8 +222,8 @@ class PersonalVocabularyService {
         })
         .catchError((e) {
           _logError('${VocabularyConstants.logSyncFailed}: $e');
-          _logError('⚠️ Error type: ${e.runtimeType}');
-          _logError('⚠️ Error details: ${e.toString()}');
+          _logError(' Error type: ${e.runtimeType}');
+          _logError(' Error details: ${e.toString()}');
         });
   }
 
@@ -243,7 +243,7 @@ class PersonalVocabularyService {
           .timeout(VocabularyConstants.forceSyncTimeout);
 
       _logInfo(
-        '✅ Force synced to cloud: ${model.vocabularyCardIds.length} cards',
+        ' Force synced to cloud: ${model.vocabularyCardIds.length} cards',
       );
       _lastSyncTime = DateTime.now();
     } catch (e) {
@@ -259,9 +259,9 @@ class PersonalVocabularyService {
 
       if (cloudModel != null) {
         await _saveToLocal(cloudModel);
-        _logInfo('✅ Restored from cloud to local');
+        _logInfo(' Restored from cloud to local');
       } else {
-        _logInfo('📭 No cloud data to restore');
+        _logInfo(' No cloud data to restore');
       }
     } catch (e) {
       _logError('${VocabularyConstants.errorRestoreFailed}: $e');

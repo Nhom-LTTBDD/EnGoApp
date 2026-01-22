@@ -70,10 +70,10 @@ class _QuizSettingsPageState extends State<QuizSettingsPage> {
           _cardCount = provider.vocabularyCards.length;
           _isLoadingCards = false;
         });
-        debugPrint('📊 Loaded card count: $_cardCount');
+        debugPrint('Loaded card count: $_cardCount');
       }
     } catch (e) {
-      debugPrint('❌ Error loading card count: $e');
+      debugPrint('Error loading card count: $e');
       if (mounted) {
         setState(() {
           _isLoadingCards = false;

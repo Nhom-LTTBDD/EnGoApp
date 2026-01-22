@@ -89,17 +89,15 @@ class _FlashcardPageState extends State<FlashcardPage>
     final userId = progressProvider.userId;
     final topicId = widget.topicId ?? '1';
 
-    print('🔥🔥🔥 ========== FLASHCARD SESSION ENDED ========== 🔥🔥🔥');
-    print('📊 User ID (from FlashcardProgressProvider): $userId');
-    print('📚 Topic ID: $topicId');
+    print('========== FLASHCARD SESSION ENDED ==========');
+    print('User ID (from FlashcardProgressProvider): $userId');
+    print('Topic ID: $topicId');
 
     // Record activity to update streak ONLY if user has studied at least 1 card
     final totalStudied =
         flashcardProvider.correctCount + flashcardProvider.wrongCount;
     if (totalStudied > 0) {
-      print(
-        '📚 User studied $totalStudied card(s) → Recording activity for streak',
-      );
+      print('User studied $totalStudied card(s) → Recording activity for streak');
       final streakResult = await streakProvider.recordActivity();
 
       // Show celebration if streak increased
@@ -123,7 +121,7 @@ class _FlashcardPageState extends State<FlashcardPage>
         );
       }
     } else {
-      print('⚠️ No cards studied → Skipping streak update');
+      print('No cards studied → Skipping streak update');
     }
 
     // Save progress if user is authenticated
@@ -132,9 +130,9 @@ class _FlashcardPageState extends State<FlashcardPage>
       final masteredCardIds = flashcardProvider.masteredCardIds.toList();
       final learningCardIds = flashcardProvider.learningCardIds.toList();
 
-      print('✅ Mastered Cards: $masteredCardIds');
-      print('📖 Learning Cards: $learningCardIds');
-      print('🔄 Saving to Firebase...');
+      print('Mastered Cards: $masteredCardIds');
+      print('Learning Cards: $learningCardIds');
+      print('Saving to Firebase...');
 
       try {
         // Update progress in Firebase
@@ -145,18 +143,18 @@ class _FlashcardPageState extends State<FlashcardPage>
           learningCardIds: learningCardIds,
         );
 
-        print('✅ SAVED TO FIREBASE SUCCESSFULLY!');
-        print('🔍 Check Firebase Console:');
-        print('   Collection: flashcard_progress');
-        print('   Document ID: ${userId}_$topicId');
-        print('🔥🔥🔥 ========================================= 🔥🔥🔥');
+        print('SAVED TO FIREBASE SUCCESSFULLY!');
+        print('Check Firebase Console:');
+        print('Collection: flashcard_progress');
+        print('Document ID: ${userId}_$topicId');
+        print('=========================================');
       } catch (e) {
-        print('❌ ERROR SAVING TO FIREBASE: $e');
-        print('🔥🔥🔥 ========================================= 🔥🔥🔥');
+        print('ERROR SAVING TO FIREBASE: $e');
+        print('=========================================');
       }
     } else {
-      print('⚠️ User not authenticated - skipping Firebase save');
-      print('🔥🔥🔥 ========================================= 🔥🔥🔥');
+      print('User not authenticated - skipping Firebase save');
+      print('=========================================');
     }
 
     final result = await Navigator.push(
@@ -224,7 +222,6 @@ class _FlashcardPageState extends State<FlashcardPage>
       // Rebuild UI
       setState(() {});
 
-      print('↩️ Undo: Quay lại thẻ #${flashcardProvider.currentCardIndex}');
     } else {
       // Không có gì để undo
       ScaffoldMessenger.of(context).showSnackBar(
