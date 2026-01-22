@@ -122,24 +122,23 @@ class PersonalVocabularyService {
     final model = await getPersonalVocabulary(userId);
     return model.vocabularyCardIds;
   }
-
   /// Force load từ cloud và save vào local (dùng khi sync hoặc refresh)
   Future<PersonalVocabularyModel> forceLoadFromCloud(String userId) async {
     try {
-      print('Force loading from cloud for user: $userId');
+      print('[PERSONAL_VOCAB_SERVICE] Force loading from cloud for user: $userId');
       final cloudModel = await _loadFromCloud(userId);
 
       if (cloudModel != null) {
         await _saveToLocal(cloudModel);
         print(
-          'Force loaded from cloud: ${cloudModel.vocabularyCardIds.length} cards',
+          '[PERSONAL_VOCAB_SERVICE] Force loaded from cloud: ${cloudModel.vocabularyCardIds.length} cards',
         );
         return cloudModel;
       }
 
       return PersonalVocabularyModel.empty(userId);
     } catch (e) {
-      print('Error force loading from cloud: $e');
+      print('[PERSONAL_VOCAB_SERVICE] Error force loading from cloud: $e');
       return PersonalVocabularyModel.empty(userId);
     }
   }
@@ -286,20 +285,19 @@ class PersonalVocabularyService {
       _logError('${VocabularyConstants.errorSavingToLocal}: $e');
       return null;
     }
-  }
-  // ============================================================================
+  }  // ============================================================================
   // LOGGING HELPERS
   // ============================================================================
 
   void _logInfo(String message) {
-    print(message);
+    print('[PERSONAL_VOCAB_SERVICE] $message');
   }
 
   void _logWarning(String message) {
-    print(message);
+    print('[PERSONAL_VOCAB_SERVICE] $message');
   }
 
   void _logError(String message) {
-    print(message);
+    print('[PERSONAL_VOCAB_SERVICE] $message');
   }
 }

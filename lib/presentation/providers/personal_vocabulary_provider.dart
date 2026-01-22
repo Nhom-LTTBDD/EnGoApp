@@ -248,26 +248,25 @@ class PersonalVocabularyProvider with ChangeNotifier {
       return null;
     }
   }
-
   // ============================================================================
   // LOGGING HELPERS
   // ============================================================================
 
   void _logInfo(String message) {
     if (kDebugMode) {
-      print(message);
+      print('[PERSONAL_VOCAB] $message');
     }
   }
 
   void _logWarning(String message) {
     if (kDebugMode) {
-      print(message);
+      print('[PERSONAL_VOCAB] ⚠️ $message');
     }
   }
 
   void _logError(String message) {
     if (kDebugMode) {
-      print(message);
+      print('[PERSONAL_VOCAB] ❌ $message');
     }
   }
 }

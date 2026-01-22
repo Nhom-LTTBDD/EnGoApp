@@ -224,26 +224,25 @@ class VocabularyProvider extends ChangeNotifier {
 
     return enrichedCards;
   }
-
   // ============================================================================
   // LOGGING HELPERS
   // ============================================================================
 
   void _logInfo(String message) {
     if (kDebugMode) {
-      print(message);
+      print('[VOCABULARY] $message');
     }
   }
 
   void _logWarning(String message) {
     if (kDebugMode) {
-      print(message);
+      print('[VOCABULARY] ⚠️ $message');
     }
   }
 
   void _logError(String message) {
     if (kDebugMode) {
-      print(message);
+      print('[VOCABULARY] ❌ $message');
     }
   }
 }
