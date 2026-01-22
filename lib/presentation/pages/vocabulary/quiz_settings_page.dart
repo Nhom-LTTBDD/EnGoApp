@@ -1,31 +1,27 @@
 // lib/presentation/pages/vocabulary/quiz_settings_page.dart
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/theme/theme_helper.dart';
 import '../../../routes/app_routes.dart';
 import '../../../domain/entities/quiz_config.dart';
 import '../../../domain/entities/question_type.dart';
 import '../../../domain/entities/quiz_language_mode.dart';
+import '../../../data/repositories/vocabulary_repository_impl.dart';
 import '../../widgets/vocabulary/quiz_language_selector_sheet.dart';
 import '../../layout/main_layout.dart';
-import '../../providers/vocabulary_provider.dart';
 
 /// Page thiết lập quiz trước khi làm bài
 /// Cho phép người dùng cấu hình:
-/// - Loại câu hỏi (Multiple Choice / True-False)
-/// - Ngôn ngữ câu hỏi và trả lời
+/// - Ngôn ngữ trả lời
 /// - Số câu hỏi (mặc định = tổng số từ)
 class QuizSettingsPage extends StatefulWidget {
   final String topicId;
   final String topicName;
-  final int? cardCount; // Make optional, will load from provider if null
 
   const QuizSettingsPage({
     super.key,
     required this.topicId,
     required this.topicName,
-    this.cardCount, // Optional now
   });
 
   @override
@@ -34,26 +30,20 @@ class QuizSettingsPage extends StatefulWidget {
 
 class _QuizSettingsPageState extends State<QuizSettingsPage> {
   // Default settings
-  late QuestionType _selectedQuestionType;
   late QuizLanguageMode _questionLanguage;
   late QuizLanguageMode _answerLanguage;
+  final _repository = VocabularyRepositoryImpl();
   bool _isLoadingCards = false;
   int _cardCount = 0;
 
   @override
   void initState() {
     super.initState();
-    // Mặc định: Nhiều lựa chọn, hỏi tiếng Anh, trả lời tiếng Việt
-    _selectedQuestionType = QuestionType.multipleChoice;
+    // Mặc định: hỏi tiếng Anh, trả lời tiếng Việt
     _questionLanguage = QuizLanguageMode.englishToVietnamese;
-    _answerLanguage = QuizLanguageMode.vietnameseToEnglish;
+    _answerLanguage = QuizLanguageMode.englishToVietnamese;
 
-    // Load cards to get card count if not provided
-    if (widget.cardCount == null) {
-      _loadCardCount();
-    } else {
-      _cardCount = widget.cardCount!;
-    }
+    _loadCardCount();
   }
 
   Future<void> _loadCardCount() async {
@@ -62,18 +52,19 @@ class _QuizSettingsPageState extends State<QuizSettingsPage> {
     });
 
     try {
-      final provider = context.read<VocabularyProvider>();
-      await provider.loadVocabularyCards(widget.topicId);
+      debugPrint('[SETTINGS] Loading cards for topic: ${widget.topicId}');
+      // Load cards directly from repository using topicId
+      final cards = await _repository.getVocabularyCards(widget.topicId);
 
       if (mounted) {
         setState(() {
-          _cardCount = provider.vocabularyCards.length;
+          _cardCount = cards.length;
           _isLoadingCards = false;
         });
-        debugPrint('Loaded card count: $_cardCount');
+        debugPrint('[SETTINGS] Loaded $_cardCount cards');
       }
     } catch (e) {
-      debugPrint('Error loading card count: $e');
+      debugPrint('[SETTINGS] Error loading cards: $e');
       if (mounted) {
         setState(() {
           _isLoadingCards = false;
@@ -100,24 +91,24 @@ class _QuizSettingsPageState extends State<QuizSettingsPage> {
   }
 
   void _startQuiz() {
-    debugPrint('Starting quiz with settings:');
-    debugPrint('  Topic: ${widget.topicName} (${widget.topicId})');
-    debugPrint('  Card count: $_cardCount');
-    debugPrint('  Question type: $_selectedQuestionType');
-    debugPrint('  Question language: $_questionLanguage');
-    debugPrint('  Answer language: $_answerLanguage');
+    if (_cardCount == 0) {
+      debugPrint('[SETTINGS] Cannot start quiz: _cardCount = 0');
+      return;
+    }
+
+    debugPrint(
+      '[SETTINGS] Starting quiz - Topic: ${widget.topicName}, Cards: $_cardCount',
+    );
 
     final config = QuizConfig(
       topicId: widget.topicId,
       topicName: widget.topicName,
-      totalCards: _cardCount, // Use loaded card count
-      questionCount: _cardCount, // Số câu hỏi = tổng số từ
-      questionType: _selectedQuestionType,
+      totalCards: _cardCount,
+      questionCount: _cardCount,
+      questionType: QuestionType.multipleChoice,
       questionLanguage: _questionLanguage,
       answerLanguage: _answerLanguage,
     );
-
-    debugPrint('QuizConfig created: $config');
 
     Navigator.pushNamed(context, AppRoutes.quiz, arguments: {'config': config});
   }
@@ -178,22 +169,13 @@ class _QuizSettingsPageState extends State<QuizSettingsPage> {
                             // Số câu hỏi (read-only)
                             _buildInfoRow(
                               label: 'Số câu hỏi',
-                              displayValue: '${widget.cardCount}',
+                              displayValue: '$_cardCount',
                             ),
 
                             const SizedBox(height: spaceMd),
 
                             // Trả lời bằng (clickable)
                             _buildLanguageSelector(),
-
-                            const SizedBox(height: spaceMd),
-
-                            const Divider(),
-
-                            const SizedBox(height: spaceMd),
-
-                            // Question Type Toggle
-                            _buildQuestionTypeToggle(),
 
                             const SizedBox(height: spaceMd),
                           ],
@@ -207,9 +189,12 @@ class _QuizSettingsPageState extends State<QuizSettingsPage> {
                       child: SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _startQuiz,
+                          onPressed: (_isLoadingCards || _cardCount == 0)
+                              ? null
+                              : _startQuiz,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
+                            disabledBackgroundColor: Colors.grey.shade300,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -217,12 +202,29 @@ class _QuizSettingsPageState extends State<QuizSettingsPage> {
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Icon(Icons.edit_square, color: Colors.white),
-                              SizedBox(width: 8),
+                            children: [
+                              if (_isLoadingCards)
+                                const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              else
+                                const Icon(
+                                  Icons.edit_square,
+                                  color: Colors.white,
+                                ),
+                              const SizedBox(width: 8),
                               Text(
-                                'Bắt đầu làm kiểm tra',
-                                style: TextStyle(
+                                _isLoadingCards
+                                    ? 'Đang tải...'
+                                    : 'Bắt đầu làm kiểm tra',
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -293,62 +295,6 @@ class _QuizSettingsPageState extends State<QuizSettingsPage> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildQuestionTypeToggle() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Đúng / Sai
-        _buildToggleOption(
-          label: 'Đúng / Sai',
-          isSelected: _selectedQuestionType == QuestionType.trueFalse,
-          onChanged: (value) {
-            if (value) {
-              setState(() {
-                _selectedQuestionType = QuestionType.trueFalse;
-              });
-            }
-          },
-        ),
-
-        const SizedBox(height: spaceSm),
-
-        // Nhiều lựa chọn
-        _buildToggleOption(
-          label: 'Nhiều lựa chọn',
-          isSelected: _selectedQuestionType == QuestionType.multipleChoice,
-          onChanged: (value) {
-            if (value) {
-              setState(() {
-                _selectedQuestionType = QuestionType.multipleChoice;
-              });
-            }
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildToggleOption({
-    required String label,
-    required bool isSelected,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(fontSize: 16, color: getTextPrimary(context)),
-        ),
-        Switch(
-          value: isSelected,
-          onChanged: onChanged,
-          activeThumbColor: Colors.blue,
-        ),
-      ],
     );
   }
 

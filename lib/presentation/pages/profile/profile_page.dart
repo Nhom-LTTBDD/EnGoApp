@@ -32,18 +32,22 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    // Load profile data khi vào trang (nếu chưa có)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // DELAY load để UI render trước - Giảm skip frames
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final profileProvider = context.read<ProfileProvider>();
       // Chỉ load nếu chưa có data hoặc đang initial state
       if (profileProvider.currentUser == null ||
           profileProvider.state is ProfileInitial) {
-        profileProvider.getUserProfile();
+        // Delay nhỏ để UI render trước
+        await Future.delayed(const Duration(milliseconds: 100));
+        if (mounted) {
+          profileProvider.getUserProfile();
+        }
       }
     });
   }
 
-  /// Shimmer loading placeholder
+  /// Shimmer loading placeholder - Tối ưu để giảm skip frames
   Widget _buildShimmerLoading(BuildContext context) {
     final themeExt = Theme.of(context).extension<AppThemeExtension>();
 
@@ -62,50 +66,16 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Avatar shimmer
-          Container(
-            width: 150,
-            height: 150,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: themeExt?.shimmerBaseColor ?? Colors.grey[300],
-            ),
+          // Sử dụng CircularProgressIndicator đơn giản thay vì nhiều shimmer containers
+          const CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1196EF)),
           ),
-          const SizedBox(height: 30),
-          // Info shimmer
-          Container(
-            width: 300,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: (themeExt?.cardBackground ?? Colors.white).withOpacity(
-                themeExt?.surfaceOpacity ?? 0.8,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                _shimmerLine(context, width: 200),
-                const SizedBox(height: 15),
-                _shimmerLine(context, width: 180),
-                const SizedBox(height: 15),
-                _shimmerLine(context, width: 220),
-              ],
-            ),
+          const SizedBox(height: 20),
+          Text(
+            'Loading profile...',
+            style: kBody.copyWith(color: Colors.black87),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _shimmerLine(BuildContext context, {required double width}) {
-    final themeExt = Theme.of(context).extension<AppThemeExtension>();
-
-    return Container(
-      width: width,
-      height: 16,
-      decoration: BoxDecoration(
-        color: themeExt?.shimmerBaseColor ?? Colors.grey[300],
-        borderRadius: BorderRadius.circular(4),
       ),
     );
   }

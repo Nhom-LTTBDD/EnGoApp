@@ -18,76 +18,78 @@ class HomePage extends StatelessWidget {
     return MainLayout(
       title: 'EnGo App',
       currentIndex: 0,
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors:
-                themeExt?.backgroundGradientColors ??
-                [Colors.white, const Color(0xFFB2E0FF)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      child: RepaintBoundary(
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors:
+                  themeExt?.backgroundGradientColors ??
+                  [Colors.white, const Color(0xFFB2E0FF)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Logo với container và shadow để nổi bật
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isDark
-                    ? Colors.white.withOpacity(0.1)
-                    : Colors.white.withOpacity(0.6),
-                boxShadow: [
-                  BoxShadow(
-                    color: isDark
-                        ? Colors.blue.withOpacity(0.3)
-                        : const Color(0xFF1196EF).withOpacity(0.25),
-                    blurRadius: 20,
-                    spreadRadius: 5,
-                  ),
-                  if (!isDark)
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo với container và shadow để nổi bật
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isDark
+                      ? Colors.white.withOpacity(0.1)
+                      : Colors.white.withOpacity(0.6),
+                  boxShadow: [
                     BoxShadow(
-                      color: Colors.white.withOpacity(0.8),
-                      blurRadius: 10,
-                      spreadRadius: -5,
-                      offset: const Offset(-5, -5),
+                      color: isDark
+                          ? Colors.blue.withOpacity(0.3)
+                          : const Color(0xFF1196EF).withOpacity(0.25),
+                      blurRadius: 20,
+                      spreadRadius: 5,
                     ),
-                ],
+                    if (!isDark)
+                      BoxShadow(
+                        color: Colors.white.withOpacity(0.8),
+                        blurRadius: 10,
+                        spreadRadius: -5,
+                        offset: const Offset(-5, -5),
+                      ),
+                  ],
+                ),
+                child: SvgPicture.asset(
+                  isDark ? kIconEagleDark : kIconEagleLight,
+                  width: 160,
+                  height: 160,
+                ),
               ),
-              child: SvgPicture.asset(
-                isDark ? kIconEagleDark : kIconEagleLight,
-                width: 160,
-                height: 160,
+              const SizedBox(height: 30),
+              Text(
+                'Welcome to Home Page',
+                style: kH1.copyWith(color: const Color(0xFF1196EF)),
               ),
-            ),            const SizedBox(height: 30),            
-            Text(
-              'Welcome to Home Page',
-              style: kH1.copyWith(
-                color: const Color(0xFF1196EF),
+              const SizedBox(height: 20),
+              _buildMenuButton(
+                context,
+                text: 'Vocabulary',
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.vocab),
               ),
-            ),
-            const SizedBox(height: 20),
-            _buildMenuButton(
-              context,
-              text: 'Vocabulary',
-              onPressed: () => Navigator.pushNamed(context, AppRoutes.vocab),
-            ),
-            const SizedBox(height: 10),
-            _buildMenuButton(
-              context,
-              text: 'Test',
-              onPressed: () => Navigator.pushNamed(context, AppRoutes.test),
-            ),
-            const SizedBox(height: 10),
-            _buildMenuButton(
-              context,
-              text: 'Grammar',
-              onPressed: () => Navigator.pushNamed(context, AppRoutes.grammar),
-            ),
-          ],
+              const SizedBox(height: 10),
+              _buildMenuButton(
+                context,
+                text: 'Test',
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.test),
+              ),
+              const SizedBox(height: 10),
+              _buildMenuButton(
+                context,
+                text: 'Grammar',
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRoutes.grammar),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -99,7 +101,7 @@ class HomePage extends StatelessWidget {
     required VoidCallback onPressed,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return InkWell(
       onTap: onPressed,
       borderRadius: BorderRadius.circular(12),
@@ -109,11 +111,15 @@ class HomePage extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isDark ? const Color(0xFF64B5F6) : const Color(0xFF1196EF),
+            width: 2,
+          ),
           boxShadow: [
             BoxShadow(
-              color: isDark 
-                  ? Colors.blue.withOpacity(0.2)
-                  : Colors.black.withOpacity(0.1),
+              color: isDark
+                  ? Colors.blue.withOpacity(0.3)
+                  : const Color(0xFF1196EF).withOpacity(0.2),
               blurRadius: 8,
               offset: const Offset(0, 2),
               spreadRadius: 1,
@@ -124,7 +130,7 @@ class HomePage extends StatelessWidget {
           text,
           textAlign: TextAlign.center,
           style: kBodyEmphasized.copyWith(
-            color: const Color.fromARGB(255, 0, 0, 0),
+            color: const Color(0xFF1196EF),
             fontSize: 16,
           ),
         ),

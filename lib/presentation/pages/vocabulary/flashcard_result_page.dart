@@ -4,16 +4,21 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/theme/theme_helper.dart';
+import '../../../routes/app_routes.dart';
 
 /// Trang hiển thị kết quả học tập flashcard
 class FlashcardResultPage extends StatelessWidget {
   final int correctCount;
   final int wrongCount;
+  final String topicId;
+  final String topicName;
 
   const FlashcardResultPage({
     super.key,
     required this.correctCount,
     required this.wrongCount,
+    required this.topicId,
+    required this.topicName,
   });
 
   int get _total => correctCount + wrongCount;
@@ -296,7 +301,14 @@ class FlashcardResultPage extends StatelessWidget {
             icon: Icons.quiz_outlined,
             label: 'Làm bài kiểm tra',
             hasBackground: true,
-            onTap: () => Navigator.pop(context, 'go_back'),
+            onTap: () {
+              // Navigate to quiz settings
+              Navigator.pushNamed(
+                context,
+                AppRoutes.quizSettings,
+                arguments: {'topicId': topicId, 'topicName': topicName},
+              );
+            },
           ),
         ),
       );

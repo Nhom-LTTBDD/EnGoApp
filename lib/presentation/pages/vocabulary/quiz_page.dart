@@ -1,8 +1,6 @@
 // lib/presentation/pages/vocabulary/quiz_page.dart
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../providers/vocabulary_provider.dart';
 import '../../layout/main_layout.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/theme/theme_helper.dart';
@@ -13,6 +11,7 @@ import '../../../domain/entities/quiz_result.dart';
 import '../../../domain/entities/quiz_language_mode.dart';
 import '../../../domain/entities/vocabulary_card.dart';
 import '../../../domain/entities/question_type.dart';
+import '../../../data/repositories/vocabulary_repository_impl.dart';
 import '../../../routes/app_routes.dart';
 
 /// Page làm quiz theo topic
@@ -31,47 +30,35 @@ class _QuizPageState extends State<QuizPage> {
   int _wrongAnswers = 0;
 
   List<QuizQuestion> _questions = [];
-  List<QuestionResult> _questionResults = []; // Remove final
-  String? _selectedAnswerId; // Add this
+  final List<QuestionResult> _questionResults = [];
   bool _hasAnswered = false;
-  bool _questionsGenerated =
-      false; // Flag to track if questions have been generated
+  final _repository = VocabularyRepositoryImpl();
 
   @override
   void initState() {
     super.initState();
-    // Reset state for new quiz
-    _questionsGenerated = false;
-    _questions = [];
-    _questionResults = [];
-    _currentQuestionIndex = 0;
-    _correctAnswers = 0;
-    _wrongAnswers = 0;
-    _selectedAnswerId = null;
-    _hasAnswered = false;
-
-    // Debug log
-    debugPrint('QuizPage initState - Config: ${widget.config}');
     _loadQuizData();
   }
 
   void _loadQuizData() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Debug log
-      debugPrint('Loading quiz data for topic: ${widget.config.topicId}');
-      // Clear old cards first to force reload
-      final provider = context.read<VocabularyProvider>();
-      provider.clearCards(); // Clear old data
+      try {
+        debugPrint('[QUIZ] Loading cards for topic: ${widget.config.topicId}');
 
-      // Wait for vocabulary cards to load completely
-      await provider.loadVocabularyCards(widget.config.topicId);
+        final cards = await _repository.getVocabularyCards(
+          widget.config.topicId,
+        );
 
-      // After cards loaded, generate questions if not already generated
-      if (mounted &&
-          !_questionsGenerated &&
-          provider.vocabularyCards.isNotEmpty) {
-        debugPrint('Cards loaded, now generating questions...');
-        _generateQuestions(provider.vocabularyCards);
+        if (mounted && cards.isNotEmpty) {
+          debugPrint(
+            '[QUIZ] Loaded ${cards.length} cards, generating questions...',
+          );
+          _generateQuestions(cards);
+        } else {
+          debugPrint('[QUIZ] Cannot generate - cards empty or unmounted');
+        }
+      } catch (e) {
+        debugPrint('[QUIZ] Error: $e');
       }
     });
   }
@@ -79,7 +66,7 @@ class _QuizPageState extends State<QuizPage> {
   /// Generate quiz questions from vocabulary cards
   void _generateQuestions(List<VocabularyCard> cards) {
     if (cards.length < 4) {
-      debugPrint('Not enough cards to generate quiz (minimum 4 required)');
+      debugPrint('[QUIZ] Not enough cards (need 4, got ${cards.length})');
       return;
     }
 
@@ -90,8 +77,7 @@ class _QuizPageState extends State<QuizPage> {
       shuffledCards.length,
     );
 
-    final List<QuizQuestion> questions =
-        []; // Use local variable instead of setState
+    final List<QuizQuestion> questions = [];
 
     for (int i = 0; i < questionCount; i++) {
       final correctCard = shuffledCards[i];
@@ -170,13 +156,11 @@ class _QuizPageState extends State<QuizPage> {
       );
     }
 
-    debugPrint('Generated ${questions.length} questions');
-
-    // Update state immediately since we're called from async function
-    if (mounted && !_questionsGenerated) {
+    // Update state
+    if (mounted) {
+      debugPrint('[QUIZ] Generated ${questions.length} questions');
       setState(() {
         _questions = questions;
-        _questionsGenerated = true;
       });
     }
   }
@@ -236,9 +220,6 @@ class _QuizPageState extends State<QuizPage> {
       questionResults: _questionResults,
     );
 
-    debugPrint('Quiz completed: $result');
-
-    // Navigate to result page
     Navigator.pushReplacementNamed(
       context,
       AppRoutes.quizResult,
@@ -252,50 +233,35 @@ class _QuizPageState extends State<QuizPage> {
       title: 'QUIZ: ${widget.config.topicName.toUpperCase()}',
       currentIndex: -1,
       showBottomNav: false,
-      child: Consumer<VocabularyProvider>(
-        builder: (context, vocabProvider, child) {
-          // Loading state (both provider loading OR questions not generated yet)
-          if (vocabProvider.isLoading || _questions.isEmpty) {
-            return _buildLoadingState();
-          }
+      child: _questions.isEmpty
+          ? _buildLoadingState()
+          : Container(
+              decoration: BoxDecoration(color: getBackgroundColor(context)),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(spaceMd),
+                  child: Column(
+                    children: [
+                      // Progress indicator
+                      _buildProgressIndicator(_questions.length),
+                      const SizedBox(height: spaceLg),
 
-          // Error state
-          if (vocabProvider.error != null) {
-            return _buildErrorState(vocabProvider);
-          }
+                      // Question card
+                      Expanded(
+                        child: _buildQuestionCard(
+                          _questions[_currentQuestionIndex],
+                        ),
+                      ),
+                      const SizedBox(height: spaceLg),
 
-          final currentQuestion = _questions[_currentQuestionIndex];
-
-          return Container(
-            decoration: BoxDecoration(color: getBackgroundColor(context)),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(spaceMd),
-                child: Column(
-                  children: [
-                    // Progress indicator
-                    _buildProgressIndicator(_questions.length),
-
-                    const SizedBox(height: spaceLg),
-
-                    // // Score display
-                    const SizedBox(height: spaceLg),
-
-                    // Question card
-                    Expanded(child: _buildQuestionCard(currentQuestion)),
-
-                    const SizedBox(height: spaceLg),
-
-                    // Answer options
-                    _buildAnswerOptions(currentQuestion),
-                    const SizedBox(height: spaceMd),
-                  ],
+                      // Answer options
+                      _buildAnswerOptions(_questions[_currentQuestionIndex]),
+                      const SizedBox(height: spaceMd),
+                    ],
+                  ),
                 ),
               ),
             ),
-          );
-        },
-      ),
     );
   }
 
@@ -307,58 +273,6 @@ class _QuizPageState extends State<QuizPage> {
           CircularProgressIndicator(),
           SizedBox(height: spaceMd),
           Text('Đang tải câu hỏi...'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorState(VocabularyProvider provider) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
-          const SizedBox(height: spaceMd),
-          Text(
-            'Có lỗi xảy ra',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.red.shade400,
-            ),
-          ),
-          const SizedBox(height: spaceSm),
-          Text(
-            provider.error!,
-            style: TextStyle(color: getTextSecondary(context)),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: spaceMd),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Quay lại'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.inbox_outlined, size: 64, color: getTextThird(context)),
-          const SizedBox(height: spaceMd),
-          Text(
-            'Không có câu hỏi nào',
-            style: TextStyle(fontSize: 18, color: getTextSecondary(context)),
-          ),
-          const SizedBox(height: spaceMd),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Quay lại'),
-          ),
         ],
       ),
     );

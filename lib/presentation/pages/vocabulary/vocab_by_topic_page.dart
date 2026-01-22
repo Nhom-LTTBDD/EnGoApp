@@ -205,7 +205,10 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
                               Navigator.pushNamed(
                                 context,
                                 AppRoutes.flashcard,
-                                arguments: {'topicId': topic.id},
+                                arguments: {
+                                  'topicId': topic.id,
+                                  'topicName': topic.name,
+                                },
                               );
                             } else {
                               // Mode Quiz: Navigate to quiz settings page
