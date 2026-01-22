@@ -27,6 +27,7 @@ import '../presentation/pages/vocabulary/quiz_result_page.dart';
 import '../presentation/pages/vocabulary/personal_vocabulary_page.dart';
 import '../presentation/pages/vocabulary/personal_vocabulary_by_topic_page.dart';
 import '../presentation/pages/vocabulary/personal_vocabulary_cards_page.dart';
+import '../presentation/pages/translation/translation_page.dart';
 
 //Grammar
 import '../presentation/pages/grammar/grammar_page.dart';
@@ -70,6 +71,8 @@ class AppRoutes {
       '/vocabulary/quiz/settings'; //Quiz settings
   static const String quiz = '/vocabulary/quiz'; //Quiz page
   static const String quizResult = '/vocabulary/quiz/result'; //Quiz result
+  // Translation route
+  static const String translation = '/translation'; //Translation page
 }
 
 class RouteGenerator {
@@ -177,7 +180,9 @@ class RouteGenerator {
         return MaterialPageRoute(
           builder: (_) => PersonalVocabularyCardsPage(topicId: topicId),
         );
-
+      // Translation case
+      case AppRoutes.translation:
+        return MaterialPageRoute(builder: (_) => TranslationPage());
       // Grammar cases
       case AppRoutes.grammar:
         return MaterialPageRoute(builder: (_) => GrammarPage());
