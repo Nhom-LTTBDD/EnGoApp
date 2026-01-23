@@ -9,7 +9,7 @@ import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/routes/app_routes.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/auth_state.dart';
-import '../../widgets/app_button.dart';
+import '../../widgets/common/app_button.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -25,15 +25,8 @@ class _LoginPageState extends State<LoginPage> {
   final _emailFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
   bool _obscurePassword = true;
-  bool _hasNavigated = false; // Prevent multiple navigations
-  bool _isGoogleSignInProcessing = false; // Prevent double tap
 
-  @override
-  void initState() {
-    super.initState();
-    // REMOVED: Focus listeners that cause unnecessary rebuilds
-    // The UI will update automatically via decoration changes
-  }
+  AuthState? _previousAuthState;
 
   @override
   void dispose() {
@@ -54,6 +47,38 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  void _handleGoogleSignIn() {
+    context.read<AuthProvider>().signInWithGoogle();
+  }
+
+  /// Xử lý navigation và errors khi state thay đổi
+  void _handleAuthStateChange(BuildContext context, AuthState authState) {
+    // Chỉ handle khi state thực sự thay đổi
+    if (_previousAuthState == authState) return;
+    _previousAuthState = authState;
+
+    if (authState is Authenticated) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, AppRoutes.home);
+        }
+      });
+    } else if (authState is AuthError) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(authState.message),
+              backgroundColor: kDanger,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          context.read<AuthProvider>().reset();
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AuthLayout(
@@ -61,34 +86,10 @@ class _LoginPageState extends State<LoginPage> {
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
           final authState = authProvider.state;
-
-          // Handle navigation and errors - with debounce
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted || _hasNavigated) return;
-
-            if (authState is Authenticated) {
-              _hasNavigated = true;
-
-              // Delay navigation để UI có thời gian render
-              Future.delayed(const Duration(milliseconds: 100), () {
-                if (mounted) {
-                  authProvider.reset();
-                  Navigator.pushReplacementNamed(context, AppRoutes.home);
-                }
-              });
-            } else if (authState is AuthError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(authState.message),
-                  backgroundColor: kDanger,
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-              authProvider.reset();
-            }
-          });
-
           final isLoading = authState is AuthLoading;
+
+          // Handle state changes
+          _handleAuthStateChange(context, authState);
 
           return Container(
             decoration: BoxDecoration(
@@ -265,7 +266,23 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       Expanded(
                         child: Divider(
-                          color: Colors.grey.shade400,
+                          color: Colors.grey.shade600,
+                          thickness: 1,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          'Hoặc',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Divider(
+                          color: Colors.grey.shade600,
                           thickness: 1,
                         ),
                       ),
@@ -277,7 +294,7 @@ class _LoginPageState extends State<LoginPage> {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      icon: _isGoogleSignInProcessing
+                      icon: isLoading
                           ? const SizedBox(
                               width: 20,
                               height: 20,
@@ -294,41 +311,12 @@ class _LoginPageState extends State<LoginPage> {
                               height: 20,
                             ),
                       label: Text(
-                        _isGoogleSignInProcessing
-                            ? 'Đang xử lý...'
-                            : 'Đăng nhập với Google',
+                        isLoading ? 'Đang xử lý...' : 'Đăng nhập với Google',
                         style: TextStyle(
-                          color: (isLoading || _isGoogleSignInProcessing)
-                              ? Colors.black87
-                              : Colors.black,
+                          color: isLoading ? Colors.black87 : Colors.black,
                         ),
                       ),
-                      onPressed: (isLoading || _isGoogleSignInProcessing)
-                          ? null
-                          : () async {
-                              if (_isGoogleSignInProcessing) return;
-                              setState(() => _isGoogleSignInProcessing = true);
-
-                              // Unfocus để ẩn keyboard và giảm work
-                              FocusScope.of(context).unfocus();
-
-                              // Delay nhỏ để UI update trước
-                              await Future.delayed(
-                                const Duration(milliseconds: 50),
-                              );
-
-                              if (mounted) {
-                                await context
-                                    .read<AuthProvider>()
-                                    .signInWithGoogle();
-                              }
-
-                              if (mounted) {
-                                setState(
-                                  () => _isGoogleSignInProcessing = false,
-                                );
-                              }
-                            },
+                      onPressed: isLoading ? null : _handleGoogleSignIn,
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(

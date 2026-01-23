@@ -31,8 +31,7 @@ class AuthRepositoryImpl implements AuthRepository {
         password: password,
       );
 
-      // Lưu token và user vào local storage
-      await localDataSource.saveToken(result.token);
+      // Lưu user vào local storage (Firebase tự quản lý token)
       await localDataSource.saveUser(UserModel.fromEntity(result.user));
 
       return Right(result);
@@ -59,8 +58,7 @@ class AuthRepositoryImpl implements AuthRepository {
         birthDate: birthDate,
       );
 
-      // Lưu token và user vào local storage
-      await localDataSource.saveToken(result.token);
+      // Lưu user vào local storage (Firebase tự quản lý token)
       await localDataSource.saveUser(UserModel.fromEntity(result.user));
 
       return Right(result);
@@ -74,13 +72,8 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, bool>> logout() async {
     try {
-      // Lấy token
-      final token = await localDataSource.getToken();
-
-      if (token != null) {
-        // Gọi API logout
-        await remoteDataSource.logout(token);
-      }
+      // Gọi API logout (Firebase tự quản lý token)
+      await remoteDataSource.logout();
 
       // Xóa dữ liệu local
       await localDataSource.clearAll();
@@ -149,17 +142,13 @@ class AuthRepositoryImpl implements AuthRepository {
         return Right(localUser);
       }
 
-      // Nếu không có local, kiểm tra token và gọi API
-      final token = await localDataSource.getToken();
-      if (token == null) {
-        return const Right(null);
-      }
-
-      // Gọi API lấy user
-      final user = await remoteDataSource.getCurrentUser(token);
+      // Nếu không có local, gọi API (Firebase tự quản lý token)
+      final user = await remoteDataSource.getCurrentUser();
 
       // Lưu vào local
-      await localDataSource.saveUser(user);
+      if (user != null) {
+        await localDataSource.saveUser(user);
+      }
 
       return Right(user);
     } on Failure catch (failure) {
@@ -177,8 +166,7 @@ class AuthRepositoryImpl implements AuthRepository {
       // Gọi remote datasource để đăng nhập Google
       final result = await remoteDataSource.signInWithGoogle();
 
-      // Lưu token và user vào local storage
-      await localDataSource.saveToken(result.token);
+      // Lưu user vào local storage (Firebase tự quản lý token)
       await localDataSource.saveUser(UserModel.fromEntity(result.user));
 
       return Right(result);
