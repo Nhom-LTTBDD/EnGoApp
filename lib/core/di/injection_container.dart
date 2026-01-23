@@ -37,7 +37,7 @@ import '../../presentation/providers/profile/profile_provider.dart';
 import '../../presentation/providers/vocabulary_provider.dart';
 import '../../presentation/providers/grammar_provider.dart';
 import '../../presentation/providers/personal_vocabulary_provider.dart';
-import '../../presentation/providers/streak_provider.dart';
+import '../../presentation/providers/profile/streak_provider.dart';
 import '../../presentation/providers/flashcard_progress_provider.dart';
 
 // Vocabulary Domain

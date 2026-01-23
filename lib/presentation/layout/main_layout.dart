@@ -1,7 +1,7 @@
 // lib/presentation/layout/main_layout.dart
 import 'package:flutter/material.dart';
-import '../widgets/app_header.dart';
-import '../widgets/navbar_bottom.dart';
+import '../widgets/common/app_header.dart';
+import '../widgets/common/navbar_bottom.dart';
 
 /// Main layout with app bar and bottom navigation bar
 class MainLayout extends StatelessWidget {

@@ -6,7 +6,7 @@ import 'package:en_go_app/core/constants/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../providers/profile/profile_provider.dart';
 import '../../providers/profile/profile_state.dart';
-import '../../widgets/app_button.dart';
+import '../../widgets/common/app_button.dart';
 import 'package:intl/intl.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -26,17 +26,24 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void initState() {
     super.initState();
     _nameFocusNode.addListener(() => setState(() {}));
-    // Load dữ liệu hiện tại
-    final profileProvider = context.read<ProfileProvider>();
-    final user = profileProvider.currentUser;
-    if (user != null) {
-      _nameController.text = user.name;
-      if (user.birthDate != null && user.birthDate!.isNotEmpty) {
-        try {
-          _selectedDate = DateFormat('dd/MM/yyyy').parse(user.birthDate!);
-        } catch (e) {
-          // Nếu parse lỗi, để null
-        }
+
+    // Load dữ liệu hiện tại của user vào form
+    _loadUserData();
+  }
+
+  /// Load dữ liệu user hiện tại vào các field
+  void _loadUserData() {
+    final user = context.read<ProfileProvider>().currentUser;
+    if (user == null) return;
+
+    _nameController.text = user.name;
+
+    // Parse ngày sinh nếu có
+    if (user.birthDate != null && user.birthDate!.isNotEmpty) {
+      try {
+        _selectedDate = DateFormat('dd/MM/yyyy').parse(user.birthDate!);
+      } catch (e) {
+        // Nếu parse lỗi, giữ _selectedDate là null
       }
     }
   }
@@ -75,50 +82,42 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
+  /// Xử lý lưu thông tin profile
   Future<void> _handleSave(BuildContext context) async {
-    if (_formKey.currentState?.validate() ?? false) {
-      final profileProvider = context.read<ProfileProvider>();
-      final birthDateStr = _selectedDate != null
-          ? DateFormat('dd/MM/yyyy').format(_selectedDate!)
-          : null;
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
-      print(
-        '[EditProfile] Saving - Name: ${_nameController.text.trim()}, BirthDate: $birthDateStr',
+    final profileProvider = context.read<ProfileProvider>();
+    final birthDateStr = _selectedDate != null
+        ? DateFormat('dd/MM/yyyy').format(_selectedDate!)
+        : null;
+
+    await profileProvider.updateProfile(
+      name: _nameController.text.trim(),
+      birthDate: birthDateStr,
+    );
+
+    if (!context.mounted) return;
+
+    final state = profileProvider.state;
+    if (state is ProfileUpdated) {
+      // Quay lại và hiển thị thông báo thành công
+      Navigator.pop(context, true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cập nhật thông tin thành công'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
       );
-
-      await profileProvider.updateProfile(
-        name: _nameController.text.trim(),
-        birthDate: birthDateStr,
+    } else if (state is ProfileError) {
+      // Hiển thị thông báo lỗi
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(state.message),
+          backgroundColor: kDanger,
+          duration: const Duration(seconds: 2),
+        ),
       );
-
-      if (!context.mounted) return;
-
-      final state = profileProvider.state;
-      print('[EditProfile] State after save: ${state.runtimeType}');
-
-      if (state is ProfileUpdated) {
-        print('[EditProfile] Profile updated successfully, navigating back');
-        // Navigate back on success
-        Navigator.pop(context, true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cập nhật thông tin thành công'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      } else if (state is ProfileError) {
-        print('[EditProfile] Error: ${state.message}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.message),
-            backgroundColor: kDanger,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    } else {
-      print('[EditProfile] Form validation failed');
     }
   }
 
@@ -158,114 +157,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   children: [
                     const SizedBox(height: 20),
 
-                    // Name Field
-                    TextFormField(
-                      controller: _nameController,
-                      focusNode: _nameFocusNode,
-                      autofocus: true,
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                        fontSize: 16,
-                      ),
-                      decoration: InputDecoration(
-                        labelText: 'Họ và tên',
-                        prefixIcon: Icon(
-                          Icons.person_outlined,
-                          color: _nameFocusNode.hasFocus
-                              ? kPrimaryColor
-                              : Colors.grey.shade600,
-                        ),
-                        labelStyle: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 16,
-                        ),
-                        floatingLabelStyle: const TextStyle(
-                          color: kPrimaryColor,
-                          fontSize: 14,
-                        ),
-                        filled: true,
-                        fillColor: (themeExt?.cardBackground ?? Colors.white)
-                            .withOpacity(themeExt?.surfaceOpacity ?? 0.9),
-                        border: const OutlineInputBorder(),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.grey.shade400,
-                            width: 1.5,
-                          ),
-                        ),
-                        focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: kPrimaryColor,
-                            width: 2.5,
-                          ),
-                        ),
-                        errorBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: kDanger, width: 1.5),
-                        ),
-                      ),
-                      textInputAction: TextInputAction.done,
-                      enabled: !isLoading,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập họ tên';
-                        }
-                        if (value.length < 2) {
-                          return 'Họ tên phải có ít nhất 2 ký tự';
-                        }
-                        return null;
-                      },
-                    ),
+                    _buildNameField(context, themeExt, isLoading),
                     const SizedBox(height: 20),
 
-                    // Birth Date Picker
-                    InkWell(
-                      onTap: isLoading ? null : () => _selectDate(context),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 16,
-                        ),
-                        decoration: BoxDecoration(
-                          color: (themeExt?.cardBackground ?? Colors.white)
-                              .withOpacity(themeExt?.surfaceOpacity ?? 0.9),
-                          border: Border.all(
-                            color: Colors.grey.shade400,
-                            width: 1.5,
-                          ),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.cake_outlined,
-                              color: Colors.grey.shade600,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                _selectedDate != null
-                                    ? DateFormat(
-                                        'dd/MM/yyyy',
-                                      ).format(_selectedDate!)
-                                    : 'Chọn ngày sinh',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: _selectedDate != null
-                                      ? Theme.of(
-                                          context,
-                                        ).textTheme.bodyLarge?.color
-                                      : Colors.grey[600],
-                                ),
-                              ),
-                            ),
-                            const Icon(
-                              Icons.calendar_today,
-                              color: kPrimaryColor,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    _buildDatePickerField(context, themeExt, isLoading),
                     const SizedBox(height: 40),
 
                     // Save Button
@@ -303,6 +198,98 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  /// Widget name input field
+  Widget _buildNameField(
+    BuildContext context,
+    AppThemeExtension? themeExt,
+    bool isLoading,
+  ) {
+    return TextFormField(
+      controller: _nameController,
+      focusNode: _nameFocusNode,
+      autofocus: true,
+      style: TextStyle(
+        color: Theme.of(context).textTheme.bodyLarge?.color,
+        fontSize: 16,
+      ),
+      decoration: InputDecoration(
+        labelText: 'Họ và tên',
+        prefixIcon: Icon(
+          Icons.person_outlined,
+          color: _nameFocusNode.hasFocus ? kPrimaryColor : Colors.grey.shade600,
+        ),
+        labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+        floatingLabelStyle: const TextStyle(color: kPrimaryColor, fontSize: 14),
+        filled: true,
+        fillColor: (themeExt?.cardBackground ?? Colors.white).withOpacity(
+          themeExt?.surfaceOpacity ?? 0.9,
+        ),
+        border: const OutlineInputBorder(),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.grey.shade400, width: 1.5),
+        ),
+        focusedBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: kPrimaryColor, width: 2.5),
+        ),
+        errorBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: kDanger, width: 1.5),
+        ),
+      ),
+      textInputAction: TextInputAction.done,
+      enabled: !isLoading,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Vui lòng nhập họ tên';
+        }
+        if (value.length < 2) {
+          return 'Họ tên phải có ít nhất 2 ký tự';
+        }
+        return null;
+      },
+    );
+  }
+
+  /// Widget date picker field
+  Widget _buildDatePickerField(
+    BuildContext context,
+    AppThemeExtension? themeExt,
+    bool isLoading,
+  ) {
+    return InkWell(
+      onTap: isLoading ? null : () => _selectDate(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        decoration: BoxDecoration(
+          color: (themeExt?.cardBackground ?? Colors.white).withOpacity(
+            themeExt?.surfaceOpacity ?? 0.9,
+          ),
+          border: Border.all(color: Colors.grey.shade400, width: 1.5),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.cake_outlined, color: Colors.grey.shade600),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                _selectedDate != null
+                    ? DateFormat('dd/MM/yyyy').format(_selectedDate!)
+                    : 'Chọn ngày sinh',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: _selectedDate != null
+                      ? Theme.of(context).textTheme.bodyLarge?.color
+                      : Colors.grey[600],
+                ),
+              ),
+            ),
+            const Icon(Icons.calendar_today, color: kPrimaryColor),
+          ],
+        ),
       ),
     );
   }

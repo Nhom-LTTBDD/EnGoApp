@@ -1,8 +1,8 @@
 // lib/presentation/providers/streak_provider.dart
 
 import 'package:flutter/foundation.dart';
-import '../../core/services/streak_service.dart';
-import '../../domain/entities/user_streak.dart';
+import '../../../core/services/streak_service.dart';
+import '../../../domain/entities/user_streak.dart';
 
 /// Provider quản lý state của streak
 class StreakProvider with ChangeNotifier {

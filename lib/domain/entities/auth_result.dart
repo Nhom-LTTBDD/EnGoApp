@@ -6,10 +6,9 @@ import 'user.dart';
 
 class AuthResult extends Equatable {
   final User user;
-  final String token;
 
-  const AuthResult({required this.user, required this.token});
+  const AuthResult({required this.user});
 
   @override
-  List<Object> get props => [user, token];
+  List<Object> get props => [user];
 }
