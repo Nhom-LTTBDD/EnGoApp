@@ -11,18 +11,29 @@ import '../../domain/entities/toeic_test.dart';
 class FirebaseStorageService {
   static final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  // Flag to disable Firebase Storage when fallback is needed
+  // Flag to control Firebase Storage usage
   static bool _useFirebaseStorage = true;
-  static void disableFirebaseStorage() {
-    _useFirebaseStorage = false;
-    print('🚫 Firebase Storage disabled - all future calls will use local assets');
+
+  /// Enable Firebase Storage (default state)
+  static void enableFirebaseStorage() {
+    _useFirebaseStorage = true;
+    print('🔥 Firebase Storage enabled - will load data from cloud');
   }
 
-  // Base paths trong Firebase Storage
+  /// Disable Firebase Storage for fallback scenarios
+  static void disableFirebaseStorage() {
+    _useFirebaseStorage = false;
+    print(
+      '🚫 Firebase Storage disabled - all future calls will use local assets',
+    );
+  }
+
+  // Base paths trong Firebase Storage - gs://engoapp-91373.firebasestorage.app
   static const String _testFolder = 'test_1_2026';
-  static const String _jsonPath = 'toeic_data/$_testFolder/questions.json';
-  static const String _imagesPath = 'toeic_data/$_testFolder/images/';
-  static const String _audioPath = 'toeic_data/$_testFolder/audio/';
+  static const String _basePath = 'toeic_data/$_testFolder';
+  static const String _jsonPath = '$_basePath/questions.json';
+  static const String _imagesPath = '$_basePath/images/';
+  static const String _audioPath = '$_basePath/audio/';
 
   /// Load JSON data từ Firebase Storage
   static Future<Map<String, dynamic>> loadJsonData() async {
@@ -225,7 +236,7 @@ class FirebaseStorageService {
       // Return local asset path when Firebase Storage is disabled
       return 'assets/test_toeic/test_1/$imageFile';
     }
-    
+
     try {
       final ref = _storage.ref('$_imagesPath$imageFile');
       return await ref.getDownloadURL();
@@ -242,7 +253,7 @@ class FirebaseStorageService {
       // Return local asset path when Firebase Storage is disabled
       return 'assets/audio/toeic_test1/$audioFile';
     }
-    
+
     try {
       final ref = _storage.ref('$_audioPath$audioFile');
       return await ref.getDownloadURL();
@@ -398,5 +409,75 @@ class FirebaseStorageService {
     } catch (e) {
       print('⚠️ Cleanup failed but continuing with upload: $e');
     }
+  }
+
+  /// Resolve Firebase Storage references to download URLs
+  /// Chuyển đổi references thành download URLs để sử dụng
+
+  /// Get download URL for image file
+  static Future<String?> getImageDownloadUrl(String imageFile) async {
+    if (!_useFirebaseStorage) return null;
+
+    try {
+      // Convert jpg extension to png since files are stored as .png
+      String pngFileName = imageFile.replaceAll('.jpg', '.png');
+
+      // Tắt debug logging để tránh spam khi cache hoạt động
+      // print('🔍 Searching for image: $imageFile -> $pngFileName');
+      // print('🔍 Full path: $_imagesPath$pngFileName');
+
+      final ref = _storage.ref('$_imagesPath$pngFileName');
+      final downloadUrl = await ref.getDownloadURL().timeout(
+        const Duration(seconds: 5),
+      );
+      // print('✅ Image found at: $_imagesPath$pngFileName');
+      return downloadUrl;
+    } catch (e) {
+      print('❌ Error getting image URL for $imageFile: $e');
+
+      // Debug: list files in images directory (chỉ khi có lỗi)
+      try {
+        print('🔍 Listing files in images directory...');
+        final ref = _storage.ref(_imagesPath);
+        final listResult = await ref.listAll();
+        print('📁 Found ${listResult.items.length} files in images directory:');
+        for (var item in listResult.items) {
+          print('  - ${item.name}');
+        }
+      } catch (listError) {
+        print('❌ Error listing images directory: $listError');
+      }
+
+      return null;
+    }
+  }
+
+  /// Get download URL for audio file
+  static Future<String?> getAudioDownloadUrl(String audioFile) async {
+    if (!_useFirebaseStorage) return null;
+
+    try {
+      final ref = _storage.ref('$_audioPath$audioFile');
+      final downloadUrl = await ref.getDownloadURL().timeout(
+        const Duration(seconds: 5),
+      );
+      print('🎵 Audio URL resolved: $audioFile');
+      return downloadUrl;
+    } catch (e) {
+      print('❌ Error getting audio URL for $audioFile: $e');
+      return null;
+    }
+  }
+
+  /// Helper method to resolve any Firebase reference to download URL
+  static Future<String?> resolveFirebaseUrl(String firebaseReference) async {
+    if (firebaseReference.startsWith('firebase_image:')) {
+      final fileName = firebaseReference.replaceFirst('firebase_image:', '');
+      return await getImageDownloadUrl(fileName);
+    } else if (firebaseReference.startsWith('firebase_audio:')) {
+      final fileName = firebaseReference.replaceFirst('firebase_audio:', '');
+      return await getAudioDownloadUrl(fileName);
+    }
+    return null;
   }
 }

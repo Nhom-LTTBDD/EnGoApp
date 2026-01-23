@@ -17,25 +17,76 @@ class ToeicJsonService {
 
   /// ==============================
   /// LOAD QUESTIONS BY PART
-  /// Firebase -> Local -> Demo
+  /// Load questions theo thứ tự ưu tiên:
+  /// Firebase Storage -> Local Assets -> Demo
   /// ==============================
   static Future<List<ToeicQuestion>> loadQuestionsByPart(
     String testId,
     int partNumber,
   ) async {
-    // Skip Firebase completely and disable it to prevent 404 errors
-    print('🚫 Disabling Firebase Storage to use local assets only');
-    FirebaseStorageService.disableFirebaseStorage();
-    
     try {
-      print('📁 Loading questions from local assets | test=$testId | part=$partNumber');
-      return await _loadQuestionsFromLocalAssets(testId, partNumber);
-    } catch (localError) {
-      print('❌ Local assets failed: $localError');
-      print('🚑 Fallback to demo questions');
+      // Thử load từ Firebase Storage trước
+      print(
+        '🔥 Trying to load questions from Firebase Storage | test=$testId | part=$partNumber',
+      );
+      return await _loadQuestionsFromFirebaseStorage(testId, partNumber);
+    } catch (firebaseError) {
+      print('❌ Firebase Storage failed: $firebaseError');
 
-      return _createDemoQuestions(testId, partNumber);
+      try {
+        print(
+          '📁 Fallback to loading questions from local assets | test=$testId | part=$partNumber',
+        );
+        return await _loadQuestionsFromLocalAssets(testId, partNumber);
+      } catch (localError) {
+        print('❌ Local assets failed: $localError');
+        print('🚑 Final fallback to demo questions');
+
+        return _createDemoQuestions(testId, partNumber);
+      }
     }
+  }
+
+  /// Load questions từ Firebase Storage
+  static Future<List<ToeicQuestion>> _loadQuestionsFromFirebaseStorage(
+    String testId,
+    int partNumber,
+  ) async {
+    print('🔥 Firebase Storage: load | test=$testId | part=$partNumber');
+
+    // Sử dụng FirebaseStorageService để load JSON data trực tiếp
+    final jsonData = await FirebaseStorageService.loadJsonData();
+
+    // Parse JSON để lấy questions cho test và part cụ thể
+    final testData = jsonData[testId];
+    if (testData == null) {
+      throw Exception('Test $testId not found in Firebase Storage');
+    }
+
+    final parts = testData['parts'] as Map<String, dynamic>?;
+    if (parts == null) {
+      throw Exception('Parts data not found for test $testId');
+    }
+
+    final partData = parts[partNumber.toString()];
+    if (partData == null) {
+      throw Exception('Part $partNumber not found for test $testId');
+    }
+
+    final questionsData = partData['questions'] as List<dynamic>?;
+    if (questionsData == null) {
+      throw Exception('Questions data not found for part $partNumber');
+    }
+
+    final questions = <ToeicQuestion>[];
+    for (final q in questionsData) {
+      questions.add(
+        _mapJsonToQuestion(testId, partNumber, q as Map<String, dynamic>),
+      );
+    }
+
+    print('✅ Loaded ${questions.length} questions from Firebase Storage');
+    return questions;
   }
 
   /// ==============================
@@ -98,7 +149,7 @@ class ToeicJsonService {
     int partNumber,
     Map<String, dynamic> json,
   ) {
-    // image
+    // image - sử dụng Firebase Storage reference
     String? imageUrl;
     List<String>? imageUrls;
 
@@ -115,7 +166,7 @@ class ToeicJsonService {
       }
     }
 
-    // audio
+    // audio - sử dụng Firebase Storage reference
     final audioUrl = _getAudioPath(testId, json['audioFile']);
 
     return ToeicQuestion(
@@ -144,16 +195,21 @@ class ToeicJsonService {
   static String? _getImagePath(String testId, String? imageFile) {
     if (imageFile == null) return null;
 
-    final fixed = imageFile.endsWith('.jpg')
-        ? imageFile.replaceAll('.jpg', '.png')
-        : imageFile;
+    // Log để debug tên file
+    print('🖼️ Creating image reference for: $imageFile');
 
-    return 'assets/test_toeic/test_1/$fixed';
+    // Return Firebase Storage path - sẽ được convert thành download URL khi cần
+    return 'firebase_image:$imageFile';
   }
 
   static String? _getAudioPath(String testId, String? audioFile) {
     if (audioFile == null) return null;
-    return 'assets/audio/toeic_test1/$audioFile';
+
+    // Log để debug tên file
+    print('🎵 Creating audio reference for: $audioFile');
+
+    // Return Firebase Storage path - sẽ được convert thành download URL khi cần
+    return 'firebase_audio:$audioFile';
   }
 
   /// ==============================

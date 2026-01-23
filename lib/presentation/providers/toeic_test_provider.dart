@@ -6,6 +6,7 @@ import 'package:audioplayers/audioplayers.dart';
 import '../../domain/entities/toeic_test_session.dart';
 import '../../domain/entities/toeic_question.dart';
 import '../../core/utils/toeic_score_calculator.dart';
+import '../../data/services/firebase_storage_service.dart';
 
 class ToeicTestProvider extends ChangeNotifier {
   ToeicTestSession? _session;
@@ -129,8 +130,19 @@ class ToeicTestProvider extends ChangeNotifier {
       // Set volume to maximum for testing
       await _audioPlayer!.setVolume(1.0);
 
-      // Check if it's an asset or URL
-      if (audioUrl.startsWith('assets/')) {
+      // Handle Firebase Storage references
+      if (audioUrl.startsWith('firebase_audio:')) {
+        // Resolve Firebase Storage reference to download URL
+        final downloadUrl = await FirebaseStorageService.resolveFirebaseUrl(
+          audioUrl,
+        );
+        if (downloadUrl != null) {
+          debugPrint('🔥 Playing Firebase audio URL: $downloadUrl');
+          await _audioPlayer!.play(UrlSource(downloadUrl));
+        } else {
+          throw Exception('Failed to resolve Firebase Storage URL');
+        }
+      } else if (audioUrl.startsWith('assets/')) {
         // For local assets, use AssetSource and remove 'assets/' prefix
         final assetPath = audioUrl.replaceFirst('assets/', '');
         debugPrint('🎵 Playing as asset with path: $assetPath');
