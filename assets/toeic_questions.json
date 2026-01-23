@@ -2275,7 +2275,6 @@
             "questionType": "reading-comprehension",
             "groupId": "168-171",
             "imageFile": "test1_168_171.png",
-            "imageFile": "test1_168_171.png",
             "questionText": "What is indicated about Marco's Italian Market?",
             "options": [
               "It supplies ingredients to Marco's Italian Restaurant.",

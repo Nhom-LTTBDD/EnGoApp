@@ -2,206 +2,197 @@
 
 import 'dart:convert';
 import 'package:flutter/services.dart';
+
 import '../../domain/entities/toeic_question.dart';
 import '../../domain/entities/toeic_test.dart';
+import 'firebase_storage_service.dart';
 
 class ToeicJsonService {
-  static Future<Map<String, dynamic>> loadJsonData() async {
-    try {
-      print('Loading JSON from assets/toeic_questions.json...');
-      String jsonString = await rootBundle.loadString(
-        'assets/toeic_questions.json',
-      );
-      print('Raw JSON string length: ${jsonString.length}');
-      final data = json.decode(jsonString);
-      print('JSON decoded successfully');
-      print('Available tests: ${data.keys.toList()}');
-
-      // Check if test1 exists
-      if (data['test1'] != null) {
-        final test1 = data['test1'];
-        print('Test1 found with keys: ${test1.keys.toList()}');
-        if (test1['parts'] != null) {
-          final parts = test1['parts'];
-          print('Available parts: ${parts.keys.toList()}');
-        }
-      }
-
-      return data;
-    } catch (e) {
-      print('Error loading JSON: $e');
-      print('Error type: ${e.runtimeType}');
-      return {};
-    }
-  }
-
+  /// ==============================
+  /// LOAD TEST
+  /// ==============================
   static Future<ToeicTest> loadTest(String testId) async {
-    final data = await loadJsonData();
-    final testData = data[testId];
-
-    if (testData == null) {
-      throw Exception('Test $testId not found');
-    }
-
-    return ToeicTest(
-      id: testId,
-      name: testData['name'],
-      description: 'TOEIC Practice Test',
-      totalQuestions: testData['totalQuestions'],
-      listeningQuestions: 100, // Part 1-4
-      readingQuestions: 100, // Part 5-7
-      duration: testData['duration'],
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      isActive: true,
-      year: 2025,
-    );
+    return FirebaseStorageService.loadTest(testId);
   }
 
+  /// ==============================
+  /// LOAD QUESTIONS BY PART
+  /// Firebase -> Local -> Demo
+  /// ==============================
   static Future<List<ToeicQuestion>> loadQuestionsByPart(
     String testId,
     int partNumber,
   ) async {
+    // Skip Firebase completely and disable it to prevent 404 errors
+    print('🚫 Disabling Firebase Storage to use local assets only');
+    FirebaseStorageService.disableFirebaseStorage();
+    
     try {
-      print('Loading questions for test: $testId, part: $partNumber');
-      final data = await loadJsonData();
+      print('📁 Loading questions from local assets | test=$testId | part=$partNumber');
+      return await _loadQuestionsFromLocalAssets(testId, partNumber);
+    } catch (localError) {
+      print('❌ Local assets failed: $localError');
+      print('🚑 Fallback to demo questions');
 
-      if (data.isEmpty) {
-        print('No JSON data loaded');
-        return [];
-      }
-
-      final testData = data[testId];
-      if (testData == null) {
-        print('Test $testId not found in JSON data');
-        return [];
-      }
-
-      final partsData = testData['parts'];
-      if (partsData == null) {
-        print('No parts data found for test $testId');
-        return [];
-      }
-
-      final partData = partsData[partNumber.toString()];
-      if (partData == null) {
-        print('Part $partNumber not found in test $testId');
-        return [];
-      }
-
-      final questionsData = partData['questions'];
-      if (questionsData == null || questionsData is! List) {
-        print('No questions data found for part $partNumber');
-        return [];
-      }
-
-      print('Found ${questionsData.length} questions for part $partNumber');
-
-      final questions = <ToeicQuestion>[];
-
-      for (var questionData in questionsData) {
-        try {
-          // Handle both imageFile (single) and imageFiles (array)
-          String? imageUrl;
-          List<String>? imageUrls;
-
-          if (questionData['imageFile'] != null) {
-            imageUrl = _getImagePath(questionData['imageFile']);
-          } else if (questionData['imageFiles'] != null &&
-              questionData['imageFiles'] is List) {
-            imageUrls = (questionData['imageFiles'] as List<dynamic>)
-                .map((file) => _getImagePath(file))
-                .where((url) => url != null)
-                .cast<String>()
-                .toList();
-            if (imageUrls.isNotEmpty) {
-              imageUrl = imageUrls.first; // Use first image as primary
-            }
-          }
-
-          final audioUrl = _getAudioPath(questionData['audioFile']);
-
-          print(
-            'Question ${questionData['questionNumber']}: imageFile=${questionData['imageFile']}, imageFiles=${questionData['imageFiles']}, imageUrl=$imageUrl',
-          );
-
-          final question = ToeicQuestion(
-            id: 'q${questionData['questionNumber']}',
-            testId: testId,
-            partNumber: partNumber,
-            questionNumber: questionData['questionNumber'],
-            questionType: questionData['questionType'] ?? 'multiple-choice',
-            questionText: questionData['questionText'],
-            imageUrl: imageUrl,
-            imageUrls: imageUrls,
-            audioUrl: audioUrl,
-            options: List<String>.from(questionData['options'] ?? []),
-            correctAnswer: questionData['correctAnswer'] ?? 'A',
-            explanation: questionData['explanation'] ?? '',
-            transcript:
-                questionData['transcript'] ?? questionData['audioTranscript'],
-            order: questionData['questionNumber'],
-            groupId: questionData['groupId'],
-            passageText: questionData['passageText'],
-          );
-          questions.add(question);
-        } catch (e) {
-          print('Error creating question: $e');
-        }
-      }
-
-      print('Successfully created ${questions.length} ToeicQuestion objects');
-      return questions;
-    } catch (e) {
-      print('Error loading questions for part $partNumber: $e');
-      return [];
+      return _createDemoQuestions(testId, partNumber);
     }
   }
 
+  /// ==============================
+  /// LOAD ALL QUESTIONS (PART 1 → 7)
+  /// ==============================
   static Future<List<ToeicQuestion>> loadAllQuestions(String testId) async {
     final allQuestions = <ToeicQuestion>[];
 
-    // Load questions from all parts
     for (int part = 1; part <= 7; part++) {
       final partQuestions = await loadQuestionsByPart(testId, part);
       allQuestions.addAll(partQuestions);
     }
 
-    // Sort by question number
     allQuestions.sort((a, b) => a.questionNumber.compareTo(b.questionNumber));
 
     return allQuestions;
   }
 
-  static String? _getImagePath(String? imageFile) {
-    if (imageFile == null) return null;
-    // Convert .jpg to .png as all images are in PNG format
-    String correctedImageFile = imageFile;
-    if (imageFile.endsWith('.jpg')) {
-      correctedImageFile = imageFile.replaceAll('.jpg', '.png');
+  /// ==============================
+  /// LOCAL ASSETS LOADER
+  /// ==============================
+  static Future<List<ToeicQuestion>> _loadQuestionsFromLocalAssets(
+    String testId,
+    int partNumber,
+  ) async {
+    print('📁 Local assets: load | test=$testId | part=$partNumber');
+
+    final jsonString = await rootBundle.loadString(
+      'assets/toeic_questions.json',
+    );
+    final Map<String, dynamic> data = json.decode(jsonString);
+
+    final testData = data[testId];
+    if (testData == null) {
+      throw Exception('Test $testId not found');
     }
-    String finalPath = 'assets/test_toeic/test_1/$correctedImageFile';
-    return finalPath;
+
+    final parts = testData['parts'] as Map<String, dynamic>;
+    final partData = parts[partNumber.toString()];
+    if (partData == null) {
+      throw Exception('Part $partNumber not found');
+    }
+
+    final questionsData = partData['questions'] as List<dynamic>;
+    final questions = <ToeicQuestion>[];
+
+    for (final q in questionsData) {
+      questions.add(_mapJsonToQuestion(testId, partNumber, q));
+    }
+
+    print('✅ Loaded ${questions.length} questions from local assets');
+    return questions;
   }
 
-  static String? _getAudioPath(String? audioFile) {
+  /// ==============================
+  /// JSON → ENTITY
+  /// ==============================
+  static ToeicQuestion _mapJsonToQuestion(
+    String testId,
+    int partNumber,
+    Map<String, dynamic> json,
+  ) {
+    // image
+    String? imageUrl;
+    List<String>? imageUrls;
+
+    if (json['imageFile'] != null) {
+      imageUrl = _getImagePath(testId, json['imageFile']);
+    } else if (json['imageFiles'] is List) {
+      imageUrls = (json['imageFiles'] as List)
+          .map((e) => _getImagePath(testId, e))
+          .whereType<String>()
+          .toList();
+
+      if (imageUrls.isNotEmpty) {
+        imageUrl = imageUrls.first;
+      }
+    }
+
+    // audio
+    final audioUrl = _getAudioPath(testId, json['audioFile']);
+
+    return ToeicQuestion(
+      id: 'q${json['questionNumber']}',
+      testId: testId,
+      partNumber: partNumber,
+      questionNumber: json['questionNumber'],
+      questionType: json['questionType'] ?? 'multiple-choice',
+      questionText: json['questionText'],
+      imageUrl: imageUrl,
+      imageUrls: imageUrls,
+      audioUrl: audioUrl,
+      options: List<String>.from(json['options'] ?? []),
+      correctAnswer: json['correctAnswer'] ?? 'A',
+      explanation: json['explanation'] ?? '',
+      transcript: json['transcript'] ?? json['audioTranscript'],
+      order: json['questionNumber'],
+      groupId: json['groupId'],
+      passageText: json['passageText'],
+    );
+  }
+
+  /// ==============================
+  /// PATH HELPERS
+  /// ==============================
+  static String? _getImagePath(String testId, String? imageFile) {
+    if (imageFile == null) return null;
+
+    final fixed = imageFile.endsWith('.jpg')
+        ? imageFile.replaceAll('.jpg', '.png')
+        : imageFile;
+
+    return 'assets/test_toeic/test_1/$fixed';
+  }
+
+  static String? _getAudioPath(String testId, String? audioFile) {
     if (audioFile == null) return null;
     return 'assets/audio/toeic_test1/$audioFile';
   }
 
+  /// ==============================
+  /// GROUP BY PART
+  /// ==============================
   static Map<String, List<ToeicQuestion>> groupQuestionsByPart(
     List<ToeicQuestion> questions,
   ) {
     final Map<String, List<ToeicQuestion>> grouped = {};
 
-    for (var question in questions) {
-      final partKey = 'part${question.partNumber}';
-      if (!grouped.containsKey(partKey)) {
-        grouped[partKey] = [];
-      }
-      grouped[partKey]!.add(question);
+    for (final q in questions) {
+      final key = 'part${q.partNumber}';
+      grouped.putIfAbsent(key, () => []);
+      grouped[key]!.add(q);
     }
 
     return grouped;
+  }
+
+  /// ==============================
+  /// DEMO QUESTIONS (LAST FALLBACK)
+  /// ==============================
+  static List<ToeicQuestion> _createDemoQuestions(
+    String testId,
+    int partNumber,
+  ) {
+    return [
+      ToeicQuestion(
+        id: 'demo_${partNumber}_1',
+        testId: testId,
+        partNumber: partNumber,
+        questionNumber: partNumber * 10,
+        questionType: 'demo',
+        questionText: 'Demo question for Part $partNumber',
+        options: ['A', 'B', 'C', 'D'],
+        correctAnswer: 'A',
+        explanation: 'Demo explanation',
+        order: partNumber * 10,
+      ),
+    ];
   }
 }

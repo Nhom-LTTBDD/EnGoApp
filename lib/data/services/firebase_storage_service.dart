@@ -1,61 +1,97 @@
 // lib/data/services/firebase_storage_service.dart
 
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import '../../domain/entities/toeic_question.dart';
 import '../../domain/entities/toeic_test.dart';
 
 class FirebaseStorageService {
   static final FirebaseStorage _storage = FirebaseStorage.instance;
-  
+
+  // Flag to disable Firebase Storage when fallback is needed
+  static bool _useFirebaseStorage = true;
+  static void disableFirebaseStorage() {
+    _useFirebaseStorage = false;
+    print('🚫 Firebase Storage disabled - all future calls will use local assets');
+  }
+
   // Base paths trong Firebase Storage
-  static const String _jsonPath = 'toeic_data/questions.json';
-  static const String _imagesPath = 'toeic_data/images/';
-  static const String _audioPath = 'toeic_data/audio/';
+  static const String _testFolder = 'test_1_2026';
+  static const String _jsonPath = 'toeic_data/$_testFolder/questions.json';
+  static const String _imagesPath = 'toeic_data/$_testFolder/images/';
+  static const String _audioPath = 'toeic_data/$_testFolder/audio/';
 
   /// Load JSON data từ Firebase Storage
   static Future<Map<String, dynamic>> loadJsonData() async {
+    if (!_useFirebaseStorage) {
+      print('🔄 Firebase Storage disabled, using local assets directly');
+      return await _loadLocalJsonData();
+    }
+
     try {
       print('🔥 Loading JSON from Firebase Storage...');
-      
-      // Get download URL của JSON file
+
+      // Get download URL của JSON file với timeout
       final ref = _storage.ref(_jsonPath);
-      final downloadUrl = await ref.getDownloadURL();
-      
+      final downloadUrl = await ref.getDownloadURL().timeout(
+        const Duration(seconds: 5),
+      );
+
       print('🔥 JSON download URL: $downloadUrl');
-      
-      // Download JSON content
-      final response = await http.get(Uri.parse(downloadUrl));
-      
+
+      // Download JSON content với timeout
+      final response = await http
+          .get(Uri.parse(downloadUrl))
+          .timeout(const Duration(seconds: 10));
+
       if (response.statusCode == 200) {
         final jsonString = response.body;
         print('🔥 JSON loaded successfully, length: ${jsonString.length}');
-        
+
         final data = json.decode(jsonString);
         print('🔥 JSON parsed successfully');
         print('🔥 Available tests: ${data.keys.toList()}');
-        
+
         return data;
       } else {
         throw Exception('Failed to load JSON: ${response.statusCode}');
       }
     } catch (e) {
       print('❌ Error loading JSON from Firebase: $e');
-      print('🔄 Falling back to local assets...');
-      
-      // Fallback to local assets if Firebase fails
-      return await _loadLocalJsonData();
+      print('🔍 Error type: ${e.runtimeType}');
+
+      if (e.toString().contains('Object not found') ||
+          e.toString().contains('object-not-found') ||
+          e.toString().contains('404')) {
+        print('📁 File not found in Firebase Storage path: $_jsonPath');
+        print('💡 Make sure to upload questions.json to Firebase Storage');
+        throw Exception('Firebase Storage file not found: $_jsonPath');
+      } else if (e.toString().contains('Permission denied')) {
+        print('🚫 Permission denied - check Firebase Storage rules');
+        throw Exception('Firebase Storage permission denied');
+      } else if (e.toString().contains('Network') ||
+          e.toString().contains('TimeoutException')) {
+        print('🌐 Network error - check internet connection');
+        throw Exception('Firebase Storage network error');
+      } else {
+        print('🔧 Unknown error - check Firebase configuration');
+        throw Exception('Firebase Storage configuration error: $e');
+      }
     }
   }
 
   /// Fallback method để load từ local assets
   static Future<Map<String, dynamic>> _loadLocalJsonData() async {
     try {
-      final String jsonString = await rootBundle.loadString('assets/toeic_questions.json');
+      final String jsonString = await rootBundle.loadString(
+        'assets/toeic_questions.json',
+      );
       return json.decode(jsonString);
     } catch (e) {
-      print('❌ Error loading local JSON: $e');
+      print('Error loading local JSON: $e');
       return {};
     }
   }
@@ -71,11 +107,16 @@ class FirebaseStorageService {
 
     return ToeicTest(
       id: testId,
-      name: testData['name'],
+      name: testData['name'] ?? 'TOEIC Practice Test',
       description: 'TOEIC Practice Test',
-      totalQuestions: testData['totalQuestions'],
-      timeLimit: testData['timeLimit'],
-      parts: (testData['parts'] as Map<String, dynamic>).keys.toList(),
+      totalQuestions: testData['totalQuestions'] ?? 200,
+      listeningQuestions: 100, // Parts 1-4
+      readingQuestions: 100, // Parts 5-7
+      duration: testData['timeLimit'] ?? testData['duration'] ?? 120, // 2 hours
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      isActive: true,
+      year: 2025,
     );
   }
 
@@ -84,50 +125,58 @@ class FirebaseStorageService {
     try {
       final data = await loadJsonData();
       final testData = data['test1'];
-      
+
       if (testData == null) {
         print('❌ Test1 not found in data');
         return [];
       }
 
       final parts = testData['parts'];
-      final partKey = 'part$partNumber';
-      final partData = parts[partKey];
+      // Try both string and integer keys
+      final partKey = partNumber.toString();
+      final partData = parts[partKey] ?? parts[partNumber];
 
       if (partData == null) {
-        print('❌ Part $partNumber not found');
+        print(
+          '❌ Part $partNumber not found (tried keys: "$partKey" and $partNumber)',
+        );
         return [];
       }
 
       final questionsData = partData['questions'] as List<dynamic>;
-      print('🔥 Loading ${questionsData.length} questions for part $partNumber from Firebase');
+      print(
+        '🔥 Loading ${questionsData.length} questions for part $partNumber from Firebase',
+      );
 
       final questions = <ToeicQuestion>[];
 
       for (var questionData in questionsData) {
         try {
-          // Process images with Firebase URLs
+          // Process images with Firebase URLs only if enabled
           String? imageUrl;
           List<String>? imageUrls;
 
-          if (questionData['imageFile'] != null) {
-            imageUrl = await _getImageUrl(questionData['imageFile']);
-          } else if (questionData['imageFiles'] != null && questionData['imageFiles'] is List) {
-            imageUrls = [];
-            for (String imageFile in questionData['imageFiles']) {
-              final url = await _getImageUrl(imageFile);
-              if (url != null) {
-                imageUrls.add(url);
+          if (_useFirebaseStorage) {
+            if (questionData['imageFile'] != null) {
+              imageUrl = await _getImageUrl(questionData['imageFile']);
+            } else if (questionData['imageFiles'] != null &&
+                questionData['imageFiles'] is List) {
+              imageUrls = [];
+              for (String imageFile in questionData['imageFiles']) {
+                final url = await _getImageUrl(imageFile);
+                if (url != null) {
+                  imageUrls.add(url);
+                }
               }
-            }
-            if (imageUrls.isNotEmpty) {
-              imageUrl = imageUrls.first;
+              if (imageUrls.isNotEmpty) {
+                imageUrl = imageUrls.first;
+              }
             }
           }
 
-          // Process audio with Firebase URLs
+          // Process audio with Firebase URLs only if enabled
           String? audioUrl;
-          if (questionData['audioFile'] != null) {
+          if (_useFirebaseStorage && questionData['audioFile'] != null) {
             audioUrl = await _getAudioUrl(questionData['audioFile']);
           }
 
@@ -144,20 +193,25 @@ class FirebaseStorageService {
             options: List<String>.from(questionData['options'] ?? []),
             correctAnswer: questionData['correctAnswer'] ?? 'A',
             explanation: questionData['explanation'] ?? '',
-            transcript: questionData['transcript'] ?? questionData['audioTranscript'],
+            transcript:
+                questionData['transcript'] ?? questionData['audioTranscript'],
             order: questionData['questionNumber'],
             groupId: questionData['groupId'],
             passageText: questionData['passageText'],
           );
           questions.add(question);
-          
-          print('✅ Processed question ${question.questionNumber} with Firebase URLs');
+
+          print(
+            '✅ Processed question ${question.questionNumber} with Firebase URLs',
+          );
         } catch (e) {
           print('❌ Error creating question: $e');
         }
       }
 
-      print('🔥 Successfully loaded ${questions.length} questions from Firebase');
+      print(
+        '🔥 Successfully loaded ${questions.length} questions from Firebase',
+      );
       return questions;
     } catch (e) {
       print('❌ Error loading questions from Firebase: $e');
@@ -167,6 +221,11 @@ class FirebaseStorageService {
 
   /// Get download URL cho image file
   static Future<String?> _getImageUrl(String imageFile) async {
+    if (!_useFirebaseStorage) {
+      // Return local asset path when Firebase Storage is disabled
+      return 'assets/test_toeic/test_1/$imageFile';
+    }
+    
     try {
       final ref = _storage.ref('$_imagesPath$imageFile');
       return await ref.getDownloadURL();
@@ -179,13 +238,18 @@ class FirebaseStorageService {
 
   /// Get download URL cho audio file
   static Future<String?> _getAudioUrl(String audioFile) async {
+    if (!_useFirebaseStorage) {
+      // Return local asset path when Firebase Storage is disabled
+      return 'assets/audio/toeic_test1/$audioFile';
+    }
+    
     try {
       final ref = _storage.ref('$_audioPath$audioFile');
       return await ref.getDownloadURL();
     } catch (e) {
       print('❌ Error getting audio URL for $audioFile: $e');
       // Fallback to local asset
-      return 'audio/toeic_test1/$audioFile';
+      return 'assets/audio/toeic_test1/$audioFile';
     }
   }
 
@@ -193,10 +257,10 @@ class FirebaseStorageService {
   static Future<void> uploadJsonData(Map<String, dynamic> jsonData) async {
     try {
       print('🔥 Uploading JSON data to Firebase Storage...');
-      
+
       final jsonString = json.encode(jsonData);
       final ref = _storage.ref(_jsonPath);
-      
+
       await ref.putString(jsonString, format: PutStringFormat.raw);
       print('✅ JSON data uploaded successfully');
     } catch (e) {
@@ -206,13 +270,16 @@ class FirebaseStorageService {
   }
 
   /// Upload image file to Firebase Storage
-  static Future<String?> uploadImage(String fileName, List<int> imageBytes) async {
+  static Future<String?> uploadImage(
+    String fileName,
+    List<int> imageBytes,
+  ) async {
     try {
       print('🔥 Uploading image $fileName to Firebase Storage...');
-      
+
       final ref = _storage.ref('$_imagesPath$fileName');
       await ref.putData(Uint8List.fromList(imageBytes));
-      
+
       final downloadUrl = await ref.getDownloadURL();
       print('✅ Image $fileName uploaded successfully');
       return downloadUrl;
@@ -223,13 +290,16 @@ class FirebaseStorageService {
   }
 
   /// Upload audio file to Firebase Storage
-  static Future<String?> uploadAudio(String fileName, List<int> audioBytes) async {
+  static Future<String?> uploadAudio(
+    String fileName,
+    List<int> audioBytes,
+  ) async {
     try {
       print('🔥 Uploading audio $fileName to Firebase Storage...');
-      
+
       final ref = _storage.ref('$_audioPath$fileName');
       await ref.putData(Uint8List.fromList(audioBytes));
-      
+
       final downloadUrl = await ref.getDownloadURL();
       print('✅ Audio $fileName uploaded successfully');
       return downloadUrl;
@@ -258,6 +328,75 @@ class FirebaseStorageService {
     } catch (e) {
       print('❌ Error getting metadata for $path: $e');
       return null;
+    }
+  }
+
+  /// Delete file from Firebase Storage
+  static Future<bool> deleteFile(String path) async {
+    try {
+      final ref = _storage.ref(path);
+      await ref.delete();
+      print('🗑️ Deleted: $path');
+      return true;
+    } catch (e) {
+      print('❌ Error deleting $path: $e');
+      return false;
+    }
+  }
+
+  /// Delete all files in a folder
+  static Future<void> deleteFolder(String folderPath) async {
+    try {
+      print('🗑️ Deleting folder: $folderPath');
+      final ref = _storage.ref(folderPath);
+      final listResult = await ref.listAll();
+
+      // Delete all files
+      for (final item in listResult.items) {
+        await item.delete();
+        print('🗑️ Deleted file: ${item.name}');
+      }
+
+      // Delete all subfolders recursively
+      for (final prefix in listResult.prefixes) {
+        await deleteFolder(prefix.fullPath);
+      }
+
+      print('✅ Folder deleted: $folderPath');
+    } catch (e) {
+      print('❌ Error deleting folder $folderPath: $e');
+    }
+  }
+
+  /// Clean up old data structure
+  static Future<void> cleanupOldData() async {
+    try {
+      print('🧹 Attempting to clean up old data structure...');
+
+      // Delete old structure if exists - but continue even if fails
+      final oldPaths = [
+        'toeic_data/questions.json',
+        'toeic_data/images',
+        'toeic_data/audio',
+      ];
+
+      for (String path in oldPaths) {
+        try {
+          if (await fileExists(path)) {
+            if (path.contains('.json')) {
+              await deleteFile(path);
+            } else {
+              await deleteFolder(path);
+            }
+          }
+        } catch (e) {
+          print('⚠️ Could not delete $path: $e (continuing anyway...)');
+        }
+      }
+
+      print('✅ Cleanup attempt completed (some files may remain)');
+    } catch (e) {
+      print('⚠️ Cleanup failed but continuing with upload: $e');
     }
   }
 }
