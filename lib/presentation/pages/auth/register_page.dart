@@ -31,13 +31,13 @@ class _RegisterPageState extends State<RegisterPage> {
   double _passwordStrength = 0.0;
   String _passwordStrengthText = '';
   Color _passwordStrengthColor = Colors.grey;
-  bool _hasNavigated = false;
+
+  AuthState? _previousAuthState;
 
   @override
   void initState() {
     super.initState();
     _passwordController.addListener(_updatePasswordStrength);
-    // REMOVED: Focus listeners that cause unnecessary rebuilds
   }
 
   void _updatePasswordStrength() {
@@ -109,6 +109,34 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
+  /// Xử lý navigation và errors khi state thay đổi
+  void _handleAuthStateChange(BuildContext context, AuthState authState) {
+    // Chỉ handle khi state thực sự thay đổi
+    if (_previousAuthState == authState) return;
+    _previousAuthState = authState;
+
+    if (authState is Authenticated) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, AppRoutes.home);
+        }
+      });
+    } else if (authState is AuthError) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(authState.message),
+              backgroundColor: kDanger,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          context.read<AuthProvider>().reset();
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AuthLayout(
@@ -116,28 +144,10 @@ class _RegisterPageState extends State<RegisterPage> {
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
           final authState = authProvider.state;
-
-          // Handle navigation and errors - with debounce
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted || _hasNavigated) return;
-
-            if (authState is Authenticated) {
-              _hasNavigated = true;
-              authProvider.reset();
-              Navigator.pushReplacementNamed(context, AppRoutes.home);
-            } else if (authState is AuthError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(authState.message),
-                  backgroundColor: kDanger,
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-              authProvider.reset();
-            }
-          });
-
           final isLoading = authState is AuthLoading;
+
+          // Handle state changes
+          _handleAuthStateChange(context, authState);
 
           return Container(
             decoration: BoxDecoration(

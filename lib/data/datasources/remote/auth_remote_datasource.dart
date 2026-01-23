@@ -24,7 +24,7 @@ abstract class AuthRemoteDataSource {
   });
 
   /// Đăng xuất qua API
-  Future<bool> logout(String token);
+  Future<bool> logout();
 
   /// Gửi OTP qua email
   Future<bool> forgotPassword(String email);
@@ -39,7 +39,7 @@ abstract class AuthRemoteDataSource {
   });
 
   /// Lấy thông tin user từ server
-  Future<UserModel> getCurrentUser(String token);
+  Future<UserModel?> getCurrentUser();
 
   /// Đăng nhập bằng Google
   Future<AuthResultModel> signInWithGoogle();
@@ -88,9 +88,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         ...userData,
       });
 
-      final token = await credential.user!.getIdToken();
-
-      return AuthResultModel(user: user, token: token ?? '');
+      return AuthResultModel(user: user);
     } on firebase_auth.FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found' || e.code == 'wrong-password') {
         throw const AuthFailure('Email hoặc mật khẩu không đúng');
@@ -147,9 +145,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         birthDate: birthDate,
       );
 
-      final token = await credential.user!.getIdToken();
-
-      return AuthResultModel(user: user, token: token ?? '');
+      return AuthResultModel(user: user);
     } on firebase_auth.FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
         throw const ValidationFailure('Email đã được sử dụng');
@@ -167,7 +163,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<bool> logout(String token) async {
+  Future<bool> logout() async {
     try {
       await firebaseAuth.signOut();
       return true;
@@ -216,12 +212,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<UserModel> getCurrentUser(String token) async {
+  Future<UserModel?> getCurrentUser() async {
     try {
       final currentUser = firebaseAuth.currentUser;
 
       if (currentUser == null) {
-        throw const AuthFailure('Người dùng chưa đăng nhập');
+        return null;
       }
 
       // Lấy thông tin user từ cache first, fallback to server
@@ -330,9 +326,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         ...userData,
       });
 
-      final token = await user.getIdToken();
-
-      return AuthResultModel(user: userModel, token: token ?? '');
+      return AuthResultModel(user: userModel);
     } on firebase_auth.FirebaseAuthException catch (e) {
       if (e.code == 'account-exists-with-different-credential') {
         throw const AuthFailure(

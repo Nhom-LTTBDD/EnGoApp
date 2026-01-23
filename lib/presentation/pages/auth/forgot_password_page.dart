@@ -19,6 +19,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+  AuthState? _previousAuthState;
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -32,41 +34,54 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     }
   }
 
+  /// Xử lý state changes
+  void _handleAuthStateChange(BuildContext context, AuthState authState) {
+    // Chỉ handle khi state thực sự thay đổi
+    if (_previousAuthState == authState) return;
+    _previousAuthState = authState;
+
+    if (authState is PasswordReset) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Email đặt lại mật khẩu đã được gửi! Vui lòng kiểm tra hộp thư của bạn.',
+              ),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 5),
+            ),
+          );
+          context.read<AuthProvider>().reset();
+          Navigator.pushReplacementNamed(context, AppRoutes.login);
+        }
+      });
+    } else if (authState is AuthError) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(authState.message),
+              backgroundColor: kDanger,
+            ),
+          );
+          context.read<AuthProvider>().reset();
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AuthLayout(
       title: 'Quên mật khẩu',
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
-          // Listen to auth state changes
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            final state = authProvider.state;
+          final authState = authProvider.state;
+          final isLoading = authState is AuthLoading;
 
-            if (state is PasswordReset) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Email đặt lại mật khẩu đã được gửi! Vui lòng kiểm tra hộp thư của bạn.',
-                  ),
-                  backgroundColor: Colors.green,
-                  duration: Duration(seconds: 5),
-                ),
-              );
-              // Reset state và quay về trang login
-              authProvider.reset();
-              Navigator.pushReplacementNamed(context, AppRoutes.login);
-            } else if (state is AuthError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: kDanger,
-                ),
-              );
-              authProvider.reset();
-            }
-          });
-
-          final isLoading = authProvider.state is AuthLoading;
+          // Handle state changes
+          _handleAuthStateChange(context, authState);
 
           return Container(
             width: 320,

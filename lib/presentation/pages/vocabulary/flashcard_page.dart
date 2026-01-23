@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/flashcard_provider.dart';
 import '../../providers/flashcard_progress_provider.dart';
+import '../../providers/streak_provider.dart';
+import '../../providers/auth/auth_provider.dart';
+import '../../providers/auth/auth_state.dart';
 import '../../widgets/vocabulary/flashcard_header.dart';
 import '../../widgets/vocabulary/flashcard_score_display.dart';
 import '../../widgets/vocabulary/flashcard_swipe_card.dart';
@@ -83,14 +86,21 @@ class _FlashcardPageState extends State<FlashcardPage>
   void _showResultDialog() async {
     final flashcardProvider = context.read<FlashcardProvider>();
     final progressProvider = context.read<FlashcardProgressProvider>();
+    final authProvider = context.read<AuthProvider>();
 
-    // Get userId from FlashcardProgressProvider (already set by main.dart)    
+    // Get userId from FlashcardProgressProvider (already set by main.dart)
     final userId = progressProvider.userId;
     final topicId = widget.topicId ?? '1';
 
     print('[FLASHCARD] ========== SESSION ENDED ==========');
     print('[FLASHCARD] User ID: $userId');
     print('[FLASHCARD] Topic ID: $topicId');
+    print('[FLASHCARD] Auth State: ${authProvider.state.runtimeType}');
+    if (authProvider.state is Authenticated) {
+      final user = (authProvider.state as Authenticated).user;
+      print('[FLASHCARD] Auth User ID: ${user.id}');
+      print('[FLASHCARD] Auth User Email: ${user.email}');
+    }
 
     // Save progress if user is authenticated
     if (userId != 'default_user') {
@@ -115,6 +125,28 @@ class _FlashcardPageState extends State<FlashcardPage>
         print('[FLASHCARD] Check Firebase Console:');
         print('[FLASHCARD] Collection: flashcard_progress');
         print('[FLASHCARD] Document ID: ${userId}_$topicId');
+
+        // Update streak after saving progress
+        final streakProvider = context.read<StreakProvider>();
+
+        // Ensure StreakProvider has correct userId
+        streakProvider.setUserId(userId);
+
+        print('[FLASHCARD] Recording activity for streak...');
+        try {
+          final result = await streakProvider.recordActivity();
+          if (result['increased'] == true) {
+            print(
+              '[FLASHCARD] 🔥 Streak increased: ${result['oldStreak']} → ${result['newStreak']}',
+            );
+          } else {
+            print(
+              '[FLASHCARD] ✅ Streak maintained: ${result['newStreak']} days',
+            );
+          }
+        } catch (e) {
+          print('[FLASHCARD] ⚠️ Error recording streak: $e');
+        }
       } catch (e) {
         print('[FLASHCARD] ERROR SAVING TO FIREBASE: $e');
       }
@@ -188,7 +220,6 @@ class _FlashcardPageState extends State<FlashcardPage>
 
       // Rebuild UI
       setState(() {});
-
     } else {
       // Không có gì để undo
       ScaffoldMessenger.of(context).showSnackBar(

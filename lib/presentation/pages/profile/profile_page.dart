@@ -1,25 +1,24 @@
 // lib/presentation/pages/profile/profile_page.dart
 // Trang hồ sơ người dùng.
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
-import 'package:en_go_app/core/constants/app_assets.dart';
 import 'package:en_go_app/core/constants/app_text_styles.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/routes/app_routes.dart';
-import '../../../domain/entities/user.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/auth_state.dart';
 import '../../providers/profile/profile_provider.dart';
 import '../../providers/profile/profile_state.dart';
-import '../../providers/theme/theme_provider.dart';
 import '../../providers/personal_vocabulary_provider.dart';
 import '../../providers/streak_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/avatar_color_picker_dialog.dart';
-import '../../widgets/custom_icon_button.dart';
+import '../../widgets/profile/profile_header.dart';
+import '../../widgets/profile/profile_info_card.dart';
+import '../../widgets/profile/profile_stats_card.dart';
+import '../../widgets/profile/profile_settings_card.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -29,33 +28,40 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  bool _hasInitialized = false;
+
   @override
   void initState() {
     super.initState();
-    // DELAY load để UI render trước - Giảm skip frames
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final profileProvider = context.read<ProfileProvider>();
-      // Chỉ load nếu chưa có data hoặc đang initial state
-      if (profileProvider.currentUser == null ||
-          profileProvider.state is ProfileInitial) {
-        // Delay nhỏ để UI render trước
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          await profileProvider.getUserProfile();
-
-          // Sau khi load profile, update userId cho các provider khác
-          if (mounted && profileProvider.currentUser != null) {
-            final userId = profileProvider.currentUser!.id;
-            context.read<StreakProvider>().setUserId(userId);
-            context.read<PersonalVocabularyProvider>().setUserId(userId);
-          }
-        }
-      }
+    // Load profile sau khi UI render để tránh skip frames
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _hasInitialized) return;
+      _loadProfileData();
     });
   }
 
-  /// Shimmer loading placeholder - Tối ưu để giảm skip frames
-  Widget _buildShimmerLoading(BuildContext context) {
+  /// Load profile data một lần duy nhất
+  Future<void> _loadProfileData() async {
+    if (!mounted) return;
+
+    _hasInitialized = true;
+    final profileProvider = context.read<ProfileProvider>();
+
+    // Chỉ load nếu chưa có data
+    if (profileProvider.currentUser == null ||
+        profileProvider.state is ProfileInitial) {
+      await profileProvider.getUserProfile();
+    }
+  }
+
+  /// Đồng bộ userId với các provider khác (gọi một lần duy nhất)
+  void _syncUserId(String userId) {
+    context.read<StreakProvider>().setUserId(userId);
+    context.read<PersonalVocabularyProvider>().setUserId(userId);
+  }
+
+  /// Widget hiển thị loading state
+  Widget _buildLoadingState(BuildContext context) {
     final themeExt = Theme.of(context).extension<AppThemeExtension>();
 
     return Container(
@@ -87,6 +93,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  /// Xử lý đăng xuất
   void _handleLogout(BuildContext context) {
     showDialog(
       context: context,
@@ -110,43 +117,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  /// Lấy chữ cái đầu của tên để làm avatar
-  String _getInitials(String name) {
-    final parts = name.trim().split(' ');
-    if (parts.isEmpty) return 'U';
-
-    if (parts.length == 1) {
-      return parts[0][0].toUpperCase();
-    } else {
-      // Lấy chữ cái đầu của 2 từ đầu tiên
-      return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
-    }
-  }
-
-  /// Tạo màu avatar dựa trên tên hoặc màu tùy chỉnh
-  Color _getAvatarColor(User? user) {
-    // Nếu user đã chọn màu custom
-    if (user?.avatarColor != null) {
-      return AvatarColorPickerDialog.getColorFromName(user!.avatarColor!);
-    }
-
-    // Fallback: màu auto theo hashCode
-    final name = user?.name ?? 'U';
-    final colors = [
-      const Color(0xFF2196F3), // Blue
-      const Color(0xFF4CAF50), // Green
-      const Color(0xFFFF9800), // Orange
-      const Color(0xFF9C27B0), // Purple
-      const Color(0xFFE91E63), // Pink
-      const Color(0xFF00BCD4), // Cyan
-      const Color(0xFFFF5722), // Deep Orange
-      const Color(0xFF3F51B5), // Indigo
-    ];
-
-    final index = name.hashCode.abs() % colors.length;
-    return colors[index];
-  }
-
+  /// Hiển thị dialog chọn màu avatar
   void _showColorPicker(BuildContext context) {
     final profileProvider = context.read<ProfileProvider>();
     final currentColor = profileProvider.currentUser?.avatarColor;
@@ -162,24 +133,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: Theme.of(context).iconTheme.color),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            text,
-            style: kBody.copyWith(
-              color: Theme.of(context).textTheme.bodyLarge?.color,
-              fontSize: 14,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return MainLayout(
@@ -188,12 +141,14 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Selector<AuthProvider, bool>(
         selector: (_, provider) => provider.state is Unauthenticated,
         builder: (context, isUnauthenticated, _) {
-          // Listen to auth state for logout
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (isUnauthenticated) {
-              Navigator.pushReplacementNamed(context, AppRoutes.login);
-            }
-          });
+          // Navigate khi unauthenticated
+          if (isUnauthenticated) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                Navigator.pushReplacementNamed(context, AppRoutes.login);
+              }
+            });
+          }
 
           return Selector<ProfileProvider, ProfileState>(
             selector: (_, provider) => provider.state,
@@ -202,22 +157,20 @@ class _ProfilePageState extends State<ProfilePage> {
               final profileProvider = context.read<ProfileProvider>();
               final user = profileProvider.currentUser;
 
-              // Đồng bộ userId với các provider khác khi profile đã loaded
-              if (profileState is ProfileLoaded && user != null) {
+              // Đồng bộ userId một lần khi profile loaded lần đầu
+              if (profileState is ProfileLoaded &&
+                  user != null &&
+                  _hasInitialized) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (mounted) {
-                    // Force update userId cho streak và vocab providers
-                    context.read<StreakProvider>().setUserId(user.id);
-                    context.read<PersonalVocabularyProvider>().setUserId(
-                      user.id,
-                    );
+                    _syncUserId(user.id);
                   }
                 });
               }
 
-              // Handle loading state - Use shimmer nếu chưa có data
+              // Hiển thị loading state nếu chưa có data
               if (profileState is ProfileLoading && user == null) {
-                return _buildShimmerLoading(context);
+                return _buildLoadingState(context);
               }
 
               // Handle error state
@@ -260,281 +213,23 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   child: Column(
                     children: [
-                      // Header Row: Avatar + Streak
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // Avatar với button chọn màu
-                          Stack(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: kPrimaryColor.withOpacity(0.3),
-                                      blurRadius: 12,
-                                      spreadRadius: 2,
-                                    ),
-                                  ],
-                                ),
-                                child: CircleAvatar(
-                                  radius: 55,
-                                  backgroundColor: _getAvatarColor(user),
-                                  child: Text(
-                                    _getInitials(user?.name ?? 'User'),
-                                    style: const TextStyle(
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: CustomIconButton(
-                                  icon: Icons.palette,
-                                  onTap: () => _showColorPicker(context),
-                                  backgroundColor: Colors.white,
-                                  iconColor: kPrimaryColor,
-                                  size: 36,
-                                  iconSize: 20,
-                                  shadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.2),
-                                      blurRadius: 4,
-                                      spreadRadius: 1,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          // Streak
-                          Consumer<StreakProvider>(
-                            builder: (context, streakProvider, _) {
-                              return Column(
-                                children: [
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        '${streakProvider.currentStreak}',
-                                        style: const TextStyle(
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.bold,
-                                          color: kDanger,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      SvgPicture.asset(
-                                        kIconFire,
-                                        width: 38,
-                                        height: 48,
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Streak',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium?.color,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                        ],
+                      // Header: Avatar + Streak
+                      ProfileHeader(
+                        user: user,
+                        onColorPickerTap: () => _showColorPicker(context),
                       ),
                       const SizedBox(height: 20),
 
-                      // User Info Card với Edit và Logout
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: (themeExt?.cardBackground ?? Colors.white)
-                              .withOpacity(themeExt?.surfaceOpacity ?? 0.8),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            // Header với Edit button
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Thông tin cá nhân',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).primaryColor,
-                                  ),
-                                ),
-                                CustomIconButton(
-                                  icon: Icons.edit,
-                                  onTap: () async {
-                                    final result = await Navigator.pushNamed(
-                                      context,
-                                      AppRoutes.editProfile,
-                                    );
-                                    // Reload profile if update was successful
-                                    if (result == true && context.mounted) {
-                                      context
-                                          .read<ProfileProvider>()
-                                          .getUserProfile();
-                                    }
-                                  },
-                                  backgroundColor: Colors.white,
-                                  iconColor: kSuccess,
-                                  size: 32,
-                                  iconSize: 16,
-                                  shadow: [
-                                    BoxShadow(
-                                      color: kSuccess.withOpacity(0.2),
-                                      blurRadius: 4,
-                                      spreadRadius: 0,
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            // User info
-                            _buildInfoRow(
-                              context,
-                              Icons.person,
-                              user?.name ?? 'N/A',
-                            ),
-                            const SizedBox(height: 8),
-                            _buildInfoRow(
-                              context,
-                              Icons.cake,
-                              user?.birthDate ?? 'Chưa cập nhật',
-                            ),
-                            const SizedBox(height: 8),
-                            _buildInfoRow(
-                              context,
-                              Icons.email,
-                              user?.email ?? 'N/A',
-                            ),
-                          ],
-                        ),
-                      ),
+                      // Card thông tin cá nhân
+                      ProfileInfoCard(user: user),
                       const SizedBox(height: 16),
 
-                      // Stats Card
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: (themeExt?.cardBackground ?? Colors.white)
-                              .withOpacity(themeExt?.surfaceOpacity ?? 0.8),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              'Thống kê học tập',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).primaryColor,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Consumer<PersonalVocabularyProvider>(
-                              builder: (context, vocabProvider, _) {
-                                return AppButton(
-                                  onPressed: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      AppRoutes.personalVocabByTopic,
-                                    );
-                                  },
-                                  text: '${vocabProvider.topicCount} bộ từ',
-                                  variant: AppButtonVariant.primary,
-                                  size: AppButtonSize.medium,
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 12),
-                            SizedBox(
-                              width: double.infinity,
-                              child: AppButton(
-                                onPressed: () {
-                                  Navigator.pushNamed(context, AppRoutes.test);
-                                },
-                                text: 'Xem kết quả bài test',
-                                variant: AppButtonVariant.success,
-                                size: AppButtonSize.medium,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      // Card thống kê học tập
+                      const ProfileStatsCard(),
                       const SizedBox(height: 16),
 
-                      // Settings Card
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: (themeExt?.cardBackground ?? Colors.white)
-                              .withOpacity(themeExt?.surfaceOpacity ?? 0.8),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              'Cài đặt',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).primaryColor,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Consumer<ThemeProvider>(
-                                    builder: (context, themeProvider, _) {
-                                      return AppButton(
-                                        onPressed: () =>
-                                            themeProvider.toggleTheme(),
-                                        icon: themeProvider.isDarkMode
-                                            ? Icons.light_mode
-                                            : Icons.dark_mode,
-                                        text: themeProvider.isDarkMode
-                                            ? 'Sáng'
-                                            : 'Tối',
-                                        variant: AppButtonVariant.accent,
-                                        size: AppButtonSize.small,
-                                      );
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: AppButton(
-                                    onPressed: () {},
-                                    icon: Icons.language,
-                                    text: 'Ngôn ngữ',
-                                    variant: AppButtonVariant.accent,
-                                    size: AppButtonSize.small,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
+                      // Card cài đặt
+                      const ProfileSettingsCard(),
                       const SizedBox(height: 20),
 
                       // Logout Button

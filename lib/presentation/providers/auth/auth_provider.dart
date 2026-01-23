@@ -76,9 +76,6 @@ class AuthProvider extends ChangeNotifier {
   Future<void> login({required String email, required String password}) async {
     _setState(AuthLoading());
 
-    // Delay nhỏ để UI render loading state trước
-    await Future.delayed(const Duration(milliseconds: 50));
-
     final result = await loginUseCase(
       LoginParams(email: email, password: password),
     );
@@ -100,9 +97,6 @@ class AuthProvider extends ChangeNotifier {
     String? birthDate,
   }) async {
     _setState(AuthLoading());
-
-    // Delay nhỏ để UI render loading state trước
-    await Future.delayed(const Duration(milliseconds: 50));
 
     final result = await registerUseCase(
       RegisterParams(
@@ -157,9 +151,6 @@ class AuthProvider extends ChangeNotifier {
   /// Đăng nhập bằng Google
   Future<void> signInWithGoogle() async {
     _setState(AuthLoading());
-
-    // Delay nhỏ để UI render loading state trước
-    await Future.delayed(const Duration(milliseconds: 50));
 
     final result = await googleSignInUseCase(NoParams());
 
