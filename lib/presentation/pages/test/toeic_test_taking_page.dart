@@ -165,63 +165,78 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
       title: widget.testName, // Hiển thị tên test trên header
       currentIndex: -1, // Không highlight bottom nav item nào
       showBottomNav: false, // Ẩn bottom navigation trong test
-      child: Selector<ToeicTestProvider, ({ToeicTestSession? session, ToeicQuestion? question})>(
-        // Sử dụng Selector thay vì Consumer để tránh rebuild không cần thiết
-        selector: (context, provider) => (
-          session: provider.session,
-          question: provider.currentQuestion,
-        ),
-        builder: (context, data, child) {
-          final session = data.session; // Lấy session hiện tại
-          final question = data.question; // Lấy câu hỏi hiện tại
+      child:
+          Selector<
+            ToeicTestProvider,
+            ({ToeicTestSession? session, ToeicQuestion? question})
+          >(
+            // Sử dụng Selector thay vì Consumer để tránh rebuild không cần thiết
+            selector: (context, provider) =>
+                (session: provider.session, question: provider.currentQuestion),
+            builder: (context, data, child) {
+              final session = data.session; // Lấy session hiện tại
+              final question = data.question; // Lấy câu hỏi hiện tại
 
-          // Hiển thị loading spinner nếu chưa sẵn sàng
-          if (session == null || question == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
+              // Hiển thị loading spinner nếu chưa sẵn sàng
+              if (session == null || question == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          return Container(
-            color: getBackgroundColor(context),
-            child: Column(
-              children: [
-                _buildHeader(context, session, context.read<ToeicTestProvider>()),
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.all(12),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: getCardBackground(context),
-                      borderRadius: BorderRadius.circular(16),
+              return Container(
+                color: getBackgroundColor(context),
+                child: Column(
+                  children: [
+                    _buildHeader(
+                      context,
+                      session,
+                      context.read<ToeicTestProvider>(),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Logic phân biệt loại question để render UI phù hợp
-                        if ((question.partNumber == 3 ||
-                                question.partNumber == 4) ||
-                            (question.partNumber >= 6 &&
-                                question.groupId != null)) ...[
-                          // Group questions: Part 3,4,6,7 có nhiều câu chung context
-                          _buildGroupQuestions(context, context.read<ToeicTestProvider>()),
-                        ] else ...[
-                          // Single questions: Part 1,2,5 mỗi câu độc lập
-                          _buildSingleQuestion(context, context.read<ToeicTestProvider>(), question),
-                        ],
+                    Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: getCardBackground(context),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Logic phân biệt loại question để render UI phù hợp
+                            if ((question.partNumber == 3 ||
+                                    question.partNumber == 4) ||
+                                (question.partNumber >= 6 &&
+                                    question.groupId != null)) ...[
+                              // Group questions: Part 3,4,6,7 có nhiều câu chung context
+                              _buildGroupQuestions(
+                                context,
+                                context.read<ToeicTestProvider>(),
+                              ),
+                            ] else ...[
+                              // Single questions: Part 1,2,5 mỗi câu độc lập
+                              _buildSingleQuestion(
+                                context,
+                                context.read<ToeicTestProvider>(),
+                                question,
+                              ),
+                            ],
 
-                        const SizedBox(
-                          height: 16,
-                        ), // Khoảng cách trước navigation
-                        // Navigation buttons để chuyển câu tiếp theo
-                        _buildNavigationButtons(context.read<ToeicTestProvider>()),
-                      ],
+                            const SizedBox(
+                              height: 16,
+                            ), // Khoảng cách trước navigation
+                            // Navigation buttons để chuyển câu tiếp theo
+                            _buildNavigationButtons(
+                              context.read<ToeicTestProvider>(),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        },
-      ),
+              );
+            },
+          ),
     );
   }
 
@@ -507,11 +522,14 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                 // Tách timer thành Consumer riêng để không ảnh hưởng tới ảnh
                 Consumer<ToeicTestProvider>(
                   builder: (context, timerProvider, child) {
-                    final remainingTime = timerProvider.session?.remainingTime ?? Duration.zero;
+                    final remainingTime =
+                        timerProvider.session?.remainingTime ?? Duration.zero;
                     return Text(
                       'Time: ${_formatDuration(remainingTime)}',
                       style: TextStyle(
-                        color: remainingTime.inMinutes < 5 ? Colors.red : Colors.white,
+                        color: remainingTime.inMinutes < 5
+                            ? Colors.red
+                            : Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1192,8 +1210,12 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
               width: width,
               height: height,
               fit: fit,
-              cacheWidth: (width != null && width.isFinite && width > 0) ? width.toInt() : null,
-              cacheHeight: (height != null && height.isFinite && height > 0) ? height.toInt() : null,
+              cacheWidth: (width != null && width.isFinite && width > 0)
+                  ? width.toInt()
+                  : null,
+              cacheHeight: (height != null && height.isFinite && height > 0)
+                  ? height.toInt()
+                  : null,
               loadingBuilder: (context, child, loadingProgress) {
                 if (loadingProgress == null) return child;
                 return Container(
@@ -1271,7 +1293,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
         return cachedUrl;
       }
     }
-    
+
     // Chỉ gọi API một lần và lưu kết quả
     try {
       final url = await FirebaseStorageService.resolveFirebaseUrl(imageUrl);

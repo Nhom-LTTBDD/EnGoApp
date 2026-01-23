@@ -421,7 +421,7 @@ class FirebaseStorageService {
     try {
       // Convert jpg extension to png since files are stored as .png
       String pngFileName = imageFile.replaceAll('.jpg', '.png');
-      
+
       // Tắt debug logging để tránh spam khi cache hoạt động
       // print('🔍 Searching for image: $imageFile -> $pngFileName');
       // print('🔍 Full path: $_imagesPath$pngFileName');
@@ -434,7 +434,7 @@ class FirebaseStorageService {
       return downloadUrl;
     } catch (e) {
       print('❌ Error getting image URL for $imageFile: $e');
-      
+
       // Debug: list files in images directory (chỉ khi có lỗi)
       try {
         print('🔍 Listing files in images directory...');
@@ -447,7 +447,7 @@ class FirebaseStorageService {
       } catch (listError) {
         print('❌ Error listing images directory: $listError');
       }
-      
+
       return null;
     }
   }

@@ -197,7 +197,7 @@ class ToeicJsonService {
 
     // Log để debug tên file
     print('🖼️ Creating image reference for: $imageFile');
-    
+
     // Return Firebase Storage path - sẽ được convert thành download URL khi cần
     return 'firebase_image:$imageFile';
   }
@@ -207,7 +207,7 @@ class ToeicJsonService {
 
     // Log để debug tên file
     print('🎵 Creating audio reference for: $audioFile');
-    
+
     // Return Firebase Storage path - sẽ được convert thành download URL khi cần
     return 'firebase_audio:$audioFile';
   }
