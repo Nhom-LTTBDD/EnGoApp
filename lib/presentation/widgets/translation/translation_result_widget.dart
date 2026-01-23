@@ -6,11 +6,13 @@ import '../../../core/constants/app_spacing.dart';
 class TranslationResultWidget extends StatelessWidget {
   final String translatedText;
   final bool isTranslating;
+  final VoidCallback? onSpeak;
 
   const TranslationResultWidget({
     super.key,
     required this.translatedText,
     required this.isTranslating,
+    this.onSpeak,
   });
 
   @override
@@ -110,9 +112,23 @@ class TranslationResultWidget extends StatelessWidget {
                 horizontal: spaceMd,
                 vertical: spaceSm,
               ),
-              child: Text(
-                '${translatedText.length} ký tự',
-                style: TextStyle(fontSize: 12, color: getTextThird(context)),
+              child: Row(
+                children: [
+                  Text(
+                    '${translatedText.length} ký tự',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: getTextThird(context),
+                    ),
+                  ),
+                  const Spacer(),
+                  if (onSpeak != null)
+                    IconButton(
+                      onPressed: onSpeak,
+                      icon: Icon(Icons.volume_up, size: 24),
+                      color: Colors.green.shade700,
+                    ),
+                ],
               ),
             ),
         ],
