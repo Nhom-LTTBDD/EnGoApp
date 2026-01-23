@@ -11,7 +11,6 @@ import '../../core/theme/theme_helper.dart';
 enum VocabularyMenuType {
   topics('Các chủ đề từ vựng', Icons.topic_outlined),
   personalCollection('Bộ từ của bạn', Icons.bookmark_outline),
-
   quiz('Quiz', Icons.quiz_outlined);
 
   const VocabularyMenuType(this.title, this.icon);
@@ -123,7 +122,7 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
           child: GestureDetector(
             onTapDown: _handleTapDown,
             onTapUp: _handleTapUp,
-            onTapCancel: _handleTapCancel,
+            onTapCancel: _handleTapCancel,            
             onTap: widget.isEnabled ? widget.onTap : null,
             child: AnimatedContainer(
               duration: AnimationUtils.normalDuration,
@@ -135,28 +134,18 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
               padding: _effectiveConfig.padding,
               decoration: BoxDecoration(
                 color: _isPressed
-                    ? (_effectiveConfig.backgroundColor ??
-                              getSurfaceColor(context))
-                          .withValues(alpha: 0.9)
-                    : (_effectiveConfig.backgroundColor ??
-                          getSurfaceColor(context)),
+                    ? Colors.white.withValues(alpha: 0.9)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(
                   _effectiveConfig.borderRadius,
-                ),
-                border: Border.all(
-                  color: widget.isEnabled
-                      ? _effectiveConfig.borderColor
-                      : getDividerColor(context),
-                  width: 2,
                 ),
                 boxShadow: widget.isEnabled
                     ? [
                         BoxShadow(
-                          color: _effectiveConfig.borderColor.withValues(
-                            alpha: 0.1,
-                          ),
-                          blurRadius: _effectiveConfig.elevation * 2,
-                          offset: Offset(0, _effectiveConfig.elevation),
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                          spreadRadius: 1,
                         ),
                       ]
                     : null,
@@ -168,7 +157,6 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
       },
     );
   }
-
   Widget _buildContent() {
     return Row(
       children: [
@@ -176,14 +164,14 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
           padding: const EdgeInsets.all(spaceSm),
           decoration: BoxDecoration(
             color: widget.isEnabled
-                ? _effectiveConfig.iconColor.withValues(alpha: 0.1)
+                ? const Color.fromARGB(255, 0, 0, 0).withValues(alpha: 0.1)
                 : getTextThird(context).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             widget.menuType.icon,
             color: widget.isEnabled
-                ? _effectiveConfig.iconColor
+                ? const Color(0xFF1196EF)
                 : getTextThird(context),
             size: 24,
           ),
@@ -194,7 +182,7 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
             widget.menuType.title,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: widget.isEnabled
-                  ? getTextPrimary(context)
+                  ? const Color.fromARGB(255, 0, 0, 0)
                   : getTextThird(context),
               fontWeight: FontWeight.w600,
             ),
@@ -206,7 +194,7 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
         ] else if (widget.isEnabled) ...[
           Icon(
             Icons.arrow_forward_ios,
-            color: _effectiveConfig.iconColor,
+            color: const Color(0xFF1196EF),
             size: 16,
           ),
         ],

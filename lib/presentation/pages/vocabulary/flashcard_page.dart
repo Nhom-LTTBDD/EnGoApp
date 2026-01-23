@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/flashcard_provider.dart';
-import '../../providers/streak_provider.dart';
 import '../../providers/flashcard_progress_provider.dart';
 import '../../widgets/vocabulary/flashcard_header.dart';
 import '../../widgets/vocabulary/flashcard_score_display.dart';
@@ -16,8 +15,9 @@ import '../../../core/theme/theme_helper.dart';
 
 class FlashcardPage extends StatefulWidget {
   final String? topicId;
+  final String? topicName;
 
-  const FlashcardPage({super.key, this.topicId});
+  const FlashcardPage({super.key, this.topicId, this.topicName});
 
   @override
   State<FlashcardPage> createState() => _FlashcardPageState();
@@ -82,19 +82,15 @@ class _FlashcardPageState extends State<FlashcardPage>
 
   void _showResultDialog() async {
     final flashcardProvider = context.read<FlashcardProvider>();
-    final streakProvider = context.read<StreakProvider>();
     final progressProvider = context.read<FlashcardProgressProvider>();
 
-    // Get userId from FlashcardProgressProvider (already set by main.dart)
+    // Get userId from FlashcardProgressProvider (already set by main.dart)    
     final userId = progressProvider.userId;
     final topicId = widget.topicId ?? '1';
 
-    print('🔥🔥🔥 ========== FLASHCARD SESSION ENDED ========== 🔥🔥🔥');
-    print('📊 User ID (from FlashcardProgressProvider): $userId');
-    print('📚 Topic ID: $topicId');
-
-    // Record activity to update streak
-    streakProvider.recordActivity();
+    print('[FLASHCARD] ========== SESSION ENDED ==========');
+    print('[FLASHCARD] User ID: $userId');
+    print('[FLASHCARD] Topic ID: $topicId');
 
     // Save progress if user is authenticated
     if (userId != 'default_user') {
@@ -102,9 +98,9 @@ class _FlashcardPageState extends State<FlashcardPage>
       final masteredCardIds = flashcardProvider.masteredCardIds.toList();
       final learningCardIds = flashcardProvider.learningCardIds.toList();
 
-      print('✅ Mastered Cards: $masteredCardIds');
-      print('📖 Learning Cards: $learningCardIds');
-      print('🔄 Saving to Firebase...');
+      print('[FLASHCARD] Mastered Cards: $masteredCardIds');
+      print('[FLASHCARD] Learning Cards: $learningCardIds');
+      print('[FLASHCARD] Saving to Firebase...');
 
       try {
         // Update progress in Firebase
@@ -115,18 +111,15 @@ class _FlashcardPageState extends State<FlashcardPage>
           learningCardIds: learningCardIds,
         );
 
-        print('✅ SAVED TO FIREBASE SUCCESSFULLY!');
-        print('🔍 Check Firebase Console:');
-        print('   Collection: flashcard_progress');
-        print('   Document ID: ${userId}_$topicId');
-        print('🔥🔥🔥 ========================================= 🔥🔥🔥');
+        print('[FLASHCARD] SAVED TO FIREBASE SUCCESSFULLY!');
+        print('[FLASHCARD] Check Firebase Console:');
+        print('[FLASHCARD] Collection: flashcard_progress');
+        print('[FLASHCARD] Document ID: ${userId}_$topicId');
       } catch (e) {
-        print('❌ ERROR SAVING TO FIREBASE: $e');
-        print('🔥🔥🔥 ========================================= 🔥🔥🔥');
+        print('[FLASHCARD] ERROR SAVING TO FIREBASE: $e');
       }
     } else {
-      print('⚠️ User not authenticated - skipping Firebase save');
-      print('🔥🔥🔥 ========================================= 🔥🔥🔥');
+      print('[FLASHCARD] User not authenticated - skipping Firebase save');
     }
 
     final result = await Navigator.push(
@@ -135,6 +128,8 @@ class _FlashcardPageState extends State<FlashcardPage>
         builder: (context) => FlashcardResultPage(
           correctCount: flashcardProvider.correctCount,
           wrongCount: flashcardProvider.wrongCount,
+          topicId: widget.topicId ?? '',
+          topicName: widget.topicName ?? 'Vocabulary',
         ),
       ),
     );
@@ -194,7 +189,6 @@ class _FlashcardPageState extends State<FlashcardPage>
       // Rebuild UI
       setState(() {});
 
-      print('↩️ Undo: Quay lại thẻ #${flashcardProvider.currentCardIndex}');
     } else {
       // Không có gì để undo
       ScaffoldMessenger.of(context).showSnackBar(
@@ -423,27 +417,6 @@ class _FlashcardPageState extends State<FlashcardPage>
                   );
                   // Reset flashcard provider state
                   context.read<FlashcardProvider>().clearProgress();
-
-                  // // Show notification to user
-                  // ScaffoldMessenger.of(context).showSnackBar(
-                  //   SnackBar(
-                  //     content: Row(
-                  //       children: const [
-                  //         Icon(Icons.restart_alt, color: Colors.white),
-                  //         SizedBox(width: 12),
-                  //         Expanded(
-                  //           child: Text(
-                  //             'Bạn đã học hết! Đang khởi động lại để ôn tập từ đầu',
-                  //             style: TextStyle(fontSize: 14),
-                  //           ),
-                  //         ),
-                  //       ],
-                  //     ),
-                  //     backgroundColor: Colors.green.shade600,
-                  //     duration: const Duration(seconds: 3),
-                  //     behavior: SnackBarBehavior.floating,
-                  //   ),
-                  // );
                 });
               }
 

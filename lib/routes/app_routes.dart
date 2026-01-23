@@ -24,9 +24,13 @@ import '../domain/entities/toeic_question.dart';
 import '../presentation/pages/vocabulary/vocabulary_page.dart';
 import '../presentation/pages/vocabulary/vocab_by_topic_page.dart';
 import '../presentation/pages/vocabulary/flashcard_page.dart';
+import '../presentation/pages/vocabulary/quiz_settings_page.dart';
+import '../presentation/pages/vocabulary/quiz_page.dart';
+import '../presentation/pages/vocabulary/quiz_result_page.dart';
 import '../presentation/pages/vocabulary/personal_vocabulary_page.dart';
 import '../presentation/pages/vocabulary/personal_vocabulary_by_topic_page.dart';
 import '../presentation/pages/vocabulary/personal_vocabulary_cards_page.dart';
+import '../presentation/pages/translation/translation_page.dart';
 
 //Grammar
 import '../presentation/pages/grammar/grammar_page.dart';
@@ -34,6 +38,8 @@ import '../presentation/pages/grammar/grammar_page.dart';
 // Domain entities
 import '../domain/entities/toeic_test.dart';
 import '../domain/entities/toeic_question.dart';
+import '../domain/entities/quiz_config.dart';
+import '../domain/entities/quiz_result.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -65,6 +71,13 @@ class AppRoutes {
       '/vocabulary/personal/cards'; //Personal vocab cards
   // Grammar routes
   static const String grammar = '/grammar'; //Grammar main
+  // Quiz routes
+  static const String quizSettings =
+      '/vocabulary/quiz/settings'; //Quiz settings
+  static const String quiz = '/vocabulary/quiz'; //Quiz page
+  static const String quizResult = '/vocabulary/quiz/result'; //Quiz result
+  // Translation route
+  static const String translation = '/translation'; //Translation page
 }
 
 class RouteGenerator {
@@ -164,12 +177,18 @@ class RouteGenerator {
       case AppRoutes.vocab:
         return MaterialPageRoute(builder: (_) => VocabPage());
       case AppRoutes.vocabByTopic:
-        return MaterialPageRoute(builder: (_) => VocabByTopicPage());
+        final args = settings.arguments as Map<String, dynamic>?;
+        final mode = args?['mode'] as TopicSelectionMode?;
+        return MaterialPageRoute(
+          builder: (_) =>
+              VocabByTopicPage(mode: mode ?? TopicSelectionMode.flashcard),
+        );
       case AppRoutes.flashcard:
         final args = settings.arguments as Map<String, dynamic>?;
         final topicId = args?['topicId'] as String?;
+        final topicName = args?['topicName'] as String?;
         return MaterialPageRoute(
-          builder: (_) => FlashcardPage(topicId: topicId),
+          builder: (_) => FlashcardPage(topicId: topicId, topicName: topicName),
         );
       case AppRoutes.personalVocabulary:
         return MaterialPageRoute(
@@ -185,10 +204,55 @@ class RouteGenerator {
         return MaterialPageRoute(
           builder: (_) => PersonalVocabularyCardsPage(topicId: topicId),
         );
-
+      // Translation case
+      case AppRoutes.translation:
+        return MaterialPageRoute(builder: (_) => TranslationPage());
       // Grammar cases
       case AppRoutes.grammar:
         return MaterialPageRoute(builder: (_) => GrammarPage());
+
+      // Quiz Settings case
+      case AppRoutes.quizSettings:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final topicId = args?['topicId'] as String? ?? '1';
+        final topicName = args?['topicName'] as String? ?? 'Quiz';
+        // final cardCount = args?['cardCount'] as int? ?? 0;
+        return MaterialPageRoute(
+          builder: (_) =>
+              QuizSettingsPage(topicId: topicId, topicName: topicName),
+        );
+
+      // Quiz case
+      case AppRoutes.quiz:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final config = args?['config'] as QuizConfig?;
+
+        if (config == null) {
+          // Fallback if config not provided
+          return MaterialPageRoute(
+            builder: (_) => Scaffold(
+              body: Center(child: Text('Quiz configuration is required')),
+            ),
+          );
+        }
+
+        return MaterialPageRoute(builder: (_) => QuizPage(config: config));
+
+      // Quiz Result case
+      case AppRoutes.quizResult:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final result = args?['result'] as QuizResult?;
+
+        if (result == null) {
+          return MaterialPageRoute(
+            builder: (_) =>
+                Scaffold(body: Center(child: Text('Quiz result is required'))),
+          );
+        }
+
+        return MaterialPageRoute(
+          builder: (_) => QuizResultPage(result: result),
+        );
 
       default:
         return MaterialPageRoute(

@@ -50,7 +50,7 @@ class _MyAppState extends State<MyApp> {
       final firestore = FirebaseFirestore.instance;
       firestore.settings = const Settings(
         persistenceEnabled: true, // Enable offline persistence
-        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED, // Unlimited cache
+        cacheSizeBytes: 10485760, // 10MB cache thay vì unlimited để giảm memory
       );
 
       // Initialize DI

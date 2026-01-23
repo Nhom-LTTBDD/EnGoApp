@@ -24,19 +24,19 @@ class VocabularyProvider extends ChangeNotifier {
   // ============================================================================
   // STATE
   // ============================================================================
-  
+
+  String? _currentTopicId; // Track current topic to detect changes
   List<VocabularyCard> _vocabularyCards = [];
   bool _isLoading = false;
   String? _error;
   int _currentCardIndex = 0;
   int _previousCardIndex = 0;
   bool _isCardFlipped = false;
-  Map<int, bool> _cardFlipStates = {};
-
-  // ============================================================================
+  Map<int, bool> _cardFlipStates =
+      {}; // ============================================================================
   // GETTERS
   // ============================================================================
-  
+
   List<VocabularyCard> get vocabularyCards => _vocabularyCards;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -64,27 +64,38 @@ class VocabularyProvider extends ChangeNotifier {
   // ============================================================================
   // PUBLIC METHODS - Load Cards
   // ============================================================================
-  
+
   /// Load vocabulary cards for a specific topic and enrich them with dictionary data
   Future<void> loadVocabularyCards(String topicId) async {
+    // If topic changed, clear old cards first
+    if (_currentTopicId != null && _currentTopicId != topicId) {
+      _logInfo(
+        'Topic changed from $_currentTopicId to $topicId, clearing old cards',
+      );
+      clearCards();
+    }
+    _currentTopicId = topicId;
+
     _setLoading(true);
     _setError(null);
 
     try {
-      _logInfo('📚 Loading vocabulary cards for topic: $topicId');
+      _logInfo('Loading vocabulary cards for topic: $topicId');
       final cards = await getVocabularyCards.call(topicId);
-      _logInfo('✅ Loaded ${cards.length} cards');
+      _logInfo('Loaded ${cards.length} cards');
 
       // Enrich cards with dictionary data
       final enrichedCards = await _enrichCards(cards);
 
       _vocabularyCards = enrichedCards;
       _resetNavigationState();
-      _logInfo('✨ Vocabulary cards loaded successfully: ${enrichedCards.length} cards');
-      
+      _logInfo(
+        'Vocabulary cards loaded successfully: ${enrichedCards.length} cards',
+      );
+
       notifyListeners();
     } catch (e) {
-      _logError('❌ Error loading vocabulary cards: $e');
+      _logError('Error loading vocabulary cards: $e');
       _setError(e.toString());
     } finally {
       _setLoading(false);
@@ -94,7 +105,7 @@ class VocabularyProvider extends ChangeNotifier {
   // ============================================================================
   // PUBLIC METHODS - Navigation
   // ============================================================================
-  
+
   /// Set current card index for navigation
   void setCurrentCardIndex(int index) {
     if (index >= 0 && index < _vocabularyCards.length) {
@@ -108,7 +119,7 @@ class VocabularyProvider extends ChangeNotifier {
   // ============================================================================
   // PUBLIC METHODS - Card Flip
   // ============================================================================
-  
+
   /// Flip current card (toggle between front and back)
   void flipCard() {
     _isCardFlipped = !_isCardFlipped;
@@ -127,10 +138,23 @@ class VocabularyProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Clear all vocabulary cards (useful when switching topics)
+  void clearCards() {
+    _currentTopicId = null;
+    _vocabularyCards = [];
+    _currentCardIndex = 0;
+    _previousCardIndex = 0;
+    _isCardFlipped = false;
+    _cardFlipStates = {};
+    _error = null;
+    notifyListeners();
+    _logInfo('Cleared vocabulary cards');
+  }
+
   // ============================================================================
   // PUBLIC METHODS - Dots Indicator
   // ============================================================================
-  
+
   /// Get dot index for UI indicator (4-dot system with asymmetric logic)
   int getDotIndex() {
     if (_vocabularyCards.length <= 4) {
@@ -160,7 +184,7 @@ class VocabularyProvider extends ChangeNotifier {
   // ============================================================================
   // PRIVATE HELPERS - State Management
   // ============================================================================
-  
+
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
@@ -181,45 +205,44 @@ class VocabularyProvider extends ChangeNotifier {
   // ============================================================================
   // PRIVATE HELPERS - Card Enrichment
   // ============================================================================
-  
+
   /// Enrich multiple cards with dictionary data
   Future<List<VocabularyCard>> _enrichCards(List<VocabularyCard> cards) async {
     final enrichedCards = <VocabularyCard>[];
-    
+
     for (var card in cards) {
       try {
         final enrichedCard = await enrichVocabularyCard.call(card);
         enrichedCards.add(enrichedCard);
-        _logInfo('✅ Enriched card: ${card.english}');
+        _logInfo('Enriched card: ${card.english}');
       } catch (e) {
         // If enrichment fails for a card, use original card
         enrichedCards.add(card);
-        _logWarning('⚠️ Could not enrich card ${card.english}: $e');
+        _logWarning('Could not enrich card ${card.english}: $e');
       }
     }
-    
+
     return enrichedCards;
   }
-
   // ============================================================================
   // LOGGING HELPERS
   // ============================================================================
-  
+
   void _logInfo(String message) {
     if (kDebugMode) {
-      print(message);
+      print('[VOCABULARY] $message');
     }
   }
 
   void _logWarning(String message) {
     if (kDebugMode) {
-      print(message);
+      print('[VOCABULARY] ⚠️ $message');
     }
   }
 
   void _logError(String message) {
     if (kDebugMode) {
-      print(message);
+      print('[VOCABULARY] ❌ $message');
     }
   }
 }
