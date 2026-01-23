@@ -31,15 +31,13 @@ class _RegisterPageState extends State<RegisterPage> {
   double _passwordStrength = 0.0;
   String _passwordStrengthText = '';
   Color _passwordStrengthColor = Colors.grey;
+  bool _hasNavigated = false;
 
   @override
   void initState() {
     super.initState();
     _passwordController.addListener(_updatePasswordStrength);
-    _nameFocusNode.addListener(() => setState(() {}));
-    _emailFocusNode.addListener(() => setState(() {}));
-    _passwordFocusNode.addListener(() => setState(() {}));
-    _confirmPasswordFocusNode.addListener(() => setState(() {}));
+    // REMOVED: Focus listeners that cause unnecessary rebuilds
   }
 
   void _updatePasswordStrength() {
@@ -119,11 +117,12 @@ class _RegisterPageState extends State<RegisterPage> {
         builder: (context, authProvider, _) {
           final authState = authProvider.state;
 
-          // Handle navigation and errors
+          // Handle navigation and errors - with debounce
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
+            if (!mounted || _hasNavigated) return;
 
             if (authState is Authenticated) {
+              _hasNavigated = true;
               authProvider.reset();
               Navigator.pushReplacementNamed(context, AppRoutes.home);
             } else if (authState is AuthError) {
@@ -131,6 +130,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 SnackBar(
                   content: Text(authState.message),
                   backgroundColor: kDanger,
+                  duration: const Duration(seconds: 2),
                 ),
               );
               authProvider.reset();
@@ -168,11 +168,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     style: const TextStyle(color: Colors.black, fontSize: 16),
                     decoration: InputDecoration(
                       labelText: 'Họ và tên',
-                      labelStyle: TextStyle(
-                        color: _nameFocusNode.hasFocus
-                            ? kPrimaryColor
-                            : Colors.grey,
-                      ),
+                      labelStyle: TextStyle(color: Colors.grey),
                       hintText: 'Nhập họ và tên đầy đủ',
                       hintStyle: TextStyle(
                         color: Colors.grey.shade400,
@@ -181,9 +177,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                       prefixIcon: Icon(
                         Icons.person_outlined,
-                        color: _nameFocusNode.hasFocus
-                            ? kPrimaryColor
-                            : Colors.grey.shade600,
+                        color: Colors.grey.shade600,
                       ),
                       border: const OutlineInputBorder(),
                       enabledBorder: OutlineInputBorder(
@@ -223,11 +217,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     style: const TextStyle(color: Colors.black, fontSize: 16),
                     decoration: InputDecoration(
                       labelText: 'Email',
-                      labelStyle: TextStyle(
-                        color: _emailFocusNode.hasFocus
-                            ? kPrimaryColor
-                            : Colors.grey,
-                      ),
+                      labelStyle: TextStyle(color: Colors.grey),
                       hintText: 'vd: name@domain.com',
                       hintStyle: TextStyle(
                         color: Colors.grey.shade400,
@@ -235,9 +225,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       prefixIcon: Icon(
                         Icons.email_outlined,
-                        color: _emailFocusNode.hasFocus
-                            ? kPrimaryColor
-                            : Colors.grey.shade600,
+                        color: Colors.grey.shade600,
                       ),
                       border: const OutlineInputBorder(),
                       enabledBorder: OutlineInputBorder(
@@ -280,11 +268,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     style: const TextStyle(color: Colors.black, fontSize: 16),
                     decoration: InputDecoration(
                       labelText: 'Mật khẩu',
-                      labelStyle: TextStyle(
-                        color: _passwordFocusNode.hasFocus
-                            ? kPrimaryColor
-                            : Colors.grey,
-                      ),
+                      labelStyle: TextStyle(color: Colors.grey),
                       hintText: 'Ít nhất 6 ký tự',
                       hintStyle: TextStyle(
                         color: Colors.grey.shade400,
@@ -292,18 +276,14 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       prefixIcon: Icon(
                         Icons.lock_outlined,
-                        color: _passwordFocusNode.hasFocus
-                            ? kPrimaryColor
-                            : Colors.grey.shade600,
+                        color: Colors.grey.shade600,
                       ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
-                          color: _passwordFocusNode.hasFocus
-                              ? kPrimaryColor
-                              : Colors.grey.shade600,
+                          color: Colors.grey.shade600,
                         ),
                         onPressed: isLoading
                             ? null
@@ -380,11 +360,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     style: const TextStyle(color: Colors.black, fontSize: 16),
                     decoration: InputDecoration(
                       labelText: 'Xác nhận mật khẩu',
-                      labelStyle: TextStyle(
-                        color: _confirmPasswordFocusNode.hasFocus
-                            ? kPrimaryColor
-                            : Colors.grey,
-                      ),
+                      labelStyle: TextStyle(color: Colors.grey),
                       hintText: 'Nhập lại mật khẩu',
                       hintStyle: TextStyle(
                         color: Colors.grey.shade400,
@@ -392,18 +368,14 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       prefixIcon: Icon(
                         Icons.lock_outlined,
-                        color: _confirmPasswordFocusNode.hasFocus
-                            ? kPrimaryColor
-                            : Colors.grey.shade600,
+                        color: Colors.grey.shade600,
                       ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscureConfirmPassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
-                          color: _confirmPasswordFocusNode.hasFocus
-                              ? kPrimaryColor
-                              : Colors.grey.shade600,
+                          color: Colors.grey.shade600,
                         ),
                         onPressed: isLoading
                             ? null

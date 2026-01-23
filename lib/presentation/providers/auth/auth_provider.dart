@@ -76,6 +76,9 @@ class AuthProvider extends ChangeNotifier {
   Future<void> login({required String email, required String password}) async {
     _setState(AuthLoading());
 
+    // Delay nhỏ để UI render loading state trước
+    await Future.delayed(const Duration(milliseconds: 50));
+
     final result = await loginUseCase(
       LoginParams(email: email, password: password),
     );
@@ -83,8 +86,8 @@ class AuthProvider extends ChangeNotifier {
     result.fold((failure) => _setState(AuthError(failure.message)), (
       authResult,
     ) {
-      // Reset ProfileProvider để load data mới
-      onAuthSuccess?.call();
+      // Reset ProfileProvider async để không block
+      Future.microtask(() => onAuthSuccess?.call());
       _setState(Authenticated(authResult.user));
     });
   }
@@ -98,6 +101,9 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     _setState(AuthLoading());
 
+    // Delay nhỏ để UI render loading state trước
+    await Future.delayed(const Duration(milliseconds: 50));
+
     final result = await registerUseCase(
       RegisterParams(
         email: email,
@@ -110,8 +116,8 @@ class AuthProvider extends ChangeNotifier {
     result.fold((failure) => _setState(AuthError(failure.message)), (
       authResult,
     ) {
-      // Reset ProfileProvider để load data mới
-      onAuthSuccess?.call();
+      // Reset ProfileProvider async để không block
+      Future.microtask(() => onAuthSuccess?.call());
       _setState(Authenticated(authResult.user));
     });
   }
@@ -152,13 +158,16 @@ class AuthProvider extends ChangeNotifier {
   Future<void> signInWithGoogle() async {
     _setState(AuthLoading());
 
+    // Delay nhỏ để UI render loading state trước
+    await Future.delayed(const Duration(milliseconds: 50));
+
     final result = await googleSignInUseCase(NoParams());
 
     result.fold((failure) => _setState(AuthError(failure.message)), (
       authResult,
     ) {
-      // Reset ProfileProvider để load data mới
-      onAuthSuccess?.call();
+      // Reset ProfileProvider async để không block
+      Future.microtask(() => onAuthSuccess?.call());
       _setState(Authenticated(authResult.user));
     });
   }

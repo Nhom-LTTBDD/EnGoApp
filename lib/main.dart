@@ -121,7 +121,8 @@ class _MyAppState extends State<MyApp> {
             if (authProvider.state is Authenticated) {
               final user = (authProvider.state as Authenticated).user;
               print('Auth state: Authenticated - Setting userId: ${user.id}');
-              personalVocabProvider?.setUserId(user.id);
+              // Chạy async để không block main thread
+              Future.microtask(() => personalVocabProvider?.setUserId(user.id));
             } else {
               print(
                 'Auth state: Not authenticated - ${authProvider.state.runtimeType}',
@@ -139,7 +140,8 @@ class _MyAppState extends State<MyApp> {
             if (authProvider.state is Authenticated) {
               final user = (authProvider.state as Authenticated).user;
               print('🔐 Streak: Setting userId: ${user.id}');
-              streakProvider?.setUserId(user.id);
+              // Chạy async để không block main thread
+              Future.microtask(() => streakProvider?.setUserId(user.id));
             }
             return streakProvider ?? di.sl<StreakProvider>();
           },
@@ -153,7 +155,8 @@ class _MyAppState extends State<MyApp> {
             if (authProvider.state is Authenticated) {
               final user = (authProvider.state as Authenticated).user;
               print('FlashcardProgress: Setting userId: ${user.id}');
-              progressProvider?.setUserId(user.id);
+              // Chạy async để không block main thread
+              Future.microtask(() => progressProvider?.setUserId(user.id));
             }
             return progressProvider ?? di.sl<FlashcardProgressProvider>();
           },

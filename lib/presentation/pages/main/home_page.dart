@@ -95,6 +95,7 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 10),
               _buildMenuButton(
                 context,
+                color: 'blue',
                 text: 'Translation',
                 onPressed: () =>
                     Navigator.pushNamed(context, AppRoutes.translation),
