@@ -7,7 +7,7 @@ import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/routes/app_routes.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/auth_state.dart';
-import '../../widgets/app_button.dart';
+import '../../widgets/common/app_button.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});

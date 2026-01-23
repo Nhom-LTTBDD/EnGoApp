@@ -8,7 +8,7 @@ import 'package:en_go_app/routes/app_routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/user.dart';
 import '../../providers/profile/profile_provider.dart';
-import '../custom_icon_button.dart';
+import '../common/custom_icon_button.dart';
 
 class ProfileInfoCard extends StatelessWidget {
   final User? user;

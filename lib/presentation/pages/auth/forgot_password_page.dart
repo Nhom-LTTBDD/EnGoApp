@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:en_go_app/presentation/layout/auth_layout.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
 import '../../../routes/app_routes.dart';
-import '../../widgets/app_button.dart';
+import '../../widgets/common/app_button.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/auth_state.dart';
 

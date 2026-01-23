@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:en_go_app/routes/app_routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../providers/personal_vocabulary_provider.dart';
-import '../app_button.dart';
+import '../common/app_button.dart';
 
 class ProfileStatsCard extends StatelessWidget {
   const ProfileStatsCard({super.key});

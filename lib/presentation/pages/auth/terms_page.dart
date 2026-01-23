@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:en_go_app/presentation/layout/auth_layout.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
-import 'package:en_go_app/presentation/widgets/app_button.dart';
+import 'package:en_go_app/presentation/widgets/common/app_button.dart';
 import '../../../routes/app_routes.dart';
 
 class TermsPage extends StatelessWidget {

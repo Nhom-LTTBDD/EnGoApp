@@ -3,8 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
 import '../../../domain/entities/user.dart';
-import '../avatar_color_picker_dialog.dart';
-import '../custom_icon_button.dart';
+import 'avatar_color_picker_dialog.dart';
+import '../common/custom_icon_button.dart';
 
 class ProfileAvatar extends StatelessWidget {
   final User? user;

@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
 import 'package:en_go_app/core/constants/app_text_styles.dart';
-import '../widgets/app_header.dart';
+import '../widgets/common/app_header.dart';
 
 class AuthLayout extends StatelessWidget {
   final String title;

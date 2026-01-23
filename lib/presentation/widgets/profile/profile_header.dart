@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:en_go_app/core/constants/app_assets.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
 import '../../../domain/entities/user.dart';
-import '../../providers/streak_provider.dart';
+import '../../providers/profile/streak_provider.dart';
 import 'profile_avatar.dart';
 
 class ProfileHeader extends StatelessWidget {

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/flashcard_provider.dart';
 import '../../providers/flashcard_progress_provider.dart';
-import '../../providers/streak_provider.dart';
+import '../../providers/profile/streak_provider.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/auth_state.dart';
 import '../../widgets/vocabulary/flashcard_header.dart';

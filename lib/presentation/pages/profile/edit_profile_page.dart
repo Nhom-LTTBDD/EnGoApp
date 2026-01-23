@@ -6,7 +6,7 @@ import 'package:en_go_app/core/constants/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../providers/profile/profile_provider.dart';
 import '../../providers/profile/profile_state.dart';
-import '../../widgets/app_button.dart';
+import '../../widgets/common/app_button.dart';
 import 'package:intl/intl.dart';
 
 class EditProfilePage extends StatefulWidget {
