@@ -29,18 +29,22 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
   @override
   void initState() {
     super.initState();
+
+    // Khởi tạo audio player để phát audio trong review
     audioPlayer = AudioPlayer();
 
-    // Setup audio listeners
+    // Setup các listener để theo dõi trạng thái audio player
+
+    // Listener cho trạng thái play/pause
     audioPlayer?.onPlayerStateChanged.listen((state) {
       if (mounted) {
         setState(() {
           isPlaying = state == PlayerState.playing;
-          // Không có PlayerState.buffering, chỉ cần check playing state
         });
       }
     });
 
+    // Listener cho vị trí hiện tại của audio (để update progress bar)
     audioPlayer?.onPositionChanged.listen((position) {
       if (mounted) {
         setState(() {
@@ -49,6 +53,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
       }
     });
 
+    // Listener cho tổng thời lượng audio
     audioPlayer?.onDurationChanged.listen((duration) {
       if (mounted) {
         setState(() {
@@ -56,20 +61,17 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
         });
       }
     });
-
-    print('🔍 ToeicReviewPage initState:');
-    print('   questions.length: ${widget.questions.length}');
-    print('   userAnswers.length: ${widget.userAnswers.length}');
-    print('   userAnswers: ${widget.userAnswers}');
   }
 
   @override
   void dispose() {
+    // Dừng audio và giải phóng resources khi thoát trang
     audioPlayer?.stop();
     audioPlayer?.dispose();
     super.dispose();
   }
 
+  // Getter để lấy câu hỏi hiện tại dựa trên index
   ToeicQuestion? get currentQuestion {
     if (widget.questions.isEmpty ||
         currentQuestionIndex >= widget.questions.length ||
@@ -79,6 +81,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
     return widget.questions[currentQuestionIndex];
   }
 
+  // Getter để lấy câu trả lời của user cho câu hiện tại
   String? get userAnswer {
     final question = currentQuestion;
     return question != null
@@ -86,17 +89,17 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
         : null;
   }
 
+  // Getter để kiểm tra xem user trả lời đúng hay sai
   bool get isCorrect {
     final question = currentQuestion;
     return question != null &&
         userAnswer?.toLowerCase() == question.correctAnswer.toLowerCase();
   }
 
+  // Phương thức phát audio cho câu hỏi listening
   Future<void> _playAudio(String audioUrl) async {
     try {
-      print('🎵 Attempting to play audio: $audioUrl');
-
-      // Chuyển đổi URL thành asset path nếu cần
+      // Chuyển đổi URL thành asset path để phát từ local assets
       String assetPath = audioUrl;
       if (!audioUrl.startsWith('audio/')) {
         // Nếu audioUrl là full path, extract chỉ filename
@@ -104,14 +107,14 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
         assetPath = 'audio/toeic_test1/$fileName';
       }
 
-      print('🎵 Using asset path: $assetPath');
-
+      // Kiểm tra nếu đang phát audio này thì pause, ngược lại thì play
       if (currentAudioFile == assetPath && isPlaying) {
         await audioPlayer?.pause();
         setState(() {
           isPlaying = false;
         });
       } else {
+        // Dừng audio hiện tại và phát audio mới
         await audioPlayer?.stop();
         await audioPlayer?.play(AssetSource(assetPath));
         setState(() {
@@ -120,7 +123,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
         });
       }
     } catch (e) {
-      print('Lỗi phát audio: $e');
+      // Hiển thị thông báo lỗi nếu không thể phát audio
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -132,8 +135,10 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
     }
   }
 
+  // Widget tạo nút phát audio với progress bar
   Widget _buildAudioButton() {
     final question = currentQuestion;
+    // Nếu câu hỏi không có audio thì không hiển thị
     if (question?.audioUrl == null) return SizedBox.shrink();
 
     return Container(
@@ -143,13 +148,14 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
         children: [
           Row(
             children: [
-              // Play/Pause button
+              // Nút Play/Pause
               Container(
                 width: 40,
                 height: 40,
                 child: IconButton(
                   onPressed: () => _playAudio(question!.audioUrl!),
                   icon: Icon(
+                    // Hiển thị icon pause nếu đang phát, ngược lại hiển thị play
                     isPlaying && currentAudioFile != null
                         ? Icons.pause
                         : Icons.play_arrow,
@@ -160,24 +166,23 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                 ),
               ),
               SizedBox(width: 12),
-              // Progress bar
+              // Progress bar và time display
               Expanded(
                 child: Column(
                   children: [
+                    // Progress bar hiển thị tiến độ phát audio
                     LinearProgressIndicator(
                       value: totalDuration.inSeconds > 0
                           ? currentPosition.inSeconds / totalDuration.inSeconds
                           : 0.0,
                       backgroundColor: Colors.grey[300],
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        Color(
-                          0xFF4CAF50,
-                        ), // Màu xanh như trong ToeicTestTakingPage
+                        Color(0xFF4CAF50), // Màu xanh progress bar
                       ),
                       minHeight: 8,
                     ),
                     SizedBox(height: 4),
-                    // Time display
+                    // Hiển thị thời gian hiện tại và tổng thời gian
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -207,8 +212,11 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
     );
   }
 
+  // Widget hiển thị hình ảnh của câu hỏi (single image hoặc multiple images)
   Widget _buildImages() {
     final question = currentQuestion;
+
+    // Hiển thị single image nếu có imageUrl
     if (question?.imageUrl != null) {
       return Container(
         margin: EdgeInsets.symmetric(vertical: 10),
@@ -222,6 +230,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
           child: Image.asset(
             question!.imageUrl!,
             fit: BoxFit.contain,
+            // Error handler nếu không load được hình
             errorBuilder: (context, error, stackTrace) {
               return Container(
                 padding: EdgeInsets.all(20),
@@ -233,10 +242,12 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
       );
     }
 
+    // Hiển thị multiple images nếu có imageUrls array
     if (question?.imageUrls != null && question!.imageUrls!.isNotEmpty) {
       return Container(
         margin: EdgeInsets.symmetric(vertical: 10),
         height: 250,
+        // Horizontal scrollable list cho multiple images
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           itemCount: question.imageUrls!.length,
@@ -269,11 +280,14 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
       );
     }
 
+    // Trả về empty widget nếu không có hình
     return SizedBox.shrink();
   }
 
+  // Widget hiển thị transcript (lời thoại) của audio nếu có
   Widget _buildTranscript() {
     final question = currentQuestion;
+    // Không hiển thị nếu không có transcript
     if (question == null ||
         question.transcript == null ||
         question.transcript!.isEmpty) {
@@ -291,6 +305,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header với icon và tiêu đề
           Row(
             children: [
               Icon(Icons.mail_lock, color: Colors.blue[700], size: 20),
@@ -306,6 +321,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
             ],
           ),
           SizedBox(height: 10),
+          // Nội dung transcript
           Text(
             question.transcript!,
             style: TextStyle(
@@ -451,6 +467,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
     );
   }
 
+  // Utility method để format duration thành MM:SS
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final minutes = twoDigits(duration.inMinutes.remainder(60));
@@ -458,6 +475,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
     return '$minutes:$seconds';
   }
 
+  // Utility method để lấy text của option dựa trên letter (A, B, C, D)
   String _getOptionText(String optionLetter) {
     final question = currentQuestion;
     if (question == null) return '';

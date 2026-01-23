@@ -64,11 +64,11 @@ class _ToeicResultPageState extends State<ToeicResultPage> {
       if (_isHistorySaved ||
           widget.questions == null ||
           widget.userAnswers == null) {
-        print('⚠️ History already saved or missing data');
+        print('History already saved or missing data');
         return;
       }
 
-      print('💾 Saving test history...');
+      print('Saving test history...');
 
       // Calculate incorrect questions
       final incorrectQuestions = <int>[];
