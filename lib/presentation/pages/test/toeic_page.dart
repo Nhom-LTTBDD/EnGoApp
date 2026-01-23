@@ -117,7 +117,7 @@ class ToeicPage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Danh sách đề test ets toeic
+            // Danh sách đề test toeic
             Expanded(
               child: FutureBuilder(
                 future: ToeicSampleData.getPracticeTest1(),
