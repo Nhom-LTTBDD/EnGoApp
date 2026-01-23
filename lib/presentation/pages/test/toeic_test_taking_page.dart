@@ -17,6 +17,8 @@ import '../../../domain/entities/toeic_question.dart';
 import '../../../domain/entities/toeic_test_session.dart';
 // Data source để load questions
 import '../../../data/datasources/toeic_sample_data.dart';
+// Firebase Storage service để handle images/audio
+import '../../../data/services/firebase_storage_service.dart';
 // App routing
 import '../../../routes/app_routes.dart';
 // Theme helpers
@@ -55,6 +57,11 @@ class ToeicTestTakingPage extends StatefulWidget {
 
 // State class quản lý UI và logic của test taking page
 class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
+  // Cache cho Firebase image URLs để tránh load liên tục
+  static final Map<String, String?> _imageUrlCache = {};
+  // Keys cho widgets để tránh rebuild không cần thiết
+  final Map<String, ValueKey> _imageWidgetKeys = {};
+
   // Lifecycle method được gọi khi widget được khởi tạo
   @override
   void initState() {
@@ -158,11 +165,15 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
       title: widget.testName, // Hiển thị tên test trên header
       currentIndex: -1, // Không highlight bottom nav item nào
       showBottomNav: false, // Ẩn bottom navigation trong test
-      child: Consumer<ToeicTestProvider>(
-        // Sử dụng Consumer để lắng nghe thay đổi từ provider
-        builder: (context, provider, child) {
-          final session = provider.session; // Lấy session hiện tại
-          final question = provider.currentQuestion; // Lấy câu hỏi hiện tại
+      child: Selector<ToeicTestProvider, ({ToeicTestSession? session, ToeicQuestion? question})>(
+        // Sử dụng Selector thay vì Consumer để tránh rebuild không cần thiết
+        selector: (context, provider) => (
+          session: provider.session,
+          question: provider.currentQuestion,
+        ),
+        builder: (context, data, child) {
+          final session = data.session; // Lấy session hiện tại
+          final question = data.question; // Lấy câu hỏi hiện tại
 
           // Hiển thị loading spinner nếu chưa sẵn sàng
           if (session == null || question == null) {
@@ -173,7 +184,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
             color: getBackgroundColor(context),
             child: Column(
               children: [
-                _buildHeader(context, session, provider),
+                _buildHeader(context, session, context.read<ToeicTestProvider>()),
                 Expanded(
                   child: Container(
                     margin: const EdgeInsets.all(12),
@@ -191,17 +202,17 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                             (question.partNumber >= 6 &&
                                 question.groupId != null)) ...[
                           // Group questions: Part 3,4,6,7 có nhiều câu chung context
-                          _buildGroupQuestions(context, provider),
+                          _buildGroupQuestions(context, context.read<ToeicTestProvider>()),
                         ] else ...[
                           // Single questions: Part 1,2,5 mỗi câu độc lập
-                          _buildSingleQuestion(context, provider, question),
+                          _buildSingleQuestion(context, context.read<ToeicTestProvider>(), question),
                         ],
 
                         const SizedBox(
                           height: 16,
                         ), // Khoảng cách trước navigation
                         // Navigation buttons để chuyển câu tiếp theo
-                        _buildNavigationButtons(provider),
+                        _buildNavigationButtons(context.read<ToeicTestProvider>()),
                       ],
                     ),
                   ),
@@ -268,30 +279,11 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(
+                  child: _buildImageWidget(
                     question.imageUrl!,
-                    fit: BoxFit.contain, // Hiển thị toàn bộ image không crop
                     width: double.infinity,
                     height: double.infinity,
-                    errorBuilder: (context, error, stackTrace) {
-                      // Widget thay thế khi load image thất bại
-                      return Container(
-                        height: 200,
-                        color: Colors.grey[300],
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.error, color: Colors.red),
-                              Text(
-                                'Error loading image:\n${question.imageUrl}',
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                    fit: BoxFit.contain, // Hiển thị toàn bộ image không crop
                   ),
                 ),
               ),
@@ -411,38 +403,12 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: Image.asset(
+                            child: _buildImageWidget(
                               imageUrl,
-                              fit: BoxFit
-                                  .contain, // Hiển thị toàn bộ image không crop
                               width: double.infinity,
                               height: double.infinity,
-                              errorBuilder: (context, error, stackTrace) {
-                                // Widget thay thế khi load image thất bại
-                                // Hiển thị container với icon và text lỗi
-                                return Container(
-                                  height: 200,
-                                  color: Colors.grey[300],
-                                  child: const Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.image_not_supported,
-                                          size: 48,
-                                          color: Colors.grey,
-                                        ),
-                                        SizedBox(height: 8),
-                                        Text(
-                                          'Image not found',
-                                          style: TextStyle(color: Colors.grey),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
+                              fit: BoxFit
+                                  .contain, // Hiển thị toàn bộ image không crop
                             ),
                           ),
                         ),
@@ -463,36 +429,11 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.asset(
+                    child: _buildImageWidget(
                       questionWithImages.imageUrl!,
-                      fit: BoxFit.contain, // Hiển thị toàn bộ image không crop
                       width: double.infinity,
                       height: double.infinity,
-                      errorBuilder: (context, error, stackTrace) {
-                        // Widget thay thế khi load single image thất bại
-                        // Hiển thị container với icon và text lỗi
-                        return Container(
-                          height: 250,
-                          color: Colors.grey[300],
-                          child: const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.image_not_supported,
-                                  size: 48,
-                                  color: Colors.grey,
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  'Image not found',
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+                      fit: BoxFit.contain, // Hiển thị toàn bộ image không crop
                     ),
                   ),
                 ),
@@ -558,22 +499,28 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
       decoration: BoxDecoration(color: Theme.of(context).primaryColor),
       child: Column(
         children: [
-          // Time và btn finish
+          // Time và btn finish - Tách timer riêng để tránh rebuild ảnh
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               if (session.timeLimit != null)
-                Text(
-                  'Time: ${_formatDuration(session.remainingTime ?? Duration.zero)}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+                // Tách timer thành Consumer riêng để không ảnh hưởng tới ảnh
+                Consumer<ToeicTestProvider>(
+                  builder: (context, timerProvider, child) {
+                    final remainingTime = timerProvider.session?.remainingTime ?? Duration.zero;
+                    return Text(
+                      'Time: ${_formatDuration(remainingTime)}',
+                      style: TextStyle(
+                        color: remainingTime.inMinutes < 5 ? Colors.red : Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    );
+                  },
                 )
               else
                 const SizedBox(), // Empty space if no time limit
-              // Finish button
+              // Finish button - không phụ thuộc timer
               ElevatedButton(
                 onPressed: () => _showFinishConfirmation(context, provider),
                 style: ElevatedButton.styleFrom(
@@ -938,69 +885,108 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     }
   }
 
+  /// Build question grid widget - Tạo lưới hiển thị tất cả câu hỏi
+  /// Đây là phần review với 200 ô số câu, hiển thị trạng thái đã trả lời/chưa trả lời
+  /// Logic: Tạo grid layout 9 cột x nhiều hàng để hiển thị tối đa 200 câu hỏi
+  ///
+  /// [provider] - ToeicTestProvider chứa danh sách câu hỏi và trạng thái
   Widget _buildQuestionGrid(ToeicTestProvider provider) {
-    const itemsPerRow = 9;
-    final questions = provider.questions;
-    if (questions.isEmpty) return Container();
+    const itemsPerRow = 9; // Số câu hỏi trên mỗi hàng - cố định 9 cột
+    final questions =
+        provider.questions; // Lấy danh sách tất cả câu hỏi từ provider
+    if (questions.isEmpty)
+      return Container(); // Trả về container rỗng nếu không có câu hỏi
 
-    // Get the actual question numbers from the loaded questions
+    // Lấy danh sách số thứ tự câu hỏi thực tế từ các câu hỏi đã load
     final questionNumbers = questions.map((q) => q.questionNumber).toList()
-      ..sort();
-    final minQuestion = questionNumbers.first;
-    final maxQuestion = questionNumbers.last;
-    final totalQuestions = questions.length;
+      ..sort(); // Sắp xếp theo thứ tự tăng dần
+    final minQuestion = questionNumbers.first; // Câu hỏi đầu tiên (thường là 1)
+    final maxQuestion =
+        questionNumbers.last; // Câu hỏi cuối cùng (thường là 200)
+    final totalQuestions = questions.length; // Tổng số câu hỏi
 
-    final rows = (totalQuestions / itemsPerRow).ceil();
+    final rows = (totalQuestions / itemsPerRow)
+        .ceil(); // Tính số hàng cần thiết (làm tròn lên)
 
     return Container(
       child: Column(
         children: List.generate(rows, (rowIndex) {
-          final startIndex = rowIndex * itemsPerRow;
+          // Tạo từng hàng
+          final startIndex =
+              rowIndex * itemsPerRow; // Index bắt đầu của hàng này
 
           return Padding(
-            padding: const EdgeInsets.only(bottom: 6),
+            padding: const EdgeInsets.only(
+              bottom: 6,
+            ), // Khoảng cách 6px giữa các hàng
             child: Row(
               children: List.generate(itemsPerRow, (colIndex) {
-                final questionIndex = startIndex + colIndex;
+                // Tạo 9 cột cho mỗi hàng
+                final questionIndex =
+                    startIndex + colIndex; // Index câu hỏi hiện tại
                 if (questionIndex >= totalQuestions) {
-                  return Expanded(child: Container());
+                  return Expanded(
+                    child: Container(),
+                  ); // Container rỗng nếu vượt quá số câu hỏi
                 }
 
-                // Use actual question number from the loaded questions
+                // Sử dụng số thứ tự câu hỏi thực tế từ danh sách đã load
                 final actualQuestionNumber = questionNumbers[questionIndex];
                 final isAnswered =
-                    provider.getAnswer(actualQuestionNumber) != null;
-                final isCurrent = questionIndex == provider.currentIndex;
+                    provider.getAnswer(actualQuestionNumber) !=
+                    null; // Kiểm tra đã trả lời chưa
+                final isCurrent =
+                    questionIndex ==
+                    provider.currentIndex; // Kiểm tra có phải câu hiện tại
 
                 return Expanded(
                   child: GestureDetector(
-                    onTap: () => provider.goToQuestion(questionIndex),
+                    onTap: () => provider.goToQuestion(
+                      questionIndex,
+                    ), // Chuyển đến câu hỏi khi tap
                     child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      height: 36,
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 2,
+                      ), // Margin ngang 2px mỗi bên
+                      height: 36, // Chiều cao cố định 36px cho mỗi ô
                       decoration: BoxDecoration(
                         color: isCurrent
-                            ? const Color(0xFF1E90FF) // Blue for current
+                            ? const Color(
+                                0xFF1E90FF,
+                              ) // Màu xanh dương cho câu hiện tại
                             : isAnswered
-                            ? Colors.grey[400] // Grey for answered
-                            : Colors.white, // White for unanswered
-                        border: Border.all(color: Colors.grey[300]!, width: 1),
-                        borderRadius: BorderRadius.circular(6),
+                            ? Colors.grey[400] // Màu xám cho câu đã trả lời
+                            : Colors.white, // Màu trắng cho câu chưa trả lời
+                        border: Border.all(
+                          color: Colors.grey[300]!,
+                          width: 1,
+                        ), // Viền xám nhạt dày 1px
+                        borderRadius: BorderRadius.circular(6), // Bo góc 6px
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            offset: const Offset(0, 2),
-                            blurRadius: 2,
+                            color: Colors.black.withOpacity(
+                              0.1,
+                            ), // Màu bóng đen trong suốt 10%
+                            offset: const Offset(
+                              0,
+                              2,
+                            ), // Độ lệch bóng: 0px ngang, 2px dọc
+                            blurRadius: 2, // Độ mờ của bóng 2px
                           ),
                         ],
                       ),
                       child: Center(
                         child: Text(
-                          actualQuestionNumber.toString(),
+                          actualQuestionNumber
+                              .toString(), // Hiển thị số thứ tự câu hỏi thực tế
                           style: TextStyle(
-                            color: isCurrent ? Colors.white : Colors.black87,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                            color: isCurrent
+                                ? Colors.white
+                                : Colors
+                                      .black87, // Màu chữ: trắng nếu đang chọn, đen nếu không
+                            fontWeight:
+                                FontWeight.w600, // Độ đậm font: semibold
+                            fontSize: 14, // Cỡ chữ 14px
                           ),
                         ),
                       ),
@@ -1143,5 +1129,157 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
         'sessionLog': [],
       },
     );
+  }
+
+  /// Helper widget để hiển thị image từ Firebase Storage hoặc local assets
+  /// Tự động detect và handle Firebase Storage references
+  Widget _buildImageWidget(
+    String? imageUrl, {
+    double? width,
+    double? height,
+    BoxFit fit = BoxFit.contain,
+  }) {
+    if (imageUrl == null) return const SizedBox.shrink();
+
+    // Handle Firebase Storage reference
+    if (imageUrl.startsWith('firebase_image:')) {
+      // Tạo key duy nhất cho widget để tránh rebuild không cần thiết
+      final widgetKey = _imageWidgetKeys.putIfAbsent(
+        imageUrl,
+        () => ValueKey(imageUrl),
+      );
+
+      return FutureBuilder<String?>(
+        key: widgetKey,
+        future: _getCachedFirebaseUrl(imageUrl),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Container(
+              width: width,
+              height: height,
+              color: Colors.grey[200],
+              child: const Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+            return Container(
+              width: width,
+              height: height,
+              color: Colors.grey[300],
+              child: const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error, color: Colors.red, size: 48),
+                    SizedBox(height: 8),
+                    Text(
+                      'Error loading image from Firebase',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          // Load image từ Firebase Storage URL với cache tốt hư
+          return RepaintBoundary(
+            key: ValueKey('repaint_${snapshot.data!}'),
+            child: Image.network(
+              snapshot.data!,
+              key: ValueKey('image_${snapshot.data!}'),
+              width: width,
+              height: height,
+              fit: fit,
+              cacheWidth: (width != null && width.isFinite && width > 0) ? width.toInt() : null,
+              cacheHeight: (height != null && height.isFinite && height > 0) ? height.toInt() : null,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  width: width,
+                  height: height,
+                  color: Colors.grey[200],
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  ),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: width,
+                  height: height,
+                  color: Colors.grey[300],
+                  child: const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error, color: Colors.red, size: 48),
+                        SizedBox(height: 8),
+                        Text(
+                          'Network image failed',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      );
+    }
+
+    // Handle local assets
+    return Image.asset(
+      imageUrl,
+      width: width,
+      height: height,
+      fit: fit,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          width: width,
+          height: height,
+          color: Colors.grey[300],
+          child: const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error, color: Colors.red, size: 48),
+                SizedBox(height: 8),
+                Text('Asset image failed', style: TextStyle(color: Colors.red)),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Cache Firebase URL để tránh gọi API liên tục gây giật ảnh
+  Future<String?> _getCachedFirebaseUrl(String imageUrl) async {
+    // Kiểm tra cache trước - return ngay nếu có
+    if (_imageUrlCache.containsKey(imageUrl)) {
+      final cachedUrl = _imageUrlCache[imageUrl];
+      if (cachedUrl != null) {
+        return cachedUrl;
+      }
+    }
+    
+    // Chỉ gọi API một lần và lưu kết quả
+    try {
+      final url = await FirebaseStorageService.resolveFirebaseUrl(imageUrl);
+      _imageUrlCache[imageUrl] = url; // Cache kể cả null
+      return url;
+    } catch (e) {
+      _imageUrlCache[imageUrl] = null; // Cache lỗi để không retry liên tục
+      return null;
+    }
   }
 }
