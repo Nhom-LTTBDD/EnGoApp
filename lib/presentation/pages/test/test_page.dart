@@ -55,6 +55,32 @@ class TestPage extends StatelessWidget {
                 desc: "EST Toeic",
                 onTap: () => Navigator.pushNamed(context, AppRoutes.toeic),
               ),
+              const SizedBox(height: 20),
+              // Test History Button
+              Container(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.pushNamed(
+                    context,
+                    AppRoutes.testHistory,
+                    arguments: {
+                      'userId': 'user_${DateTime.now().millisecondsSinceEpoch}',
+                    },
+                  ),
+                  icon: const Icon(Icons.history, color: Colors.white),
+                  label: const Text(
+                    'Xem Lịch Sử Làm Bài',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),

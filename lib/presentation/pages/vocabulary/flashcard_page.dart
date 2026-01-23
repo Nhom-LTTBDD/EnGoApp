@@ -84,12 +84,12 @@ class _FlashcardPageState extends State<FlashcardPage>
     final flashcardProvider = context.read<FlashcardProvider>();
     final progressProvider = context.read<FlashcardProgressProvider>();
 
-    // Get userId from FlashcardProgressProvider (already set by main.dart)
+    // Get userId from FlashcardProgressProvider (already set by main.dart)    
     final userId = progressProvider.userId;
     final topicId = widget.topicId ?? '1';
 
-    print(' ========== FLASHCARD SESSION ENDED ========== ');
-    print('[FLASHCARD] User ID (from FlashcardProgressProvider): $userId');
+    print('[FLASHCARD] ========== SESSION ENDED ==========');
+    print('[FLASHCARD] User ID: $userId');
     print('[FLASHCARD] Topic ID: $topicId');
 
     // Save progress if user is authenticated
@@ -189,7 +189,6 @@ class _FlashcardPageState extends State<FlashcardPage>
       // Rebuild UI
       setState(() {});
 
-      print('↩️ Undo: Quay lại thẻ #${flashcardProvider.currentCardIndex}');
     } else {
       // Không có gì để undo
       ScaffoldMessenger.of(context).showSnackBar(

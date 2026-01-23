@@ -68,15 +68,34 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
 
       // If no questions loaded, show error
       if (questions.isEmpty) {
-        print('No questions loaded, showing error message');
+        print('❌ No questions loaded, showing detailed error message');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'No questions available for selected parts. Please check if JSON data is loaded correctly.',
+            SnackBar(
+              content: const Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'No questions available for selected parts',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Please check:\n• Internet connection\n• Firebase setup\n• JSON file availability',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ],
               ),
               backgroundColor: Colors.red,
-              duration: Duration(seconds: 5),
+              duration: const Duration(seconds: 8),
+              action: SnackBarAction(
+                label: 'RETRY',
+                textColor: Colors.white,
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
             ),
           );
         }
@@ -96,10 +115,11 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
         // Handle time up - automatically finish test and go to results
         final result = provider.finishTestAndGetResults();
         final session = provider.session;
-        provider.finishTest();
         if (mounted) {
           _navigateToResults(context, result, session);
         }
+        // Finish AFTER navigate để không clear dữ liệu
+        provider.finishTest();
       },
     );
 
@@ -149,7 +169,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                           Builder(
                             builder: (context) {
                               print(
-                                '📱 Using _buildGroupQuestions for Part ${question.partNumber}, Question ${question.questionNumber}, GroupId: ${question.groupId}',
+                                'Using _buildGroupQuestions for Part ${question.partNumber}, Question ${question.questionNumber}, GroupId: ${question.groupId}',
                               );
                               return const SizedBox.shrink();
                             },
@@ -1056,10 +1076,12 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
               try {
                 final result = provider.finishTestAndGetResults();
                 final session = provider.session;
-                provider.finishTest();
+                // ⚠️ IMPORTANT: Navigate TRƯỚC KHI finishTest() để giữ lại dữ liệu
                 if (mounted) {
                   _navigateToResults(context, result, session);
                 }
+                // Finish test AFTER navigating để không clear dữ liệu trước khi sử dụng
+                provider.finishTest();
               } catch (e) {
                 print('Error finishing test: $e');
               }
@@ -1077,6 +1099,25 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     ToeicTestSession? session,
   ) {
     if (!mounted) return;
+
+    final provider = context.read<ToeicTestProvider>();
+
+    // ⚠️ IMPORTANT: Lưu dữ liệu TRƯỚC KHI provider.finishTest() clear hết!
+    final questions = List<ToeicQuestion>.from(provider.questions);
+
+    // Get all user answers as a Map<int, String>
+    final userAnswers = <int, String>{};
+    for (final question in questions) {
+      final answer = provider.getAnswer(question.questionNumber);
+      if (answer != null) {
+        userAnswers[question.questionNumber] = answer;
+      }
+    }
+
+    print('🔍 _navigateToResults Debug:');
+    print('   questions.length: ${questions.length}');
+    print('   userAnswers.length: ${userAnswers.length}');
+    print('   userAnswers: $userAnswers');
 
     Navigator.pushNamedAndRemoveUntil(
       context,
@@ -1096,6 +1137,9 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
         'readingUnanswered': result['readingUnanswered'] ?? 0,
         'listeningTotal': result['listeningTotal'] ?? 100,
         'readingTotal': result['readingTotal'] ?? 100,
+        'questions': questions, // Sử dụng dữ liệu đã lưu
+        'userAnswers': userAnswers, // Sử dụng dữ liệu đã lưu
+        'sessionLog': [],
       },
     );
   }

@@ -92,6 +92,13 @@ class HomePage extends StatelessWidget {
                 onPressed: () =>
                     Navigator.pushNamed(context, AppRoutes.grammar),
               ),
+              const SizedBox(height: 10),
+              _buildMenuButton(
+                context,
+                text: 'Translation',
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRoutes.translation),
+              ),
             ],
           ),
         ),

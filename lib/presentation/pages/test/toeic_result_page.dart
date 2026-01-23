@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/routes/app_routes.dart';
 import '../../../domain/entities/toeic_test_session.dart';
+import '../../../domain/entities/toeic_question.dart';
+import '../../../domain/entities/test_history.dart';
+import '../../../data/services/firebase_firestore_service.dart';
 
-class ToeicResultPage extends StatelessWidget {
-  final ToeicTestSession session;
+class ToeicResultPage extends StatefulWidget {
+  final ToeicTestSession? session;
   final String testName;
   final int listeningScore;
   final int readingScore;
@@ -19,10 +22,13 @@ class ToeicResultPage extends StatelessWidget {
   final int readingUnanswered;
   final int listeningTotal;
   final int readingTotal;
+  final List<ToeicQuestion>? questions;
+  final Map<int, String>? userAnswers;
+  final List<dynamic>? sessionLog;
 
   const ToeicResultPage({
     Key? key,
-    required this.session,
+    this.session,
     required this.testName,
     required this.listeningScore,
     required this.readingScore,
@@ -35,10 +41,106 @@ class ToeicResultPage extends StatelessWidget {
     required this.readingUnanswered,
     required this.listeningTotal,
     required this.readingTotal,
+    this.questions,
+    this.userAnswers,
+    this.sessionLog,
   }) : super(key: key);
 
   @override
+  State<ToeicResultPage> createState() => _ToeicResultPageState();
+}
+
+class _ToeicResultPageState extends State<ToeicResultPage> {
+  bool _isHistorySaved = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _saveTestHistory();
+  }
+
+  Future<void> _saveTestHistory() async {
+    try {
+      if (_isHistorySaved ||
+          widget.questions == null ||
+          widget.userAnswers == null) {
+        print('⚠️ History already saved or missing data');
+        return;
+      }
+
+      print('💾 Saving test history...');
+
+      // Calculate incorrect questions
+      final incorrectQuestions = <int>[];
+      final correctAnswersMap = <int, String>{};
+
+      for (final question in widget.questions!) {
+        correctAnswersMap[question.questionNumber] = question.correctAnswer;
+        final userAnswer = widget.userAnswers![question.questionNumber] ?? '';
+        if (userAnswer != question.correctAnswer) {
+          incorrectQuestions.add(question.questionNumber);
+        }
+      }
+
+      // Calculate part scores
+      final partScores = <String, dynamic>{};
+      for (int part = 1; part <= 7; part++) {
+        final partQuestions = widget.questions!
+            .where((q) => q.partNumber == part)
+            .toList();
+        final partCorrect = partQuestions
+            .where(
+              (q) => widget.userAnswers![q.questionNumber] == q.correctAnswer,
+            )
+            .length;
+        partScores['part$part'] = {
+          'correct': partCorrect,
+          'total': partQuestions.length,
+          'percentage': partQuestions.isEmpty
+              ? 0.0
+              : (partCorrect / partQuestions.length) * 100,
+        };
+      }
+
+      // Create history object
+      final history = TestHistory(
+        id: 'test_${DateTime.now().millisecondsSinceEpoch}',
+        userId:
+            'user_${DateTime.now().millisecondsSinceEpoch}', // TODO: Get actual user ID
+        testId: 'test1',
+        testName: widget.testName,
+        completedAt: DateTime.now(),
+        totalQuestions: widget.questions!.length,
+        correctAnswers: widget.listeningCorrect + widget.readingCorrect,
+        listeningScore: widget.listeningScore,
+        readingScore: widget.readingScore,
+        totalScore: widget.totalScore,
+        userAnswers: widget.userAnswers!,
+        correctAnswersMap: correctAnswersMap,
+        incorrectQuestions: incorrectQuestions,
+        timeSpent: 7200, // TODO: Calculate actual time spent
+        partScores: partScores,
+      );
+
+      // Save to Firestore
+      await FirebaseFirestoreService.saveTestHistory(history);
+
+      setState(() {
+        _isHistorySaved = true;
+      });
+
+      print('✅ Test history saved successfully');
+    } catch (e) {
+      print('❌ Error saving test history: $e');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    print('🔍 ToeicResultPage Build:');
+    print('   questions: ${widget.questions?.length ?? 'null'}');
+    print('   userAnswers: ${widget.userAnswers?.length ?? 'null'}');
+
     return MainLayout(
       title: "TOEIC",
       currentIndex: 1,
@@ -78,7 +180,7 @@ class ToeicResultPage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Text(
-                testName,
+                widget.testName,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 20,
@@ -128,7 +230,7 @@ class ToeicResultPage extends StatelessWidget {
                           child: Column(
                             children: [
                               Text(
-                                'LISTENING: $listeningScore',
+                                'LISTENING: ${widget.listeningScore}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -137,7 +239,7 @@ class ToeicResultPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Correct: $listeningCorrect/$listeningTotal',
+                                'Correct: ${widget.listeningCorrect}/${widget.listeningTotal}',
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -146,7 +248,7 @@ class ToeicResultPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Wrong: $listeningWrong/$listeningTotal',
+                                'Wrong: ${widget.listeningWrong}/${widget.listeningTotal}',
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -155,7 +257,7 @@ class ToeicResultPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Unanswered: $listeningUnanswered/$listeningTotal',
+                                'Unanswered: ${widget.listeningUnanswered}/${widget.listeningTotal}',
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -171,7 +273,7 @@ class ToeicResultPage extends StatelessWidget {
                           child: Column(
                             children: [
                               Text(
-                                'READING: $readingScore',
+                                'READING: ${widget.readingScore}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -180,7 +282,7 @@ class ToeicResultPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Correct: $readingCorrect/$readingTotal',
+                                'Correct: ${widget.readingCorrect}/${widget.readingTotal}',
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -189,7 +291,7 @@ class ToeicResultPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Wrong: $readingWrong/$readingTotal',
+                                'Wrong: ${widget.readingWrong}/${widget.readingTotal}',
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -198,7 +300,7 @@ class ToeicResultPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Unanswered: $readingUnanswered/$readingTotal',
+                                'Unanswered: ${widget.readingUnanswered}/${widget.readingTotal}',
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -223,7 +325,7 @@ class ToeicResultPage extends StatelessWidget {
                       ),
                       child: Center(
                         child: Text(
-                          totalScore.toString(),
+                          widget.totalScore.toString(),
                           style: const TextStyle(
                             fontSize: 36,
                             fontWeight: FontWeight.bold,
@@ -274,15 +376,35 @@ class ToeicResultPage extends StatelessWidget {
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () {
-                              // TODO: Navigate to test review page
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Review functionality coming soon!',
-                                  ),
-                                  backgroundColor: Colors.green,
-                                ),
+                              print('🔍 Debug ToeicResultPage Review Button:');
+                              print(
+                                '   questions: ${widget.questions?.length ?? 'null'}',
                               );
+                              print(
+                                '   userAnswers: ${widget.userAnswers?.length ?? 'null'}',
+                              );
+
+                              if (widget.questions != null &&
+                                  widget.userAnswers != null) {
+                                Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.toeicReview,
+                                  arguments: {
+                                    'questions': widget.questions,
+                                    'userAnswers': widget.userAnswers,
+                                    'sessionLog': widget.sessionLog ?? [],
+                                  },
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Không có dữ liệu để xem lại bài làm!',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
@@ -294,7 +416,7 @@ class ToeicResultPage extends StatelessWidget {
                               elevation: 2,
                             ),
                             child: const Text(
-                              'Review Test',
+                              'Xem lại bài làm',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,

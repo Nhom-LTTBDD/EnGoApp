@@ -10,8 +10,22 @@ class ToeicSampleData {
     try {
       return await ToeicJsonService.loadTest('test1');
     } catch (e) {
-      print('Error loading test: $e');
-      throw Exception('Failed to load TOEIC test data: $e');
+      print('❌ Error loading test: $e');
+      print('🔄 Returning default test data');
+      // Return default test data if Firebase fails
+      return ToeicTest(
+        id: 'test1',
+        name: 'TOEIC Practice Test 1',
+        description: 'TOEIC Practice Test',
+        totalQuestions: 200,
+        listeningQuestions: 100,
+        readingQuestions: 100,
+        duration: 120,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        isActive: true,
+        year: 2025,
+      );
     }
   }
 
@@ -54,21 +68,34 @@ class ToeicSampleData {
   // Load questions from JSON for specific part
   static Future<List<ToeicQuestion>> getQuestionsByPart(int partNumber) async {
     try {
-      print('ToeicSampleData: Loading questions for part $partNumber');
+      print('📚 ToeicSampleData: Loading questions for part $partNumber');
       final questions = await ToeicJsonService.loadQuestionsByPart(
         'test1',
         partNumber,
       );
-      print('ToeicSampleData: Loaded ${questions.length} questions from JSON');
+      print(
+        '✅ ToeicSampleData: Loaded ${questions.length} questions from JSON for part $partNumber',
+      );
 
       if (questions.isEmpty) {
-        throw Exception('No questions found for part $partNumber in JSON data');
+        print('⚠️ No questions found for part $partNumber in JSON data');
+        print('💡 This could mean:');
+        print('   - Firebase Storage is not set up');
+        print('   - JSON file not uploaded to Firebase');
+        print('   - Local assets/toeic_questions.json is missing or empty');
+        print('   - Part $partNumber has no questions in the data');
+        return [];
       }
 
       return questions;
     } catch (e) {
-      print('Error loading questions for part $partNumber: $e');
-      throw Exception('Failed to load questions for part $partNumber: $e');
+      print('❌ Error loading questions for part $partNumber: $e');
+      print('🔧 Possible solutions:');
+      print('   1. Check Firebase Storage setup');
+      print('   2. Verify assets/toeic_questions.json exists and is valid');
+      print('   3. Check network connectivity');
+      print('🔄 Returning empty list to prevent crashes');
+      return [];
     }
   }
 
@@ -77,12 +104,14 @@ class ToeicSampleData {
     try {
       final questions = await ToeicJsonService.loadAllQuestions('test1');
       if (questions.isEmpty) {
-        throw Exception('No questions found in JSON data');
+        print('⚠️ No questions found in JSON data');
+        return [];
       }
       return questions;
     } catch (e) {
-      print('Error loading all questions: $e');
-      throw Exception('Failed to load TOEIC questions: $e');
+      print('❌ Error loading all questions: $e');
+      print('🔄 Returning empty list instead of throwing exception');
+      return [];
     }
   }
 }

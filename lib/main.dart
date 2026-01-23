@@ -120,20 +120,18 @@ class _MyAppState extends State<MyApp> {
             // Khi user login/logout, update userId trong PersonalVocabularyProvider
             if (authProvider.state is Authenticated) {
               final user = (authProvider.state as Authenticated).user;
-              print(
-                '🔐 Auth state: Authenticated - Setting userId: ${user.id}',
-              );
+              print('Auth state: Authenticated - Setting userId: ${user.id}');
               personalVocabProvider?.setUserId(user.id);
             } else {
               print(
-                '⚠️ Auth state: Not authenticated - ${authProvider.state.runtimeType}',
+                'Auth state: Not authenticated - ${authProvider.state.runtimeType}',
               );
             }
             return personalVocabProvider ?? di.sl<PersonalVocabularyProvider>();
           },
         ),
 
-        // 🔥 StreakProvider listen AuthProvider để lấy userId
+        //StreakProvider listen AuthProvider để lấy userId
         ChangeNotifierProxyProvider<AuthProvider, StreakProvider>(
           create: (_) => di.sl<StreakProvider>(),
           update: (_, authProvider, streakProvider) {
@@ -147,14 +145,14 @@ class _MyAppState extends State<MyApp> {
           },
         ),
 
-        // 🃏 FlashcardProgressProvider listen AuthProvider để lấy userId
+        //FlashcardProgressProvider listen AuthProvider để lấy userId
         ChangeNotifierProxyProvider<AuthProvider, FlashcardProgressProvider>(
           create: (_) => di.sl<FlashcardProgressProvider>(),
           update: (_, authProvider, progressProvider) {
             // Khi user login/logout, update userId trong FlashcardProgressProvider
             if (authProvider.state is Authenticated) {
               final user = (authProvider.state as Authenticated).user;
-              print('🔐 FlashcardProgress: Setting userId: ${user.id}');
+              print('FlashcardProgress: Setting userId: ${user.id}');
               progressProvider?.setUserId(user.id);
             }
             return progressProvider ?? di.sl<FlashcardProgressProvider>();

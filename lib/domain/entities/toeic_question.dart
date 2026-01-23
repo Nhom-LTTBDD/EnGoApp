@@ -13,6 +13,7 @@ class ToeicQuestion {
   final List<String> options; // A, B, C, D
   final String correctAnswer;
   final String? explanation;
+  final String? transcript; // Audio transcript
   final int order;
 
   final String? groupId;
@@ -31,8 +32,34 @@ class ToeicQuestion {
     required this.options,
     required this.correctAnswer,
     this.explanation,
+    this.transcript,
     required this.order,
     this.groupId,
     this.passageText,
   });
+
+  factory ToeicQuestion.fromJson(Map<String, dynamic> json) {
+    return ToeicQuestion(
+      id: json['id'] ?? 'q${json['questionNumber']}',
+      testId: json['testId'] ?? 'test1',
+      partNumber: json['partNumber'] ?? 1,
+      questionNumber: json['questionNumber'] ?? 0,
+      questionType: json['questionType'] ?? 'multiple-choice',
+      questionText: json['questionText'],
+      imageUrl: json['imageUrl'],
+      imageUrls: json['imageUrls'] != null
+          ? List<String>.from(json['imageUrls'])
+          : null,
+      audioUrl: json['audioUrl'],
+      options: json['options'] != null
+          ? List<String>.from(json['options'])
+          : [],
+      correctAnswer: json['correctAnswer'] ?? 'A',
+      explanation: json['explanation'],
+      transcript: json['transcript'],
+      order: json['order'] ?? json['questionNumber'] ?? 0,
+      groupId: json['groupId'],
+      passageText: json['passageText'],
+    );
+  }
 }

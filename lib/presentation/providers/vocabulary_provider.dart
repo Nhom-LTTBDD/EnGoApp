@@ -70,7 +70,7 @@ class VocabularyProvider extends ChangeNotifier {
     // If topic changed, clear old cards first
     if (_currentTopicId != null && _currentTopicId != topicId) {
       _logInfo(
-        '🔄 Topic changed from $_currentTopicId to $topicId, clearing old cards',
+        'Topic changed from $_currentTopicId to $topicId, clearing old cards',
       );
       clearCards();
     }
@@ -80,9 +80,9 @@ class VocabularyProvider extends ChangeNotifier {
     _setError(null);
 
     try {
-      _logInfo('📚 Loading vocabulary cards for topic: $topicId');
+      _logInfo('Loading vocabulary cards for topic: $topicId');
       final cards = await getVocabularyCards.call(topicId);
-      _logInfo('✅ Loaded ${cards.length} cards');
+      _logInfo('Loaded ${cards.length} cards');
 
       // Enrich cards with dictionary data
       final enrichedCards = await _enrichCards(cards);
@@ -90,12 +90,12 @@ class VocabularyProvider extends ChangeNotifier {
       _vocabularyCards = enrichedCards;
       _resetNavigationState();
       _logInfo(
-        '✨ Vocabulary cards loaded successfully: ${enrichedCards.length} cards',
+        'Vocabulary cards loaded successfully: ${enrichedCards.length} cards',
       );
 
       notifyListeners();
     } catch (e) {
-      _logError('❌ Error loading vocabulary cards: $e');
+      _logError('Error loading vocabulary cards: $e');
       _setError(e.toString());
     } finally {
       _setLoading(false);
@@ -148,7 +148,7 @@ class VocabularyProvider extends ChangeNotifier {
     _cardFlipStates = {};
     _error = null;
     notifyListeners();
-    _logInfo('🗑️ Cleared vocabulary cards');
+    _logInfo('Cleared vocabulary cards');
   }
 
   // ============================================================================
@@ -214,36 +214,35 @@ class VocabularyProvider extends ChangeNotifier {
       try {
         final enrichedCard = await enrichVocabularyCard.call(card);
         enrichedCards.add(enrichedCard);
-        _logInfo('✅ Enriched card: ${card.english}');
+        _logInfo('Enriched card: ${card.english}');
       } catch (e) {
         // If enrichment fails for a card, use original card
         enrichedCards.add(card);
-        _logWarning('⚠️ Could not enrich card ${card.english}: $e');
+        _logWarning('Could not enrich card ${card.english}: $e');
       }
     }
 
     return enrichedCards;
   }
-
   // ============================================================================
   // LOGGING HELPERS
   // ============================================================================
 
   void _logInfo(String message) {
     if (kDebugMode) {
-      print(message);
+      print('[VOCABULARY] $message');
     }
   }
 
   void _logWarning(String message) {
     if (kDebugMode) {
-      print(message);
+      print('[VOCABULARY] ⚠️ $message');
     }
   }
 
   void _logError(String message) {
     if (kDebugMode) {
-      print(message);
+      print('[VOCABULARY] ❌ $message');
     }
   }
 }

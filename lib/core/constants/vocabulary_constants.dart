@@ -47,15 +47,15 @@ class VocabularyConstants {
   // ============================================================================
   // Log Messages
   // ============================================================================
-  static const String logLoadingFromLocal = '✅ Loaded from local storage';
-  static const String logLoadingFromCloud = '📡 Local storage empty, fetching from cloud...';
-  static const String logRestoredFromCloud = '✅ Restored from cloud';
-  static const String logNoDataFound = '📝 No data found, creating new empty model';
-  static const String logSavedToLocal = '💾 Saved to local storage';
-  static const String logSyncedToCloud = '☁️ Synced to cloud';
-  static const String logSyncFailed = '⚠️ Cloud sync failed';
-  static const String logSyncSkipped = '⏭️ Skipping cloud sync (debouncing';
-  static const String logStartingSync = '🚀 Starting cloud sync...';
+  static const String logLoadingFromLocal = 'Loaded from local storage';
+  static const String logLoadingFromCloud = 'Local storage empty, fetching from cloud...';
+  static const String logRestoredFromCloud = 'Restored from cloud';
+  static const String logNoDataFound = 'No data found, creating new empty model';
+  static const String logSavedToLocal = 'Saved to local storage';
+  static const String logSyncedToCloud = 'Synced to cloud';
+  static const String logSyncFailed = 'Cloud sync failed';
+  static const String logSyncSkipped = 'Skipping cloud sync (debouncing';
+  static const String logStartingSync = 'Starting cloud sync...';
   // ============================================================================
   // Error Messages
   // ============================================================================
