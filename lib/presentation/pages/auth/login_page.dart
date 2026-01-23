@@ -25,12 +25,14 @@ class _LoginPageState extends State<LoginPage> {
   final _emailFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
   bool _obscurePassword = true;
+  bool _hasNavigated = false; // Prevent multiple navigations
+  bool _isGoogleSignInProcessing = false; // Prevent double tap
 
   @override
   void initState() {
     super.initState();
-    _emailFocusNode.addListener(() => setState(() {}));
-    _passwordFocusNode.addListener(() => setState(() {}));
+    // REMOVED: Focus listeners that cause unnecessary rebuilds
+    // The UI will update automatically via decoration changes
   }
 
   @override
@@ -60,18 +62,26 @@ class _LoginPageState extends State<LoginPage> {
         builder: (context, authProvider, _) {
           final authState = authProvider.state;
 
-          // Handle navigation and errors
+          // Handle navigation and errors - with debounce
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
+            if (!mounted || _hasNavigated) return;
 
             if (authState is Authenticated) {
-              authProvider.reset();
-              Navigator.pushReplacementNamed(context, AppRoutes.home);
+              _hasNavigated = true;
+
+              // Delay navigation để UI có thời gian render
+              Future.delayed(const Duration(milliseconds: 100), () {
+                if (mounted) {
+                  authProvider.reset();
+                  Navigator.pushReplacementNamed(context, AppRoutes.home);
+                }
+              });
             } else if (authState is AuthError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(authState.message),
                   backgroundColor: kDanger,
+                  duration: const Duration(seconds: 2),
                 ),
               );
               authProvider.reset();
@@ -125,9 +135,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       prefixIcon: Icon(
                         Icons.email_outlined,
-                        color: _emailFocusNode.hasFocus
-                            ? kPrimaryColor
-                            : Colors.grey.shade600,
+                        color: Colors.grey.shade600,
                       ),
                       border: const OutlineInputBorder(),
                       enabledBorder: OutlineInputBorder(
@@ -188,18 +196,14 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       prefixIcon: Icon(
                         Icons.lock_outlined,
-                        color: _passwordFocusNode.hasFocus
-                            ? kPrimaryColor
-                            : Colors.grey.shade600,
+                        color: Colors.grey.shade600,
                       ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
-                          color: _passwordFocusNode.hasFocus
-                              ? kPrimaryColor
-                              : Colors.grey.shade600,
+                          color: Colors.grey.shade600,
                         ),
                         onPressed: isLoading
                             ? null
@@ -273,27 +277,65 @@ class _LoginPageState extends State<LoginPage> {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      icon: SvgPicture.asset(
-                        kIconGoogle,
-                        width: 20,
-                        height: 20,
+                      icon: _isGoogleSignInProcessing
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  kPrimaryColor,
+                                ),
+                              ),
+                            )
+                          : SvgPicture.asset(
+                              kIconGoogle,
+                              width: 20,
+                              height: 20,
+                            ),
+                      label: Text(
+                        _isGoogleSignInProcessing
+                            ? 'Đang xử lý...'
+                            : 'Đăng nhập với Google',
+                        style: TextStyle(
+                          color: (isLoading || _isGoogleSignInProcessing)
+                              ? Colors.black87
+                              : Colors.black,
+                        ),
                       ),
-                      label: const Text('Đăng nhập với Google'),
-                      onPressed: isLoading
+                      onPressed: (isLoading || _isGoogleSignInProcessing)
                           ? null
-                          : () =>
-                                context.read<AuthProvider>().signInWithGoogle(),
+                          : () async {
+                              if (_isGoogleSignInProcessing) return;
+                              setState(() => _isGoogleSignInProcessing = true);
+
+                              // Unfocus để ẩn keyboard và giảm work
+                              FocusScope.of(context).unfocus();
+
+                              // Delay nhỏ để UI update trước
+                              await Future.delayed(
+                                const Duration(milliseconds: 50),
+                              );
+
+                              if (mounted) {
+                                await context
+                                    .read<AuthProvider>()
+                                    .signInWithGoogle();
+                              }
+
+                              if (mounted) {
+                                setState(
+                                  () => _isGoogleSignInProcessing = false,
+                                );
+                              }
+                            },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        side: BorderSide(
-                          color: isLoading
-                              ? kPrimaryColor
-                              : Colors.grey.shade600,
-                          width: 1,
-                        ),
+                        side: BorderSide(color: Colors.grey.shade600, width: 1),
+                        disabledForegroundColor: Colors.black87,
                       ),
                     ),
                   ),

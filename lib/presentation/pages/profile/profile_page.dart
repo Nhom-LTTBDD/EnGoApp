@@ -41,7 +41,14 @@ class _ProfilePageState extends State<ProfilePage> {
         // Delay nhỏ để UI render trước
         await Future.delayed(const Duration(milliseconds: 100));
         if (mounted) {
-          profileProvider.getUserProfile();
+          await profileProvider.getUserProfile();
+
+          // Sau khi load profile, update userId cho các provider khác
+          if (mounted && profileProvider.currentUser != null) {
+            final userId = profileProvider.currentUser!.id;
+            context.read<StreakProvider>().setUserId(userId);
+            context.read<PersonalVocabularyProvider>().setUserId(userId);
+          }
         }
       }
     });
@@ -194,6 +201,19 @@ class _ProfilePageState extends State<ProfilePage> {
             builder: (context, profileState, _) {
               final profileProvider = context.read<ProfileProvider>();
               final user = profileProvider.currentUser;
+
+              // Đồng bộ userId với các provider khác khi profile đã loaded
+              if (profileState is ProfileLoaded && user != null) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    // Force update userId cho streak và vocab providers
+                    context.read<StreakProvider>().setUserId(user.id);
+                    context.read<PersonalVocabularyProvider>().setUserId(
+                      user.id,
+                    );
+                  }
+                });
+              }
 
               // Handle loading state - Use shimmer nếu chưa có data
               if (profileState is ProfileLoading && user == null) {
@@ -429,56 +449,30 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Consumer<PersonalVocabularyProvider>(
-                                    builder: (context, vocabProvider, _) {
-                                      return AppButton(
-                                        onPressed: () {
-                                          Navigator.pushNamed(
-                                            context,
-                                            AppRoutes.personalVocabByTopic,
-                                          );
-                                        },
-                                        text:
-                                            '${vocabProvider.topicCount} bộ từ',
-                                        variant: AppButtonVariant.primary,
-                                        size: AppButtonSize.medium,
-                                      );
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: AppButton(
-                                    onPressed: () {
-                                      // TODO: Tính năng flashcard chưa có
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Tính năng flashcard đang được phát triển',
-                                          ),
-                                          duration: Duration(seconds: 2),
-                                        ),
-                                      );
-                                    },
-                                    text: 'Flashcard',
-                                    variant: AppButtonVariant.success,
-                                    size: AppButtonSize.medium,
-                                  ),
-                                ),
-                              ],
+                            Consumer<PersonalVocabularyProvider>(
+                              builder: (context, vocabProvider, _) {
+                                return AppButton(
+                                  onPressed: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.personalVocabByTopic,
+                                    );
+                                  },
+                                  text: '${vocabProvider.topicCount} bộ từ',
+                                  variant: AppButtonVariant.primary,
+                                  size: AppButtonSize.medium,
+                                );
+                              },
                             ),
                             const SizedBox(height: 12),
                             SizedBox(
                               width: double.infinity,
                               child: AppButton(
-                                onPressed: () {},
-                                text: 'Xem tiến trình học',
-                                variant: AppButtonVariant.accent,
+                                onPressed: () {
+                                  Navigator.pushNamed(context, AppRoutes.test);
+                                },
+                                text: 'Xem kết quả bài test',
+                                variant: AppButtonVariant.success,
                                 size: AppButtonSize.medium,
                               ),
                             ),
