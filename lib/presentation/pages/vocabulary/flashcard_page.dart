@@ -7,10 +7,10 @@ import '../../providers/flashcard_progress_provider.dart';
 import '../../providers/profile/streak_provider.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/auth_state.dart';
-import '../../widgets/vocabulary/flashcard_header.dart';
-import '../../widgets/vocabulary/flashcard_score_display.dart';
-import '../../widgets/vocabulary/flashcard_swipe_card.dart';
-import '../../widgets/vocabulary/flashcard_controls.dart';
+import '../../widgets/flashcard/flashcard_header.dart';
+import '../../widgets/flashcard/flashcard_score_display.dart';
+import '../../widgets/flashcard/flashcard_swipe_card.dart';
+import '../../widgets/flashcard/flashcard_controls.dart';
 import 'flashcard_result_page.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/flashcard_constants.dart';
@@ -137,15 +137,13 @@ class _FlashcardPageState extends State<FlashcardPage>
           final result = await streakProvider.recordActivity();
           if (result['increased'] == true) {
             print(
-              '[FLASHCARD] 🔥 Streak increased: ${result['oldStreak']} → ${result['newStreak']}',
+              '[FLASHCARD] Streak increased: ${result['oldStreak']} → ${result['newStreak']}',
             );
           } else {
-            print(
-              '[FLASHCARD] ✅ Streak maintained: ${result['newStreak']} days',
-            );
+            print('[FLASHCARD] Streak maintained: ${result['newStreak']} days');
           }
         } catch (e) {
-          print('[FLASHCARD] ⚠️ Error recording streak: $e');
+          print('[FLASHCARD] Error recording streak: $e');
         }
       } catch (e) {
         print('[FLASHCARD] ERROR SAVING TO FIREBASE: $e');
@@ -158,8 +156,8 @@ class _FlashcardPageState extends State<FlashcardPage>
       context,
       MaterialPageRoute(
         builder: (context) => FlashcardResultPage(
-          correctCount: flashcardProvider.correctCount,
-          wrongCount: flashcardProvider.wrongCount,
+          knownCount: flashcardProvider.knownCount,
+          unknownCount: flashcardProvider.unknownCount,
           topicId: widget.topicId ?? '',
           topicName: widget.topicName ?? 'Vocabulary',
         ),
@@ -544,8 +542,8 @@ class _FlashcardPageState extends State<FlashcardPage>
 
               // Score display
               FlashcardScoreDisplay(
-                correctCount: flashcardProvider.correctCount,
-                wrongCount: flashcardProvider.wrongCount,
+                knownCount: flashcardProvider.knownCount,
+                unknownCount: flashcardProvider.unknownCount,
               ),
 
               const SizedBox(height: spaceLg),

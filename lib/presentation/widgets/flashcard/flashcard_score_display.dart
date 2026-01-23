@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 
 /// Widget hiển thị điểm số đúng/sai
 class FlashcardScoreDisplay extends StatelessWidget {
-  final int correctCount;
-  final int wrongCount;
+  final int knownCount;
+  final int unknownCount;
 
   const FlashcardScoreDisplay({
     super.key,
-    required this.correctCount,
-    required this.wrongCount,
+    required this.knownCount,
+    required this.unknownCount,
   });
 
   @override
@@ -18,10 +18,10 @@ class FlashcardScoreDisplay extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         // Điểm sai (màu đỏ) - bên trái
-        _buildScoreContainer(count: wrongCount, color: Colors.red),
+        _buildScoreContainer(count: unknownCount, color: Colors.red),
 
         // Điểm đúng (màu xanh) - bên phải
-        _buildScoreContainer(count: correctCount, color: Colors.green),
+        _buildScoreContainer(count: knownCount, color: Colors.green),
       ],
     );
   }

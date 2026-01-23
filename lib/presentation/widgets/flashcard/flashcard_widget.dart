@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../domain/entities/vocabulary_card.dart';
 import '../../../core/services/audio_service.dart';
 import '../../../core/di/injection_container.dart';
-import 'base_card_widget.dart';
+import '../vocabulary/base_card_widget.dart';
 
 class FlashcardWidget extends StatelessWidget {
   final VocabularyCard card;
@@ -24,7 +24,7 @@ class FlashcardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final audioService = sl<AudioService>();
-    
+
     return BaseCardWidget(
       card: card,
       flipAnimation: flipAnimation,

@@ -17,8 +17,8 @@ class _ActionHistory {
 /// Provider quản lý state của flashcard page
 class FlashcardProvider extends ChangeNotifier {
   // Score tracking
-  int _correctCount = 0;
-  int _wrongCount = 0;
+  int _knownCount = 0;
+  int _unknownCount = 0;
 
   // Card state
   int _currentCardIndex = 0;
@@ -38,8 +38,8 @@ class FlashcardProvider extends ChangeNotifier {
   bool _isCommittedToSwipe = false;
 
   // Getters
-  int get correctCount => _correctCount;
-  int get wrongCount => _wrongCount;
+  int get knownCount => _knownCount;
+  int get unknownCount => _unknownCount;
   int get currentCardIndex => _currentCardIndex;
   bool get isFlipped => _isFlipped;
   double get dragOffset => _dragOffset;
@@ -93,10 +93,10 @@ class FlashcardProvider extends ChangeNotifier {
     // Thu hồi trạng thái
     if (lastAction.wasMastered) {
       _masteredCardIds.remove(lastAction.cardId);
-      _correctCount = (_correctCount - 1).clamp(0, 999);
+      _knownCount = (_knownCount - 1).clamp(0, 999);
     } else {
       _learningCardIds.remove(lastAction.cardId);
-      _wrongCount = (_wrongCount - 1).clamp(0, 999);
+      _unknownCount = (_unknownCount - 1).clamp(0, 999);
     }
 
     // Reset flip và drag state
@@ -119,18 +119,18 @@ class FlashcardProvider extends ChangeNotifier {
 
   // Score methods
   void incrementCorrect() {
-    _correctCount++;
+    _knownCount++;
     notifyListeners();
   }
 
   void incrementWrong() {
-    _wrongCount++;
+    _unknownCount++;
     notifyListeners();
   }
 
   void resetScores() {
-    _correctCount = 0;
-    _wrongCount = 0;
+    _knownCount = 0;
+    _unknownCount = 0;
     notifyListeners();
   }
 
@@ -189,8 +189,8 @@ class FlashcardProvider extends ChangeNotifier {
 
   // Complete reset
   void resetAll() {
-    _correctCount = 0;
-    _wrongCount = 0;
+    _knownCount = 0;
+    _unknownCount = 0;
     _currentCardIndex = 0;
     _isFlipped = false;
     _dragOffset = 0.0;
