@@ -429,56 +429,30 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Consumer<PersonalVocabularyProvider>(
-                                    builder: (context, vocabProvider, _) {
-                                      return AppButton(
-                                        onPressed: () {
-                                          Navigator.pushNamed(
-                                            context,
-                                            AppRoutes.personalVocabByTopic,
-                                          );
-                                        },
-                                        text:
-                                            '${vocabProvider.topicCount} bộ từ',
-                                        variant: AppButtonVariant.primary,
-                                        size: AppButtonSize.medium,
-                                      );
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: AppButton(
-                                    onPressed: () {
-                                      // TODO: Tính năng flashcard chưa có
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Tính năng flashcard đang được phát triển',
-                                          ),
-                                          duration: Duration(seconds: 2),
-                                        ),
-                                      );
-                                    },
-                                    text: 'Flashcard',
-                                    variant: AppButtonVariant.success,
-                                    size: AppButtonSize.medium,
-                                  ),
-                                ),
-                              ],
+                            Consumer<PersonalVocabularyProvider>(
+                              builder: (context, vocabProvider, _) {
+                                return AppButton(
+                                  onPressed: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.personalVocabByTopic,
+                                    );
+                                  },
+                                  text: '${vocabProvider.topicCount} bộ từ',
+                                  variant: AppButtonVariant.primary,
+                                  size: AppButtonSize.medium,
+                                );
+                              },
                             ),
                             const SizedBox(height: 12),
                             SizedBox(
                               width: double.infinity,
                               child: AppButton(
-                                onPressed: () {},
-                                text: 'Xem tiến trình học',
-                                variant: AppButtonVariant.accent,
+                                onPressed: () {
+                                  Navigator.pushNamed(context, AppRoutes.test);
+                                },
+                                text: 'Xem kết quả bài test',
+                                variant: AppButtonVariant.success,
                                 size: AppButtonSize.medium,
                               ),
                             ),

@@ -5,6 +5,7 @@ import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/core/constants/app_text_styles.dart';
 import 'package:en_go_app/routes/app_routes.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 
 class HomePage extends StatelessWidget {
@@ -72,18 +73,21 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 20),
               _buildMenuButton(
                 context,
+                color: 'blue',
                 text: 'Vocabulary',
                 onPressed: () => Navigator.pushNamed(context, AppRoutes.vocab),
               ),
               const SizedBox(height: 10),
               _buildMenuButton(
                 context,
+                color: 'green',
                 text: 'Test',
                 onPressed: () => Navigator.pushNamed(context, AppRoutes.test),
               ),
               const SizedBox(height: 10),
               _buildMenuButton(
                 context,
+                color: 'special',
                 text: 'Grammar',
                 onPressed: () =>
                     Navigator.pushNamed(context, AppRoutes.grammar),
@@ -98,9 +102,18 @@ class HomePage extends StatelessWidget {
   Widget _buildMenuButton(
     BuildContext context, {
     required String text,
+    required String color,
     required VoidCallback onPressed,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final buttonColor;
+    if (color == 'blue') {
+      buttonColor = isDark ? kPrimaryColor : kSecondaryColor;
+    } else if (color == 'green') {
+      buttonColor = isDark ? kSuccess : kSuccess;
+    } else {
+      buttonColor = isDark ? kSpecial : kSpecial;
+    }
 
     return InkWell(
       onTap: onPressed,
@@ -109,17 +122,12 @@ class HomePage extends StatelessWidget {
         width: 200,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color(0xFFFFFFFF).withOpacity(isDark ? 0.1 : 1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isDark ? const Color(0xFF64B5F6) : const Color(0xFF1196EF),
-            width: 2,
-          ),
+          border: Border.all(color: buttonColor, width: 2),
           boxShadow: [
             BoxShadow(
-              color: isDark
-                  ? Colors.blue.withOpacity(0.3)
-                  : const Color(0xFF1196EF).withOpacity(0.2),
+              color: buttonColor.withOpacity(0.4),
               blurRadius: 8,
               offset: const Offset(0, 2),
               spreadRadius: 1,
@@ -130,8 +138,9 @@ class HomePage extends StatelessWidget {
           text,
           textAlign: TextAlign.center,
           style: kBodyEmphasized.copyWith(
-            color: const Color(0xFF1196EF),
+            color: isDark ? Colors.white : buttonColor,
             fontSize: 16,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),
