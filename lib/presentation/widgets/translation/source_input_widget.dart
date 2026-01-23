@@ -7,12 +7,14 @@ class SourceInputWidget extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onClear;
   final ValueChanged<String> onChanged;
+  final VoidCallback? onSpeak;
 
   const SourceInputWidget({
     super.key,
     required this.controller,
     required this.onClear,
     required this.onChanged,
+    this.onSpeak,
   });
 
   @override
@@ -86,9 +88,20 @@ class SourceInputWidget extends StatelessWidget {
               horizontal: spaceMd,
               vertical: spaceSm,
             ),
-            child: Text(
-              '${controller.text.length} ký tự',
-              style: TextStyle(fontSize: 12, color: getTextThird(context)),
+            child: Row(
+              children: [
+                Text(
+                  '${controller.text.length} ký tự',
+                  style: TextStyle(fontSize: 12, color: getTextThird(context)),
+                ),
+                const Spacer(),
+                if (controller.text.isNotEmpty && onSpeak != null)
+                  IconButton(
+                    onPressed: onSpeak,
+                    icon: Icon(Icons.volume_up, size: 24),
+                    color: Colors.blue.shade700,
+                  ),
+              ],
             ),
           ),
         ],

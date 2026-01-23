@@ -1,6 +1,7 @@
 // lib/presentation/pages/translation/translation_page.dart
 import 'package:flutter/material.dart';
 import '../../../core/services/translation_service.dart';
+import '../../../core/services/tts_service.dart';
 import '../../../core/theme/theme_helper.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../layout/main_layout.dart';
@@ -18,6 +19,7 @@ class TranslationPage extends StatefulWidget {
 
 class _TranslationPageState extends State<TranslationPage> {
   final _translationService = TranslationService();
+  final _ttsService = TtsService();
   final _sourceController = TextEditingController();
 
   String _translatedText = '';
@@ -27,8 +29,23 @@ class _TranslationPageState extends State<TranslationPage> {
   String? errorMessage;
 
   @override
+  void initState() {
+    super.initState();
+    _initializeTts();
+  }
+
+  Future<void> _initializeTts() async {
+    try {
+      await _ttsService.initialize();
+    } catch (e) {
+      debugPrint('Failed to initialize TTS: $e');
+    }
+  }
+
+  @override
   void dispose() {
     _sourceController.dispose();
+    _ttsService.dispose();
     super.dispose();
   }
 
@@ -96,6 +113,35 @@ class _TranslationPageState extends State<TranslationPage> {
     });
   }
 
+  void _speakText(String text) {
+    try {
+      if (_targetLanguage == 'en') {
+        _ttsService.speakEnglish(text);
+      } else {
+        _ttsService.speakVietnamese(text);
+      }
+    } catch (e) {
+      debugPrint('Failed to speak text: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Không thể phát âm. Vui lòng thử lại.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _speakSourceText() {
+    final text = _sourceController.text.trim();
+    if (text.isEmpty) return;
+    _speakText(text);
+  }
+
+  void _speakTranslatedText() {
+    if (_translatedText.trim().isEmpty) return;
+    _speakText(_translatedText);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MainLayout(
@@ -127,6 +173,7 @@ class _TranslationPageState extends State<TranslationPage> {
                         controller: _sourceController,
                         onClear: _clearText,
                         onChanged: (_) => _performTranslation(),
+                        onSpeak: _speakSourceText,
                       ),
                       const SizedBox(height: spaceMd),
 
@@ -134,6 +181,7 @@ class _TranslationPageState extends State<TranslationPage> {
                       TranslationResultWidget(
                         translatedText: _translatedText,
                         isTranslating: _isTranslating,
+                        onSpeak: _speakTranslatedText,
                       ),
 
                       if (errorMessage != null) ...[
