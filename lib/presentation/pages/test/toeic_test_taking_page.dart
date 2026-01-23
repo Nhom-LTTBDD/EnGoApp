@@ -578,49 +578,66 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
         crossAxisAlignment: CrossAxisAlignment.start, // Align trái
         children: [
           // Hiển thị thông tin debug audio URL khi ở debug mode
-          Row(
-            children: [
-              // Play/Pause button - Nút phát/tạm dừng audio
-              Container(
-                width: 40, // Chiều rộng cố định cho button
-                height: 40, // Chiều cao cố định cho button
-                child: IconButton(
-                  onPressed: () {
-                    // Toggle phát/tạm dừng audio khi nhấn nút
-                    if (provider.isAudioPlaying) {
-                      provider.pauseAudio(); // Tạm dừng nếu đang phát
-                    } else {
-                      provider.playAudio(audioUrl); // Phát audio nếu đang dừng
-                    }
-                  },
-                  icon: Icon(
-                    // Hiển thị icon tương ứng với trạng thái audio
-                    provider.isAudioPlaying ? Icons.pause : Icons.play_arrow,
-                    size: 30, // Kích thước icon
-                    color: Colors.grey[400], // Màu xám cho icon
+          Consumer<ToeicTestProvider>(
+            builder: (context, audioProvider, child) {
+              // Debug logs
+              print('🎵 Audio Player State: ${audioProvider.isAudioPlaying}');
+              print(
+                '🎵 Audio Duration: ${audioProvider.audioDuration.inSeconds}s',
+              );
+              print(
+                '🎵 Audio Position: ${audioProvider.audioPosition.inSeconds}s',
+              );
+
+              return Row(
+                children: [
+                  // Play/Pause button - Nút phát/tạm dừng audio
+                  Container(
+                    width: 40, // Chiều rộng cố định cho button
+                    height: 40, // Chiều cao cố định cho button
+                    child: IconButton(
+                      onPressed: () {
+                        // Toggle phát/tạm dừng audio khi nhấn nút
+                        if (audioProvider.isAudioPlaying) {
+                          audioProvider.pauseAudio(); // Tạm dừng nếu đang phát
+                        } else {
+                          audioProvider.playAudio(
+                            audioUrl,
+                          ); // Phát audio nếu đang dừng
+                        }
+                      },
+                      icon: Icon(
+                        // Hiển thị icon tương ứng với trạng thái audio
+                        audioProvider.isAudioPlaying
+                            ? Icons.pause
+                            : Icons.play_arrow,
+                        size: 30, // Kích thước icon
+                        color: Colors.grey[400], // Màu xanh khi đang phát
+                      ),
+                      padding: EdgeInsets.zero, // Không có padding
+                    ),
                   ),
-                  padding: EdgeInsets.zero, // Không có padding
-                ),
-              ),
-              const SizedBox(
-                width: 12,
-              ), // Khoảng cách giữa button và progress bar
-              // Thanh hiển thị tiến trình audio
-              Expanded(
-                child: LinearProgressIndicator(
-                  // Tính giá trị progress dựa trên thời gian hiện tại và tổng thời gian
-                  value: provider.audioDuration.inSeconds > 0
-                      ? provider.audioPosition.inSeconds /
-                            provider.audioDuration.inSeconds
-                      : 0.3, // Giá trị default khi chưa có audio
-                  backgroundColor: Colors.grey[300], // Màu nền progress bar
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    Color(0xFF4CAF50), // Màu xanh lá cho progress
+                  const SizedBox(
+                    width: 12,
+                  ), // Khoảng cách giữa button và progress bar
+                  // Thanh hiển thị tiến trình audio
+                  Expanded(
+                    child: LinearProgressIndicator(
+                      // Tính giá trị progress dựa trên thời gian hiện tại và tổng thời gian
+                      value: audioProvider.audioDuration.inSeconds > 0
+                          ? audioProvider.audioPosition.inSeconds /
+                                audioProvider.audioDuration.inSeconds
+                          : 0.0, // Giá trị 0 khi chưa có audio
+                      backgroundColor: Colors.grey[300], // Màu nền progress bar
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        Color(0xFF4CAF50), // Màu xanh lá cho progress
+                      ),
+                      minHeight: 8, // Chiều cao minimum của progress bar
+                    ),
                   ),
-                  minHeight: 8, // Chiều cao minimum của progress bar
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
         ],
       ),
