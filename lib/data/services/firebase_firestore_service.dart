@@ -34,12 +34,14 @@ class FirebaseFirestoreService {
       final querySnapshot = await _firestore
           .collection(_testHistoryCollection)
           .where('userId', isEqualTo: userId)
-          .orderBy('completedAt', descending: true)
           .get();
 
       final histories = querySnapshot.docs
           .map((doc) => TestHistory.fromMap(doc.data()))
           .toList();
+
+      // Sort in memory by completedAt descending (temporary until index is created)
+      histories.sort((a, b) => b.completedAt.compareTo(a.completedAt));
 
       print('Loaded ${histories.length} test histories');
       return histories;
@@ -181,12 +183,14 @@ class FirebaseFirestoreService {
     return _firestore
         .collection(_testHistoryCollection)
         .where('userId', isEqualTo: userId)
-        .orderBy('completedAt', descending: true)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
+        .map((snapshot) {
+          final histories = snapshot.docs
               .map((doc) => TestHistory.fromMap(doc.data()))
-              .toList(),
-        );
+              .toList();
+          // Sort in memory by completedAt descending (temporary until index is created)
+          histories.sort((a, b) => b.completedAt.compareTo(a.completedAt));
+          return histories;
+        });
   }
 }
