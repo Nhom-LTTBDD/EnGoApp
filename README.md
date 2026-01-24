@@ -1,7 +1,7 @@
 # EnGo App
 
 <div align="center">
-  <img src="assets/icons/app_icon.png" alt="EnGo Logo" width="150"/>
+  <img src="assets/icons/swift-logo.svg" alt="EnGo Logo" width="150"/>
 </div>
 <h1 align="center">EngoApp - Ứng dụng học tiếng anh</h1>
 
