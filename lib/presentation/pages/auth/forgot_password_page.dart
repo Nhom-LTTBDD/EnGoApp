@@ -104,23 +104,23 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   const Text(
                     'Nhập email của bạn để nhận link đặt lại mật khẩu',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                    style: TextStyle(fontSize: 14, color: kTextPrimary),
                   ),
                   const SizedBox(height: 20),
                   TextFormField(
                     controller: _emailController,
+                    style: TextStyle(color: kTextPrimary),
                     decoration: InputDecoration(
                       labelText: 'Email',
+
                       hintText: 'vd: name@domain.com',
                       hintStyle: TextStyle(
-                        color: Colors.grey.shade400,
+                        color: kTextPrimary.withOpacity(0.5),
                         fontSize: 14,
                       ),
                       prefixIcon: Icon(
                         Icons.email_outlined,
-                        color: isLoading
-                            ? Colors.grey.shade300
-                            : Colors.grey.shade600,
+                        color: isLoading ? kPrimaryColor : kTextPrimary,
                       ),
                       floatingLabelStyle: const TextStyle(color: kPrimaryColor),
                       border: const OutlineInputBorder(),

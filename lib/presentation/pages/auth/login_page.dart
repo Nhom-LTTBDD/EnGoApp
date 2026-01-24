@@ -313,7 +313,7 @@ class _LoginPageState extends State<LoginPage> {
                       label: Text(
                         isLoading ? 'Đang xử lý...' : 'Đăng nhập với Google',
                         style: TextStyle(
-                          color: isLoading ? Colors.black87 : Colors.black,
+                          color: isLoading ? kTextPrimary : kPrimaryColor,
                         ),
                       ),
                       onPressed: isLoading ? null : _handleGoogleSignIn,
@@ -323,7 +323,7 @@ class _LoginPageState extends State<LoginPage> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         side: BorderSide(color: Colors.grey.shade600, width: 1),
-                        disabledForegroundColor: Colors.black87,
+                        disabledForegroundColor: kTextPrimary.withOpacity(0.5),
                       ),
                     ),
                   ),

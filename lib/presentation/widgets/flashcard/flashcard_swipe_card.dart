@@ -18,6 +18,8 @@ class FlashcardSwipeCard extends StatelessWidget {
   final Function(DragStartDetails) onPanStart;
   final Function(DragUpdateDetails) onPanUpdate;
   final Function(DragEndDetails) onPanEnd;
+  final bool isBookmarked;
+  final VoidCallback? onBookmarkPressed;
 
   const FlashcardSwipeCard({
     super.key,
@@ -33,6 +35,8 @@ class FlashcardSwipeCard extends StatelessWidget {
     required this.onPanStart,
     required this.onPanUpdate,
     required this.onPanEnd,
+    this.isBookmarked = false,
+    this.onBookmarkPressed,
   });
 
   @override
@@ -81,6 +85,8 @@ class FlashcardSwipeCard extends StatelessWidget {
                         card: card,
                         flipAnimation: flipAnimation,
                         isFlipped: isFlipped,
+                        isBookmarked: isBookmarked,
+                        onBookmarkPressed: onBookmarkPressed,
                       ),
                     ),
                   )
@@ -89,6 +95,8 @@ class FlashcardSwipeCard extends StatelessWidget {
                     card: card,
                     flipAnimation: flipAnimation,
                     isFlipped: false,
+                    isBookmarked: isBookmarked,
+                    onBookmarkPressed: onBookmarkPressed,
                   ),
 
                 // Indicator màu khi quẹt
