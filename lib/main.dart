@@ -167,7 +167,12 @@ class _MyAppState extends State<MyApp> {
           create: (_) => FlashcardProvider(),
         ), // 🆕 Add FlashcardProvider
         ChangeNotifierProvider(create: (_) => di.sl<GrammarProvider>()),
-        ChangeNotifierProvider(create: (_) => ToeicTestProvider()),
+
+        // ToeicTestProvider - Khởi tạo lazy để không block main thread
+        ChangeNotifierProvider(
+          create: (_) => ToeicTestProvider(),
+          lazy: true, // ✅ Chỉ khởi tạo khi cần dùng
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
