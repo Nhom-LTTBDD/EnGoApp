@@ -110,11 +110,6 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                     'No questions available for selected parts',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Please check:\n• Internet connection\n• Firebase setup\n• JSON file availability',
-                    style: TextStyle(fontSize: 12),
-                  ),
                 ],
               ),
               backgroundColor: Colors.red,
@@ -163,38 +158,39 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
   // Main build method - tạo UI chính cho trang test
   @override
   Widget build(BuildContext context) {
+    if (kDebugMode) {
+      print('[ToeicTestTakingPage] build() called - rebuilding page');
+    }
     return MainLayout(
       title: widget.testName, // Hiển thị tên test trên header
       currentIndex: -1, // Không highlight bottom nav item nào
       showBottomNav: false, // Ẩn bottom navigation trong test
-      child:
-          Selector<
-            ToeicTestProvider,
-            ({ToeicTestSession? session, ToeicQuestion? question})
-          >(
-            // Sử dụng Selector thay vì Consumer để tránh rebuild không cần thiết
-            selector: (context, provider) =>
-                (session: provider.session, question: provider.currentQuestion),
-            builder: (context, data, child) {
-              final session = data.session; // Lấy session hiện tại
-              final question = data.question; // Lấy câu hỏi hiện tại
+      child: Consumer<ToeicTestProvider>(
+        builder: (context, provider, child) {
+          final session = provider.session;
+          final question = provider.currentQuestion;
 
-              // Hiển thị loading spinner nếu chưa sẵn sàng
-              if (session == null || question == null) {
-                return const Center(child: CircularProgressIndicator());
-              }
+          // Hiển thị loading spinner nếu chưa sẵn sàng
+          if (session == null || question == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-              return Container(
-                color: getBackgroundColor(context),
-                child: Column(
-                  children: [
-                    _buildHeader(
-                      context,
-                      session,
-                      context.read<ToeicTestProvider>(),
-                    ),
-                    Expanded(
-                      child: Container(
+          return Container(
+            color: getBackgroundColor(context),
+            child: Column(
+              children: [
+                _buildHeader(context, session, provider),
+                Expanded(
+                  child: Selector<ToeicTestProvider, ToeicQuestion?>(
+                    // Chỉ select question, không select session
+                    // Để tránh rebuild khi selectAnswer() thay đổi session
+                    selector: (context, provider) => provider.currentQuestion,
+                    builder: (context, currentQuestion, child) {
+                      if (currentQuestion == null) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      return Container(
                         margin: const EdgeInsets.all(12),
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -205,21 +201,18 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Logic phân biệt loại question để render UI phù hợp
-                            if ((question.partNumber == 3 ||
-                                    question.partNumber == 4) ||
-                                (question.partNumber >= 6 &&
-                                    question.groupId != null)) ...[
+                            if ((currentQuestion.partNumber == 3 ||
+                                    currentQuestion.partNumber == 4) ||
+                                (currentQuestion.partNumber >= 6 &&
+                                    currentQuestion.groupId != null)) ...[
                               // Group questions: Part 3,4,6,7 có nhiều câu chung context
-                              _buildGroupQuestions(
-                                context,
-                                context.read<ToeicTestProvider>(),
-                              ),
+                              _buildGroupQuestions(context, provider),
                             ] else ...[
                               // Single questions: Part 1,2,5 mỗi câu độc lập
                               _buildSingleQuestion(
                                 context,
-                                context.read<ToeicTestProvider>(),
-                                question,
+                                provider,
+                                currentQuestion,
                               ),
                             ],
 
@@ -227,18 +220,18 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                               height: 16,
                             ), // Khoảng cách trước navigation
                             // Navigation buttons để chuyển câu tiếp theo
-                            _buildNavigationButtons(
-                              context.read<ToeicTestProvider>(),
-                            ),
+                            _buildNavigationButtons(provider),
                           ],
                         ),
-                      ),
-                    ),
-                  ],
+                      );
+                    },
+                  ),
                 ),
-              );
-            },
-          ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -249,6 +242,11 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     ToeicTestProvider provider,
     ToeicQuestion question,
   ) {
+    if (kDebugMode) {
+      print(
+        '[_buildSingleQuestion] Building question ${question.questionNumber}',
+      );
+    }
     return Expanded(
       child: SingleChildScrollView(
         // Cho phép scroll khi content dài
@@ -256,49 +254,49 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Hiển thị số thứ tự câu hỏi với font size lớn
-            Text(
-              '${question.questionNumber}.',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: getTextPrimary(context), // Màu text từ theme
+            RepaintBoundary(
+              key: ValueKey('question_header_${question.questionNumber}'),
+              child: Text(
+                '${question.questionNumber}.',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: getTextPrimary(context), // Màu text từ theme
+                ),
               ),
             ),
 
             // Audio player cho listening parts (Part 1-4)
             // Chỉ hiển thị khi question có audioUrl và thuộc listening parts
             if (question.audioUrl != null && question.partNumber <= 4)
-              _buildAudioPlayer(provider, question.audioUrl!),
+              RepaintBoundary(
+                key: ValueKey('audio_${question.questionNumber}'),
+                child: _buildAudioPlayer(provider, question.audioUrl!),
+              ),
 
             // Hiển thị hình ảnh cho Part 1 và một số câu Part 3 có hình
             if (question.imageUrl != null &&
                 (question.partNumber == 1 || question.partNumber == 3)) ...[
-              Container(
-                height: 200, // Chiều cao cố định cho image
-                width: double.infinity, // Chiều rộng full width
-                margin: const EdgeInsets.only(bottom: 16), // Margin dưới
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8), // Bo góc
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: _buildImageWidget(
-                    question.imageUrl!,
-                    width: double.infinity,
-                    height: double.infinity,
-                    fit: BoxFit.contain, // Hiển thị toàn bộ image không crop
-                  ),
-                ),
+              // Sử dụng widget riêng để prevent rebuild hoàn toàn
+              ImageContainerWidget(
+                key: ValueKey('image_container_${question.imageUrl}'),
+                imageUrl: question.imageUrl!,
+                height: 200,
+                imageWidgetKeys: _imageWidgetKeys,
+                imageUrlCache: _imageUrlCache,
               ),
             ],
 
             // Question text (only for Part 3 and above)
             if (question.questionText != null && question.partNumber >= 3)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Text(
-                  question.questionText!,
-                  style: const TextStyle(fontSize: 16),
+              RepaintBoundary(
+                key: ValueKey('question_text_${question.questionNumber}'),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    question.questionText!,
+                    style: const TextStyle(fontSize: 16),
+                  ),
                 ),
               ),
 
@@ -356,20 +354,23 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Conversation header
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'Questions ${groupQuestions.first.questionNumber}-${groupQuestions.last.questionNumber}',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
+            RepaintBoundary(
+              key: ValueKey('header_group_${currentQuestion.groupId}'),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Questions ${groupQuestions.first.questionNumber}-${groupQuestions.last.questionNumber}',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColor,
+                  ),
                 ),
               ),
             ),
@@ -379,68 +380,55 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
             // Kiểm tra audioUrl từ question đầu tiên trong group
             if (groupQuestions.first.audioUrl != null &&
                 groupQuestions.first.partNumber <= 4)
-              _buildAudioPlayer(provider, groupQuestions.first.audioUrl!),
-
-            // Kiểm tra và hiển thị hình ảnh cho group questions
-            // Bao gồm cả single image và multiple images
-            if (questionWithImages.imageUrl != null ||
-                (questionWithImages.imageUrls != null &&
-                    questionWithImages.imageUrls!.isNotEmpty)) ...[
-              // Multiple images (Part 7 với array imageFiles)
-              // Tạo column chứa danh sách hình ảnh nếu có nhiều hình
-              if (questionWithImages.imageUrls != null &&
-                  questionWithImages.imageUrls!.isNotEmpty)
-                Column(
-                  children: questionWithImages.imageUrls!
-                      .map(
-                        (imageUrl) => Container(
-                          height: 250, // Chiều cao container cho mỗi image
-                          width: double.infinity, // Chiều rộng full width
-                          margin: const EdgeInsets.only(
-                            bottom: 16,
-                          ), // Margin giữa các images
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(
-                              8,
-                            ), // Bo góc container
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: _buildImageWidget(
-                              imageUrl,
-                              width: double.infinity,
-                              height: double.infinity,
-                              fit: BoxFit
-                                  .contain, // Hiển thị toàn bộ image không crop
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(), // Chuyển đổi map thành list widgets
-                )
-              // Single image (for Part 3, Part 6 with single imageFile)
-              // Hiển thị một hình ảnh duy nhất cho các part khác
-              else if (questionWithImages.imageUrl != null)
-                Container(
-                  height: 250, // Chiều cao cố định cho single image
-                  width: double.infinity, // Chiều rộng full width
-                  margin: const EdgeInsets.only(
-                    bottom: 16,
-                  ), // Margin dưới image
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8), // Bo góc container
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: _buildImageWidget(
-                      questionWithImages.imageUrl!,
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.contain, // Hiển thị toàn bộ image không crop
-                    ),
-                  ),
+              RepaintBoundary(
+                key: ValueKey('audio_group_${currentQuestion.groupId}'),
+                child: _buildAudioPlayer(
+                  provider,
+                  groupQuestions.first.audioUrl!,
                 ),
-            ],
+              ),
+
+            // Isolate images widget để tránh rebuild khi chọn đáp án
+            RepaintBoundary(
+              key: ValueKey('images_group_${currentQuestion.groupId}'),
+              child: Column(
+                children: [
+                  // Multiple images (Part 7 với array imageFiles)
+                  // Tạo column chứa danh sách hình ảnh nếu có nhiều hình
+                  if (questionWithImages.imageUrls != null &&
+                      questionWithImages.imageUrls!.isNotEmpty)
+                    Column(
+                      children: questionWithImages.imageUrls!
+                          .asMap()
+                          .entries
+                          .map(
+                            (imageEntry) => ImageContainerWidget(
+                              key: ValueKey(
+                                'image_group_${currentQuestion.groupId}_${imageEntry.key}',
+                              ),
+                              imageUrl: imageEntry.value,
+                              height: 250,
+                              imageWidgetKeys: _imageWidgetKeys,
+                              imageUrlCache: _imageUrlCache,
+                            ),
+                          )
+                          .toList(), // Chuyển đổi map thành list widgets
+                    )
+                  // Single image (for Part 3, Part 6 with single imageFile)
+                  // Hiển thị một hình ảnh duy nhất cho các part khác
+                  else if (questionWithImages.imageUrl != null)
+                    ImageContainerWidget(
+                      key: ValueKey(
+                        'image_group_${currentQuestion.groupId}_single',
+                      ),
+                      imageUrl: questionWithImages.imageUrl!,
+                      height: 250,
+                      imageWidgetKeys: _imageWidgetKeys,
+                      imageUrlCache: _imageUrlCache,
+                    ),
+                ],
+              ),
+            ),
 
             // Hiển thị tất cả câu hỏi trong group (thường là 3 câu)
             // Sử dụng asMap().entries để có cả index và question object
@@ -719,6 +707,11 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
           padding: const EdgeInsets.only(bottom: 12),
           child: GestureDetector(
             onTap: () {
+              if (kDebugMode) {
+                print(
+                  '[_buildOptions] Question ${question.questionNumber}, Answer $optionLetter',
+                );
+              }
               provider.selectAnswer(question.questionNumber, optionLetter);
             },
             child: Row(
@@ -789,6 +782,11 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
           padding: const EdgeInsets.only(bottom: 12),
           child: GestureDetector(
             onTap: () {
+              if (kDebugMode) {
+                print(
+                  '[_buildSimpleOptions] Question ${question.questionNumber}, Answer $optionLetter',
+                );
+              }
               provider.selectAnswer(question.questionNumber, optionLetter);
             },
             child: Row(
@@ -1136,7 +1134,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
 
     final provider = context.read<ToeicTestProvider>();
 
-    // ⚠️ IMPORTANT: Lưu dữ liệu TRƯỚC KHI provider.finishTest() clear hết!
+    // IMPORTANT: Lưu dữ liệu TRƯỚC KHI provider.finishTest() clear hết!
     final questions = List<ToeicQuestion>.from(provider.questions);
 
     // Lưu tất cả user answers vào Map để truyền sang results page
@@ -1181,33 +1179,191 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     double? height,
     BoxFit fit = BoxFit.contain,
   }) {
-    if (imageUrl == null) return const SizedBox.shrink();
+    if (kDebugMode) {
+      print('[_buildImageWidget] Building image: $imageUrl');
+    }
+
+    // Sử dụng ImageDisplayWidget riêng để tránh rebuild
+    return ImageDisplayWidget(
+      imageUrl: imageUrl,
+      width: width,
+      height: height,
+      fit: fit,
+      imageWidgetKeys: _imageWidgetKeys,
+      imageUrlCache: _imageUrlCache,
+    );
+  }
+}
+
+/// Widget wrapper cho image container - prevent rebuild hoàn toàn
+/// StatelessWidget với const constructor để tránh widget recreation
+class ImageContainerWidget extends StatelessWidget {
+  final String imageUrl;
+  final double height;
+  final Map<String, ValueKey> imageWidgetKeys;
+  final Map<String, String?> imageUrlCache;
+
+  const ImageContainerWidget({
+    super.key,
+    required this.imageUrl,
+    this.height = 200,
+    required this.imageWidgetKeys,
+    required this.imageUrlCache,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (kDebugMode) {
+      print(
+        '[ImageContainerWidget.build] Container for: $imageUrl (key: $key)',
+      );
+    }
+
+    return RepaintBoundary(
+      key: ValueKey('image_container_$imageUrl'),
+      child: Container(
+        height: height,
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Builder(
+            builder: (context) {
+              if (kDebugMode) {
+                print(
+                  '[ImageContainerWidget.Builder] Creating ImageDisplayWidget for: $imageUrl',
+                );
+              }
+              return ImageDisplayWidget(
+                imageUrl: imageUrl,
+                width: double.infinity,
+                height: double.infinity,
+                fit: BoxFit.contain,
+                imageWidgetKeys: imageWidgetKeys,
+                imageUrlCache: imageUrlCache,
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Widget riêng để hiển thị image - isolate image khỏi rebuild của page
+/// Mục đích: Tránh rebuild _buildImageWidget khi question selection thay đổi
+class ImageDisplayWidget extends StatefulWidget {
+  final String? imageUrl;
+  final double? width;
+  final double? height;
+  final BoxFit fit;
+  final Map<String, ValueKey> imageWidgetKeys;
+  final Map<String, String?> imageUrlCache;
+
+  const ImageDisplayWidget({
+    super.key,
+    this.imageUrl,
+    this.width,
+    this.height,
+    this.fit = BoxFit.contain,
+    required this.imageWidgetKeys,
+    required this.imageUrlCache,
+  });
+
+  @override
+  State<ImageDisplayWidget> createState() => _ImageDisplayWidgetState();
+}
+
+class _ImageDisplayWidgetState extends State<ImageDisplayWidget> {
+  late Future<String?> _urlFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    if (kDebugMode) {
+      print(
+        '[_ImageDisplayWidgetState.initState] Creating future for: ${widget.imageUrl}',
+      );
+    }
+    // Tạo future CHỈ MỘT LẦN trong initState - KHÔNG tạo mới trong mỗi build
+    _urlFuture = _getCachedFirebaseUrl(widget.imageUrl ?? '');
+  }
+
+  @override
+  void didUpdateWidget(ImageDisplayWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Nếu imageUrl thay đổi, tạo future mới
+    if (oldWidget.imageUrl != widget.imageUrl) {
+      if (kDebugMode) {
+        print(
+          '[_ImageDisplayWidgetState.didUpdateWidget] URL changed: ${oldWidget.imageUrl} -> ${widget.imageUrl}',
+        );
+      }
+      _urlFuture = _getCachedFirebaseUrl(widget.imageUrl ?? '');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.imageUrl == null) return const SizedBox.shrink();
+
+    if (kDebugMode) {
+      print(
+        '[_ImageDisplayWidgetState.build] Building image: ${widget.imageUrl}',
+      );
+    }
 
     // Handle Firebase Storage reference
-    if (imageUrl.startsWith('firebase_image:')) {
+    if (widget.imageUrl!.startsWith('firebase_image:')) {
       // Tạo key duy nhất cho widget để tránh rebuild không cần thiết
-      final widgetKey = _imageWidgetKeys.putIfAbsent(
-        imageUrl,
-        () => ValueKey(imageUrl),
-      );
+      final widgetKey = widget.imageWidgetKeys.putIfAbsent(widget.imageUrl!, () {
+        if (kDebugMode) {
+          print(
+            '[_ImageDisplayWidgetState] Creating NEW ValueKey for: ${widget.imageUrl}',
+          );
+        }
+        return ValueKey(widget.imageUrl);
+      });
+
+      if (kDebugMode) {
+        print(
+          '[_ImageDisplayWidgetState] FutureBuilder key: $widgetKey, imageUrl: ${widget.imageUrl}',
+        );
+      }
 
       return FutureBuilder<String?>(
         key: widgetKey,
-        future: _getCachedFirebaseUrl(imageUrl),
+        future: _urlFuture, // ← SỬ DỤNG FUTURE TỬ STATE, KHÔNG TẠO MỚI!
         builder: (context, snapshot) {
+          if (kDebugMode) {
+            print(
+              '[_ImageDisplayWidgetState.FutureBuilder] imageUrl=${widget.imageUrl}, state=${snapshot.connectionState}, hasData=${snapshot.hasData}',
+            );
+          }
           if (snapshot.connectionState == ConnectionState.waiting) {
+            if (kDebugMode) {
+              print(
+                '[_ImageDisplayWidgetState.FutureBuilder.waiting] Loading: ${widget.imageUrl}',
+              );
+            }
             return Container(
-              width: width,
-              height: height,
+              width: widget.width,
+              height: widget.height,
               color: Colors.grey[200],
               child: const Center(child: CircularProgressIndicator()),
             );
           }
 
           if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+            if (kDebugMode) {
+              print(
+                '[_ImageDisplayWidgetState.FutureBuilder.error] Error: ${snapshot.error}, imageUrl: ${widget.imageUrl}',
+              );
+            }
             return Container(
-              width: width,
-              height: height,
+              width: widget.width,
+              height: widget.height,
               color: Colors.grey[300],
               child: const Center(
                 child: Column(
@@ -1226,25 +1382,48 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
           }
 
           // Load image từ Firebase Storage URL với cache tốt hư
+          if (kDebugMode) {
+            print(
+              '[_ImageDisplayWidgetState.FutureBuilder.done] Rendering image.network: ${widget.imageUrl} -> ${snapshot.data}',
+            );
+          }
           return RepaintBoundary(
             key: ValueKey('repaint_${snapshot.data!}'),
             child: Image.network(
               snapshot.data!,
-              key: ValueKey('image_${snapshot.data!}'),
-              width: width,
-              height: height,
-              fit: fit,
-              cacheWidth: (width != null && width.isFinite && width > 0)
-                  ? width.toInt()
+              key: ValueKey('image_network_${snapshot.data!}'),
+              width: widget.width,
+              height: widget.height,
+              fit: widget.fit,
+              cacheWidth:
+                  (widget.width != null &&
+                      widget.width!.isFinite &&
+                      widget.width! > 0)
+                  ? widget.width!.toInt()
                   : null,
-              cacheHeight: (height != null && height.isFinite && height > 0)
-                  ? height.toInt()
+              cacheHeight:
+                  (widget.height != null &&
+                      widget.height!.isFinite &&
+                      widget.height! > 0)
+                  ? widget.height!.toInt()
                   : null,
               loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
+                if (loadingProgress == null) {
+                  if (kDebugMode) {
+                    print(
+                      '[Image.network.loadingBuilder] Image loaded: ${widget.imageUrl}',
+                    );
+                  }
+                  return child;
+                }
+                if (kDebugMode && loadingProgress.cumulativeBytesLoaded == 0) {
+                  print(
+                    '[Image.network.loadingBuilder] Start loading: ${widget.imageUrl}, total: ${loadingProgress.expectedTotalBytes}',
+                  );
+                }
                 return Container(
-                  width: width,
-                  height: height,
+                  width: widget.width,
+                  height: widget.height,
                   color: Colors.grey[200],
                   child: Center(
                     child: CircularProgressIndicator(
@@ -1257,9 +1436,14 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                 );
               },
               errorBuilder: (context, error, stackTrace) {
+                if (kDebugMode) {
+                  print(
+                    '[Image.network.errorBuilder] Error loading: ${widget.imageUrl}, error: $error',
+                  );
+                }
                 return Container(
-                  width: width,
-                  height: height,
+                  width: widget.width,
+                  height: widget.height,
                   color: Colors.grey[300],
                   child: const Center(
                     child: Column(
@@ -1284,14 +1468,14 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
 
     // Handle local assets
     return Image.asset(
-      imageUrl,
-      width: width,
-      height: height,
-      fit: fit,
+      widget.imageUrl!,
+      width: widget.width,
+      height: widget.height,
+      fit: widget.fit,
       errorBuilder: (context, error, stackTrace) {
         return Container(
-          width: width,
-          height: height,
+          width: widget.width,
+          height: widget.height,
           color: Colors.grey[300],
           child: const Center(
             child: Column(
@@ -1308,23 +1492,45 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     );
   }
 
-  /// Cache Firebase URL để tránh gọi API liên tục gây giật ảnh
   Future<String?> _getCachedFirebaseUrl(String imageUrl) async {
-    // Kiểm tra cache trước - return ngay nếu có
-    if (_imageUrlCache.containsKey(imageUrl)) {
-      final cachedUrl = _imageUrlCache[imageUrl];
+    if (kDebugMode) {
+      print('[_getCachedFirebaseUrl] Checking cache for: $imageUrl');
+    }
+
+    if (widget.imageUrlCache.containsKey(imageUrl)) {
+      final cachedUrl = widget.imageUrlCache[imageUrl];
+      if (kDebugMode) {
+        print(
+          '[_getCachedFirebaseUrl] Cache HIT for $imageUrl, returning: $cachedUrl',
+        );
+      }
       if (cachedUrl != null) {
         return cachedUrl;
       }
     }
 
-    // Chỉ gọi API một lần và lưu kết quả
+    if (kDebugMode) {
+      print(
+        '[_getCachedFirebaseUrl] Cache MISS for $imageUrl, fetching from Firebase...',
+      );
+    }
     try {
+      if (kDebugMode) {
+        print(
+          '[_getCachedFirebaseUrl] Calling FirebaseStorageService.resolveFirebaseUrl($imageUrl)',
+        );
+      }
       final url = await FirebaseStorageService.resolveFirebaseUrl(imageUrl);
-      _imageUrlCache[imageUrl] = url; // Cache kể cả null
+      widget.imageUrlCache[imageUrl] = url;
+      if (kDebugMode) {
+        print('[_getCachedFirebaseUrl] Cache SAVED for $imageUrl -> $url');
+      }
       return url;
     } catch (e) {
-      _imageUrlCache[imageUrl] = null; // Cache lỗi để không retry liên tục
+      widget.imageUrlCache[imageUrl] = null;
+      if (kDebugMode) {
+        print('[_getCachedFirebaseUrl] Cache ERROR for $imageUrl: $e');
+      }
       return null;
     }
   }
