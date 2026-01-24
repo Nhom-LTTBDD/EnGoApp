@@ -127,7 +127,9 @@ class _QuizSettingsPageState extends State<QuizSettingsPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircularProgressIndicator(color: Colors.blue),
+                      CircularProgressIndicator(
+                        color: Theme.of(context).primaryColor,
+                      ),
                       SizedBox(height: 16),
                       Text(
                         'Đang tải từ vựng...',
@@ -158,7 +160,7 @@ class _QuizSettingsPageState extends State<QuizSettingsPage> {
                                 ),
                                 Icon(
                                   Icons.checklist_sharp,
-                                  color: Colors.blue,
+                                  color: Theme.of(context).primaryColor,
                                   size: 40,
                                 ),
                               ],
@@ -193,8 +195,8 @@ class _QuizSettingsPageState extends State<QuizSettingsPage> {
                               ? null
                               : _startQuiz,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            disabledBackgroundColor: Colors.grey.shade300,
+                            backgroundColor: Theme.of(context).primaryColor,
+                            disabledBackgroundColor: getDisabledColor(context),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -287,7 +289,10 @@ class _QuizSettingsPageState extends State<QuizSettingsPage> {
                 ),
                 Text(
                   _getLanguageModeText(_answerLanguage),
-                  style: TextStyle(fontSize: 12, color: Colors.blue),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).primaryColor,
+                  ),
                 ),
               ],
             ),

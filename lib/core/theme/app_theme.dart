@@ -47,6 +47,10 @@ class AppTheme {
         backgroundColor: Color(0xFFF5F5F5),
         dividerColor: Color(0xFFE0E0E0),
         borderColor: Color(0xFFBDBDBD),
+        successColor: Color(0xFF4CAF50),
+        warningColor: Color(0xFFFF9800),
+        errorColor: Color(0xFFF44336),
+        disabledColor: Color(0xFFBDBDBD),
       ),
     ],
   );
@@ -96,6 +100,10 @@ class AppTheme {
         backgroundColor: Color(0xFF121212),
         dividerColor: Color(0xFF424242),
         borderColor: Color(0xFF616161),
+        successColor: Color(0xFF66BB6A),
+        warningColor: Color(0xFFFFB74D),
+        errorColor: Color(0xFFEF5350),
+        disabledColor: Color(0xFF757575),
       ),
     ],
   );
@@ -121,6 +129,12 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
   final Color dividerColor;
   final Color borderColor;
 
+  // Status colors
+  final Color successColor;
+  final Color warningColor;
+  final Color errorColor;
+  final Color disabledColor;
+
   const AppThemeExtension({
     required this.backgroundGradientColors,
     required this.surfaceOpacity,
@@ -134,6 +148,10 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     required this.backgroundColor,
     required this.dividerColor,
     required this.borderColor,
+    required this.successColor,
+    required this.warningColor,
+    required this.errorColor,
+    required this.disabledColor,
   });
   @override
   AppThemeExtension copyWith({
@@ -149,6 +167,10 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     Color? backgroundColor,
     Color? dividerColor,
     Color? borderColor,
+    Color? successColor,
+    Color? warningColor,
+    Color? errorColor,
+    Color? disabledColor,
   }) {
     return AppThemeExtension(
       backgroundGradientColors:
@@ -165,6 +187,10 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       backgroundColor: backgroundColor ?? this.backgroundColor,
       dividerColor: dividerColor ?? this.dividerColor,
       borderColor: borderColor ?? this.borderColor,
+      successColor: successColor ?? this.successColor,
+      warningColor: warningColor ?? this.warningColor,
+      errorColor: errorColor ?? this.errorColor,
+      disabledColor: disabledColor ?? this.disabledColor,
     );
   }
 
@@ -205,6 +231,10 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       backgroundColor: Color.lerp(backgroundColor, other.backgroundColor, t)!,
       dividerColor: Color.lerp(dividerColor, other.dividerColor, t)!,
       borderColor: Color.lerp(borderColor, other.borderColor, t)!,
+      successColor: Color.lerp(successColor, other.successColor, t)!,
+      warningColor: Color.lerp(warningColor, other.warningColor, t)!,
+      errorColor: Color.lerp(errorColor, other.errorColor, t)!,
+      disabledColor: Color.lerp(disabledColor, other.disabledColor, t)!,
     );
   }
 }

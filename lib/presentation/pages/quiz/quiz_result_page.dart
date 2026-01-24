@@ -103,10 +103,10 @@ class QuizResultPage extends StatelessWidget {
   Widget _buildScoreCircle(BuildContext context) {
     final percentage = result.scorePercentage;
     final color = percentage >= 80
-        ? Colors.green
+        ? getSuccessColor(context)
         : percentage >= 60
-        ? Colors.orange
-        : Colors.red;
+        ? getWarningColor(context)
+        : getErrorColor(context);
 
     return Container(
       width: 150,
@@ -132,29 +132,29 @@ class QuizResultPage extends StatelessWidget {
     BuildContext context, {
     required String label,
     required int count,
-    required MaterialColor color,
+    required Color color,
     required IconData icon,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: color.shade50,
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.shade300),
+        border: Border.all(color: color.withOpacity(0.4)),
       ),
       child: Column(
         children: [
-          Icon(icon, color: color.shade700, size: 32),
+          Icon(icon, color: color, size: 32),
           const SizedBox(height: spaceSm),
           Text(
             '$count',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: color.shade900,
+              color: getTextPrimary(context),
             ),
           ),
-          Text(label, style: TextStyle(fontSize: 14, color: color.shade700)),
+          Text(label, style: TextStyle(fontSize: 14, color: color)),
         ],
       ),
     );
@@ -195,7 +195,9 @@ class QuizResultPage extends StatelessWidget {
     int questionNumber,
     QuestionResult questionResult,
   ) {
-    final color = questionResult.isCorrect ? Colors.green : Colors.red;
+    final color = questionResult.isCorrect
+        ? getSuccessColor(context)
+        : getErrorColor(context);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: spaceSm),
@@ -207,9 +209,9 @@ class QuizResultPage extends StatelessWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: color.shade50,
+              color: color.withOpacity(0.1),
               shape: BoxShape.circle,
-              border: Border.all(color: color.shade300),
+              border: Border.all(color: color.withOpacity(0.4)),
             ),
             child: Center(
               child: Text(
@@ -217,7 +219,7 @@ class QuizResultPage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: color.shade900,
+                  color: getTextPrimary(context),
                 ),
               ),
             ),
@@ -240,13 +242,16 @@ class QuizResultPage extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     'Nghĩa sai: ${questionResult.userAnswer}',
-                    style: TextStyle(fontSize: 12, color: Colors.red.shade700),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: getErrorColor(context),
+                    ),
                   ),
                   Text(
                     'Nghĩa đúng: ${questionResult.correctAnswer}',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.green.shade700,
+                      color: getSuccessColor(context),
                     ),
                   ),
                 ] else ...[
@@ -255,7 +260,7 @@ class QuizResultPage extends StatelessWidget {
                     'Đúng',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.green.shade700,
+                      color: getSuccessColor(context),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -266,7 +271,7 @@ class QuizResultPage extends StatelessWidget {
           // Status icon
           Icon(
             questionResult.isCorrect ? Icons.check_circle : Icons.cancel,
-            color: color.shade700,
+            color: color,
             size: 24,
           ),
         ],
@@ -296,7 +301,7 @@ class QuizResultPage extends StatelessWidget {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
+              backgroundColor: Theme.of(context).primaryColor,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

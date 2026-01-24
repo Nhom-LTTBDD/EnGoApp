@@ -88,7 +88,7 @@ class FlashcardResultPage extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: Colors.green,
+                              color: getSuccessColor(context),
                             ),
                           )
                         else
