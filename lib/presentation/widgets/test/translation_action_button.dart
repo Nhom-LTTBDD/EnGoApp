@@ -30,3 +30,20 @@ class ActionButton extends StatelessWidget {
     );
   }
 }
+
+class ButtonSpeaker extends StatelessWidget {
+  final Color color;
+  final VoidCallback? onPressed;
+
+  const ButtonSpeaker({super.key, required this.color, this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.volume_up, color: color, size: 20),
+      onPressed: onPressed,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(),
+    );
+  }
+}

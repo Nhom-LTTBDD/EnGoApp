@@ -125,7 +125,7 @@ class _TranslationHelperDialogState extends State<TranslationHelperDialog> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Translation Helper',
+                      'Công cụ dịch nhanh',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -190,14 +190,10 @@ class _TranslationHelperDialogState extends State<TranslationHelperDialog> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // Speaker button
-                        IconButton(
-                          icon: Icon(
-                            Icons.volume_up,
-                            color: _controller.text.trim().isEmpty
-                                ? Colors.grey
-                                : Colors.blue,
-                            size: 20,
-                          ),
+                        ButtonSpeaker(
+                          color: _controller.text.trim().isEmpty
+                              ? Colors.grey
+                              : Colors.blue,
                           onPressed:
                               _controller.text.trim().isEmpty || _isSpeaking
                               ? null
@@ -277,15 +273,9 @@ class _TranslationHelperDialogState extends State<TranslationHelperDialog> {
                           ],
                         ),
                         if (!_hasError)
-                          IconButton(
-                            icon: Icon(
-                              Icons.volume_up,
-                              color: Colors.green.shade700,
-                              size: 20,
-                            ),
+                          ButtonSpeaker(
+                            color: Colors.green.shade700,
                             onPressed: _isSpeaking ? null : _speakVietnamese,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
                           ),
                       ],
                     ),
