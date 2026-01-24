@@ -1,10 +1,7 @@
 import 'package:en_go_app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/core/theme/theme_helper.dart';
-import '../../../presentation/providers/auth/auth_provider.dart';
-import '../../../presentation/providers/auth/auth_state.dart';
 
 class TestPage extends StatelessWidget {
   const TestPage({Key? key}) : super(key: key);
@@ -54,59 +51,9 @@ class TestPage extends StatelessWidget {
               ),
               ExamTypes(
                 text: "TOEIC",
-                color: Colors.blueAccent,
+                color: Theme.of(context).primaryColor,
                 desc: "EST Toeic",
                 onTap: () => Navigator.pushNamed(context, AppRoutes.toeic),
-              ),
-              const SizedBox(height: 20),
-              // Test History Button
-              Consumer<AuthProvider>(
-                builder: (context, authProvider, child) {
-                  return Container(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        final authState = authProvider.state;
-                        if (authState is Authenticated) {
-                          Navigator.pushNamed(
-                            context,
-                            AppRoutes.testHistory,
-                            arguments: {'userId': authState.user.id},
-                          );
-                        } else {
-                          // Show login required dialog
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Yêu cầu đăng nhập'),
-                              content: const Text(
-                                'Bạn cần đăng nhập để xem lịch sử làm bài.',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('OK'),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.history, color: Colors.white),
-                      label: const Text(
-                        'Xem Lịch Sử Làm Bài',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  );
-                },
               ),
             ],
           ),

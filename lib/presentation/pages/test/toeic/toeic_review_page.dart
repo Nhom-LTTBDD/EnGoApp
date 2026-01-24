@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../../domain/entities/toeic_question.dart';
 import '../../../../data/services/firebase_storage_service.dart';
+import '../../../../core/theme/theme_helper.dart';
 
 class ToeicReviewPage extends StatefulWidget {
   final List<ToeicQuestion> questions;
@@ -140,7 +141,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Không thể phát audio: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: getErrorColor(context),
           ),
         );
       }
@@ -172,7 +173,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                         ? Icons.pause
                         : Icons.play_arrow,
                     size: 28,
-                    color: Colors.grey[700],
+                    color: getTextPrimary(context),
                   ),
                   padding: EdgeInsets.zero,
                 ),
@@ -187,7 +188,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                       value: totalDuration.inSeconds > 0
                           ? currentPosition.inSeconds / totalDuration.inSeconds
                           : 0.0,
-                      backgroundColor: Colors.grey[300],
+                      backgroundColor: getBorderColor(context),
                       valueColor: AlwaysStoppedAnimation<Color>(
                         Color(0xFF4CAF50), // Màu xanh progress bar
                       ),
@@ -202,14 +203,14 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                           _formatDuration(currentPosition),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: getTextSecondary(context),
                           ),
                         ),
                         Text(
                           _formatDuration(totalDuration),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: getTextSecondary(context),
                           ),
                         ),
                       ],
@@ -235,8 +236,8 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
             height: height ?? 250,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey[300]!),
-              color: Colors.grey[100],
+              border: Border.all(color: getBorderColor(context)),
+              color: getSurfaceColor(context).withOpacity(0.3),
             ),
             child: Center(child: CircularProgressIndicator()),
           );
@@ -248,18 +249,18 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
             height: height ?? 250,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey[300]!),
-              color: Colors.grey[100],
+              border: Border.all(color: getBorderColor(context)),
+              color: getSurfaceColor(context).withOpacity(0.3),
             ),
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error, color: Colors.grey[400], size: 40),
+                  Icon(Icons.error, color: getDisabledColor(context), size: 40),
                   SizedBox(height: 8),
                   Text(
                     'Không thể tải hình',
-                    style: TextStyle(color: Colors.grey[600]),
+                    style: TextStyle(color: getTextSecondary(context)),
                   ),
                 ],
               ),
@@ -280,17 +281,21 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                 height: height ?? 250,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  color: Colors.grey[100],
+                  color: getSurfaceColor(context).withOpacity(0.3),
                 ),
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error, color: Colors.grey[400], size: 40),
+                      Icon(
+                        Icons.error,
+                        color: getDisabledColor(context),
+                        size: 40,
+                      ),
                       SizedBox(height: 8),
                       Text(
                         'Lỗi tải hình',
-                        style: TextStyle(color: Colors.grey[600]),
+                        style: TextStyle(color: getTextSecondary(context)),
                       ),
                     ],
                   ),
@@ -332,7 +337,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
         height: 250,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey[300]!),
+          border: Border.all(color: getBorderColor(context)),
         ),
         child: _buildFirebaseImage(question!.imageUrl!),
       );
@@ -353,7 +358,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
               margin: EdgeInsets.only(right: 10),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey[300]!),
+                border: Border.all(color: getBorderColor(context)),
               ),
               child: _buildFirebaseImage(
                 question.imageUrls![index],
@@ -384,9 +389,9 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
       margin: EdgeInsets.symmetric(vertical: 10),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: getSurfaceColor(context).withOpacity(0.3),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: getBorderColor(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -394,14 +399,18 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
           // Header với icon và tiêu đề
           Row(
             children: [
-              Icon(Icons.mail_lock, color: Colors.blue[700], size: 20),
+              Icon(
+                Icons.mail_lock,
+                color: Theme.of(context).primaryColor,
+                size: 20,
+              ),
               SizedBox(width: 8),
               Text(
                 'Transcript:',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.blue[700],
+                  color: Theme.of(context).primaryColor,
                 ),
               ),
             ],
@@ -413,7 +422,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
             style: TextStyle(
               fontSize: 14,
               height: 1.5,
-              color: Colors.grey[800],
+              color: getTextPrimary(context),
             ),
           ),
         ],
@@ -429,10 +438,14 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
       margin: EdgeInsets.symmetric(vertical: 10),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isCorrect ? Colors.green[50] : Colors.red[50],
+        color: isCorrect
+            ? getSuccessColor(context).withOpacity(0.1)
+            : getErrorColor(context).withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isCorrect ? Colors.green[300]! : Colors.red[300]!,
+          color: isCorrect
+              ? getSuccessColor(context).withOpacity(0.4)
+              : getErrorColor(context).withOpacity(0.4),
         ),
       ),
       child: Column(
@@ -442,7 +455,9 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
             children: [
               Icon(
                 isCorrect ? Icons.check_circle : Icons.cancel,
-                color: isCorrect ? Colors.green[700] : Colors.red[700],
+                color: isCorrect
+                    ? getSuccessColor(context)
+                    : getErrorColor(context),
                 size: 24,
               ),
               SizedBox(width: 8),
@@ -451,7 +466,9 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: isCorrect ? Colors.green[700] : Colors.red[700],
+                  color: isCorrect
+                      ? getSuccessColor(context)
+                      : getErrorColor(context),
                 ),
               ),
             ],
@@ -464,14 +481,16 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey[600],
+                color: getTextSecondary(context),
               ),
             ),
             SizedBox(height: 5),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: isCorrect ? Colors.green[100] : Colors.red[100],
+                color: isCorrect
+                    ? getSuccessColor(context).withOpacity(0.2)
+                    : getErrorColor(context).withOpacity(0.2),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
@@ -479,7 +498,9 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: isCorrect ? Colors.green[800] : Colors.red[800],
+                  color: isCorrect
+                      ? getSuccessColor(context)
+                      : getErrorColor(context),
                 ),
               ),
             ),
@@ -487,7 +508,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.orange[100],
+                color: getWarningColor(context).withOpacity(0.2),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
@@ -495,7 +516,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.orange[800],
+                  color: getWarningColor(context),
                 ),
               ),
             ),
@@ -507,14 +528,14 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[600],
+              color: getTextSecondary(context),
             ),
           ),
           SizedBox(height: 5),
           Container(
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.green[100],
+              color: getSuccessColor(context).withOpacity(0.2),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
@@ -522,7 +543,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.green[800],
+                color: getSuccessColor(context),
               ),
             ),
           ),
@@ -535,7 +556,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey[600],
+                color: getTextSecondary(context),
               ),
             ),
             SizedBox(height: 5),
@@ -544,7 +565,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
               style: TextStyle(
                 fontSize: 14,
                 height: 1.4,
-                color: Colors.grey[800],
+                color: getTextPrimary(context),
               ),
             ),
           ],
@@ -643,27 +664,31 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
       return Scaffold(
         appBar: AppBar(
           title: Text('Xem lại bài làm'),
-          backgroundColor: Colors.blue[600],
-          foregroundColor: Colors.white,
+          backgroundColor: Theme.of(context).primaryColor,
+          foregroundColor: getSurfaceColor(context),
         ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.quiz_outlined, size: 64, color: Colors.grey[400]),
+              Icon(
+                Icons.quiz_outlined,
+                size: 64,
+                color: getDisabledColor(context),
+              ),
               SizedBox(height: 16),
               Text(
                 'Không có dữ liệu câu hỏi để xem lại',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w500,
-                  color: Colors.grey[600],
+                  color: getTextSecondary(context),
                 ),
               ),
               SizedBox(height: 8),
               Text(
                 'Có thể do lỗi kỹ thuật hoặc dữ liệu chưa được lưu đúng cách',
-                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                style: TextStyle(fontSize: 14, color: getTextThird(context)),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 24),
@@ -680,8 +705,8 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Xem lại bài làm'),
-        backgroundColor: Colors.blue[600],
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).primaryColor,
+        foregroundColor: getSurfaceColor(context),
         elevation: 0,
       ),
       body: Column(
@@ -697,9 +722,11 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                     width: double.infinity,
                     padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.blue[50],
+                      color: Theme.of(context).primaryColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue[200]!),
+                      border: Border.all(
+                        color: Theme.of(context).primaryColor.withOpacity(0.4),
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -709,7 +736,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue[800],
+                            color: Theme.of(context).primaryColor,
                           ),
                         ),
                         if (question.groupId != null) ...[
@@ -718,7 +745,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                             'Group: ${question.groupId}',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.blue[600],
+                              color: Theme.of(context).primaryColor,
                             ),
                           ),
                         ],
@@ -743,16 +770,16 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                       margin: EdgeInsets.symmetric(vertical: 10),
                       padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: getSurfaceColor(context),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey[300]!),
+                        border: Border.all(color: getBorderColor(context)),
                       ),
                       child: Text(
                         question.questionText!,
                         style: TextStyle(
                           fontSize: 16,
                           height: 1.5,
-                          color: Colors.grey[800],
+                          color: getTextPrimary(context),
                         ),
                       ),
                     ),
@@ -804,17 +831,17 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
     Color textColor;
 
     if (isCorrectAnswer) {
-      backgroundColor = Colors.green[100]!;
-      borderColor = Colors.green[300]!;
-      textColor = Colors.green[800]!;
+      backgroundColor = getSuccessColor(context).withOpacity(0.1);
+      borderColor = getSuccessColor(context).withOpacity(0.4);
+      textColor = getSuccessColor(context);
     } else if (isUserAnswer) {
-      backgroundColor = Colors.red[100]!;
-      borderColor = Colors.red[300]!;
-      textColor = Colors.red[800]!;
+      backgroundColor = getErrorColor(context).withOpacity(0.1);
+      borderColor = getErrorColor(context).withOpacity(0.4);
+      textColor = getErrorColor(context);
     } else {
-      backgroundColor = Colors.grey[50]!;
-      borderColor = Colors.grey[300]!;
-      textColor = Colors.grey[800]!;
+      backgroundColor = getSurfaceColor(context);
+      borderColor = getBorderColor(context);
+      textColor = getTextPrimary(context);
     }
 
     return Container(
@@ -833,17 +860,17 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
             height: 30,
             decoration: BoxDecoration(
               color: isCorrectAnswer
-                  ? Colors.green[600]
+                  ? getSuccessColor(context)
                   : isUserAnswer
-                  ? Colors.red[600]
-                  : Colors.grey[400],
+                  ? getErrorColor(context)
+                  : getDisabledColor(context),
               borderRadius: BorderRadius.circular(15),
             ),
             child: Center(
               child: Text(
                 optionLetter,
                 style: TextStyle(
-                  color: Colors.white,
+                  color: getSurfaceColor(context),
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
