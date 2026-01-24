@@ -159,7 +159,7 @@ class _TranslationHelperDialogState extends State<TranslationHelperDialog> {
                     controller: _controller,
                     maxLines: 3,
                     decoration: InputDecoration(
-                      hintText: 'Enter English text...',
+                      hintText: 'Nhập từ hoặc cụm từ tiếng Anh...',
                       hintStyle: TextStyle(color: getTextSecondary(context)),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.all(12),
@@ -202,9 +202,6 @@ class _TranslationHelperDialogState extends State<TranslationHelperDialog> {
                               _controller.text.trim().isEmpty || _isSpeaking
                               ? null
                               : _speakEnglish,
-                          tooltip: _isSpeaking
-                              ? 'Speaking...'
-                              : 'Speak English',
                         ),
 
                         Row(
@@ -287,9 +284,6 @@ class _TranslationHelperDialogState extends State<TranslationHelperDialog> {
                               size: 20,
                             ),
                             onPressed: _isSpeaking ? null : _speakVietnamese,
-                            tooltip: _isSpeaking
-                                ? 'Speaking...'
-                                : 'Speak Vietnamese',
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
                           ),
@@ -312,16 +306,6 @@ class _TranslationHelperDialogState extends State<TranslationHelperDialog> {
             ],
 
             const SizedBox(height: 12),
-
-            // Helper text
-            Text(
-              'Nhập từ hoặc cụm từ chưa biết để dịch nhanh',
-              style: TextStyle(
-                fontSize: 11,
-                color: getTextSecondary(context),
-                fontStyle: FontStyle.italic,
-              ),
-            ),
           ],
         ),
       ),
