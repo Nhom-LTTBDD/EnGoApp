@@ -23,10 +23,10 @@ import '../domain/entities/toeic_question.dart';
 //Vocabulary
 import '../presentation/pages/vocabulary/vocabulary_page.dart';
 import '../presentation/pages/vocabulary/vocab_by_topic_page.dart';
-import '../presentation/pages/vocabulary/flashcard_page.dart';
-import '../presentation/pages/vocabulary/quiz_settings_page.dart';
-import '../presentation/pages/vocabulary/quiz_page.dart';
-import '../presentation/pages/vocabulary/quiz_result_page.dart';
+import '../presentation/pages/flashcard/flashcard_page.dart';
+import '../presentation/pages/quiz/quiz_settings_page.dart';
+import '../presentation/pages/quiz/quiz_page.dart';
+import '../presentation/pages/quiz/quiz_result_page.dart';
 import '../presentation/pages/vocabulary/personal_vocabulary_page.dart';
 import '../presentation/pages/vocabulary/personal_vocabulary_by_topic_page.dart';
 import '../presentation/pages/vocabulary/personal_vocabulary_cards_page.dart';

@@ -88,6 +88,8 @@ class _TranslationPageState extends State<TranslationPage> {
       _sourceLanguage = _targetLanguage;
       _targetLanguage = temp;
 
+      _isTranslating = false;
+
       // Swap text
       final tempText = _sourceController.text;
       _sourceController.text = _translatedText;
@@ -113,9 +115,9 @@ class _TranslationPageState extends State<TranslationPage> {
     });
   }
 
-  void _speakText(String text) {
+  void _speakText(String text, String language) {
     try {
-      if (_targetLanguage == 'en') {
+      if (language == 'en') {
         _ttsService.speakEnglish(text);
       } else {
         _ttsService.speakVietnamese(text);
@@ -134,12 +136,12 @@ class _TranslationPageState extends State<TranslationPage> {
   void _speakSourceText() {
     final text = _sourceController.text.trim();
     if (text.isEmpty) return;
-    _speakText(text);
+    _speakText(text, _sourceLanguage); // Speak in SOURCE language
   }
 
   void _speakTranslatedText() {
     if (_translatedText.trim().isEmpty) return;
-    _speakText(_translatedText);
+    _speakText(_translatedText, _targetLanguage); // Speak in TARGET language
   }
 
   @override
@@ -172,21 +174,41 @@ class _TranslationPageState extends State<TranslationPage> {
                       SourceInputWidget(
                         controller: _sourceController,
                         onClear: _clearText,
-                        onChanged: (_) => _performTranslation(),
                         onSpeak: _speakSourceText,
                       ),
                       const SizedBox(height: spaceMd),
 
-                      // Translation Result
-                      TranslationResultWidget(
-                        translatedText: _translatedText,
-                        isTranslating: _isTranslating,
-                        onSpeak: _speakTranslatedText,
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: _performTranslation,
+                          child: const Text(
+                            'Dịch',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
                       ),
+                      if (_translatedText.isNotEmpty ||
+                          _isTranslating ||
+                          errorMessage != null) ...[
+                        const SizedBox(height: spaceMd),
+                        // Translation Result
+                        TranslationResultWidget(
+                          translatedText: _translatedText,
+                          isTranslating: _isTranslating,
+                          onSpeak: _speakTranslatedText,
+                        ),
 
-                      if (errorMessage != null) ...[
-                        const SizedBox(height: spaceSm),
-                        TranslationErrorWidget(errorMessage: errorMessage),
+                        if (errorMessage != null) ...[
+                          const SizedBox(height: spaceSm),
+                          TranslationErrorWidget(errorMessage: errorMessage),
+                        ],
                       ],
                     ],
                   ),

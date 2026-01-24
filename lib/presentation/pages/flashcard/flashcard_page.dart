@@ -7,6 +7,7 @@ import '../../providers/flashcard_progress_provider.dart';
 import '../../providers/profile/streak_provider.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/auth_state.dart';
+import '../../providers/personal_vocabulary_provider.dart';
 import '../../widgets/flashcard/flashcard_header.dart';
 import '../../widgets/flashcard/flashcard_score_display.dart';
 import '../../widgets/flashcard/flashcard_swipe_card.dart';
@@ -241,6 +242,11 @@ class _FlashcardPageState extends State<FlashcardPage>
     } else {
       _animationController.reverse();
     }
+  }
+
+  Future<void> _handleBookmarkToggle(String cardId) async {
+    final personalProvider = context.read<PersonalVocabularyProvider>();
+    await personalProvider.toggleBookmark(cardId);
   }
 
   void _handlePanStart(DragStartDetails details) {
@@ -563,20 +569,31 @@ class _FlashcardPageState extends State<FlashcardPage>
                         final isCurrentCard =
                             index == flashcardProvider.currentCardIndex;
 
-                        return FlashcardSwipeCard(
-                          card: card,
-                          flipAnimation: _flipAnimation,
-                          isFlipped: flashcardProvider.isFlipped,
-                          isCurrentCard: isCurrentCard,
-                          isDragging: flashcardProvider.isDragging,
-                          isCommittedToSwipe:
-                              flashcardProvider.isCommittedToSwipe,
-                          dragOffset: flashcardProvider.dragOffset,
-                          dragOffsetY: flashcardProvider.dragOffsetY,
-                          onTap: _handleFlipCard,
-                          onPanStart: _handlePanStart,
-                          onPanUpdate: _handlePanUpdate,
-                          onPanEnd: _handlePanEnd,
+                        return Consumer<PersonalVocabularyProvider>(
+                          builder: (context, personalProvider, _) {
+                            final isBookmarked = personalProvider.isBookmarked(
+                              card.id,
+                            );
+
+                            return FlashcardSwipeCard(
+                              card: card,
+                              flipAnimation: _flipAnimation,
+                              isFlipped: flashcardProvider.isFlipped,
+                              isCurrentCard: isCurrentCard,
+                              isDragging: flashcardProvider.isDragging,
+                              isCommittedToSwipe:
+                                  flashcardProvider.isCommittedToSwipe,
+                              dragOffset: flashcardProvider.dragOffset,
+                              dragOffsetY: flashcardProvider.dragOffsetY,
+                              onTap: _handleFlipCard,
+                              onPanStart: _handlePanStart,
+                              onPanUpdate: _handlePanUpdate,
+                              onPanEnd: _handlePanEnd,
+                              isBookmarked: isBookmarked,
+                              onBookmarkPressed: () =>
+                                  _handleBookmarkToggle(card.id),
+                            );
+                          },
                         );
                       }),
                     ],

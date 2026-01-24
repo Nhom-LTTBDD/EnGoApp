@@ -72,7 +72,7 @@ class TranslationResultWidget extends StatelessWidget {
           // Translation text
           Container(
             width: double.infinity,
-            constraints: const BoxConstraints(minHeight: 150),
+            constraints: const BoxConstraints(minHeight: 120),
             padding: const EdgeInsets.all(spaceMd),
             child: translatedText.isEmpty
                 ? Center(
