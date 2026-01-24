@@ -39,6 +39,7 @@ import '../../presentation/providers/grammar_provider.dart';
 import '../../presentation/providers/personal_vocabulary_provider.dart';
 import '../../presentation/providers/profile/streak_provider.dart';
 import '../../presentation/providers/flashcard_progress_provider.dart';
+import '../../presentation/providers/toeic_test_provider.dart';
 
 // Vocabulary Domain
 import '../../domain/repository_interfaces/vocabulary_repository.dart';
@@ -274,4 +275,6 @@ Future<void> init() async {
       resetProgress: sl(),
     ),
   );
+
+  sl.registerFactory(() => ToeicTestProvider());
 }

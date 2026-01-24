@@ -169,10 +169,7 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (_) => di.sl<GrammarProvider>()),
 
         // ToeicTestProvider - Khởi tạo lazy để không block main thread
-        ChangeNotifierProvider(
-          create: (_) => ToeicTestProvider(),
-          lazy: true, // ✅ Chỉ khởi tạo khi cần dùng
-        ),
+        ChangeNotifierProvider(create: (_) => di.sl<ToeicTestProvider>()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
