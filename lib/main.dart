@@ -139,7 +139,7 @@ class _MyAppState extends State<MyApp> {
             // Khi user login/logout, update userId trong StreakProvider
             if (authProvider.state is Authenticated) {
               final user = (authProvider.state as Authenticated).user;
-              print('🔐 Streak: Setting userId: ${user.id}');
+              print('Streak: Setting userId: ${user.id}');
               // Chạy async để không block main thread
               Future.microtask(() => streakProvider?.setUserId(user.id));
             }
