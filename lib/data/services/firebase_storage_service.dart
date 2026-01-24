@@ -436,7 +436,6 @@ class FirebaseStorageService {
       final downloadUrl = await ref.getDownloadURL().timeout(
         const Duration(seconds: 5),
       );
-      print('🎵 Audio URL resolved: $audioFile');
       return downloadUrl;
     } catch (e) {
       print('❌ Error getting audio URL for $audioFile: $e');
