@@ -26,7 +26,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
   String? currentAudioFile;
   Duration currentPosition = Duration.zero;
   Duration totalDuration = Duration.zero;
-  
+
   // Cache cho Firebase Storage URLs
   final Map<String, String> _imageUrlCache = {};
   final Map<String, String> _audioUrlCache = {};
@@ -238,12 +238,10 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
               border: Border.all(color: Colors.grey[300]!),
               color: Colors.grey[100],
             ),
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
+            child: Center(child: CircularProgressIndicator()),
           );
         }
-        
+
         if (snapshot.hasError || !snapshot.hasData) {
           return Container(
             width: width,
@@ -310,7 +308,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
     if (_imageUrlCache.containsKey(imageUrl)) {
       return _imageUrlCache[imageUrl];
     }
-    
+
     try {
       final url = await FirebaseStorageService.getImageDownloadUrl(imageUrl);
       if (url != null) {

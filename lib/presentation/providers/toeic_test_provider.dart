@@ -110,11 +110,9 @@ class ToeicTestProvider extends ChangeNotifier {
 
     // Listen for player complete events
     _audioPlayer!.onPlayerComplete.listen((_) {
-
       _isAudioPlaying = false;
       notifyListeners();
     });
-
   }
 
   Future<void> playAudio(String audioUrl) async {

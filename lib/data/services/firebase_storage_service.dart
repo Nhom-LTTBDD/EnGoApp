@@ -51,9 +51,9 @@ class FirebaseStorageService {
 
       if (response.statusCode == 200) {
         final jsonString = response.body;
-        
+
         final data = json.decode(jsonString);
-        
+
         return data;
       } else {
         throw Exception('Failed to load JSON: ${response.statusCode}');
@@ -140,7 +140,6 @@ class FirebaseStorageService {
       }
 
       final questionsData = partData['questions'] as List<dynamic>;
-
 
       final questions = <ToeicQuestion>[];
 
