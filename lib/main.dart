@@ -165,7 +165,7 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (_) => di.sl<VocabularyProvider>()),
         ChangeNotifierProvider(
           create: (_) => FlashcardProvider(),
-        ), // 🆕 Add FlashcardProvider
+        ), // Add FlashcardProvider
         ChangeNotifierProvider(create: (_) => di.sl<GrammarProvider>()),
 
         // ToeicTestProvider - Khởi tạo lazy để không block main thread

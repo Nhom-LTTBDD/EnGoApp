@@ -23,6 +23,8 @@ import '../../../data/services/firebase_storage_service.dart';
 import '../../../routes/app_routes.dart';
 // Theme helpers
 import 'package:en_go_app/core/theme/theme_helper.dart';
+// Translation helper widget
+import '../../widgets/test/translation_helper_dialog.dart';
 
 // StatefulWidget cho trang làm bài test TOEIC
 // Hỗ trợ cả full test (7 parts) và test riêng lẻ theo parts
@@ -42,14 +44,14 @@ class ToeicTestTakingPage extends StatefulWidget {
 
   // Constructor với tất cả parameters cần thiết
   const ToeicTestTakingPage({
-    Key? key,
+    super.key,
     required this.testId, // Test ID bắt buộc
     required this.testName, // Tên test bắt buộc
     required this.isFullTest, // Flag full test bắt buộc
     required this.selectedParts, // Parts được chọn bắt buộc
     this.timeLimit, // Thời gian tùy chọn
     this.questions, // Questions tùy chọn
-  }) : super(key: key);
+  });
 
   @override
   State<ToeicTestTakingPage> createState() => _ToeicTestTakingPageState();
@@ -478,7 +480,8 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                   children: [
                     // Hiển thị số câu hỏi và text câu hỏi
                     Text(
-                      '${question.questionText ?? 'Question ${question.questionNumber}'}',
+                      question.questionText ??
+                          'Question ${question.questionNumber}',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600, // Font weight semibold
@@ -492,7 +495,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                   ],
                 ),
               );
-            }).toList(), // Convert map thành list widgets
+            }), // Convert map thành list widgets
 
             const SizedBox(height: 24), // Spacing trước question grid
             // Question grid - di chuyển vào scrollable area
@@ -592,7 +595,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
               return Row(
                 children: [
                   // Play/Pause button - Nút phát/tạm dừng audio
-                  Container(
+                  SizedBox(
                     width: 40, // Chiều rộng cố định cho button
                     height: 40, // Chiều cao cố định cho button
                     child: IconButton(
@@ -855,29 +858,58 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
             currentQuestion.partNumber >= 6 &&
             currentQuestion.groupId != null);
 
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          color: const Color(0xFF6B8CAE),
-          borderRadius: BorderRadius.circular(8),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Translation Helper Button
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            color: const Color(0xFF4CAF50), // Green color for translation
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: IconButton(
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => const TranslationHelperDialog(),
+              );
+            },
+            icon: const Icon(Icons.translate, color: Colors.white, size: 28),
+            tooltip: 'Translation Helper',
+          ),
         ),
-        child: IconButton(
-          onPressed: () {
-            if (isGroupQuestion) {
-              // For group questions (Part 3, 6, 7), jump to next group
-              _moveToNextGroup(provider);
-            } else if (provider.hasNextQuestion) {
-              provider.nextQuestion();
-            } else {
-              _showFinishConfirmation(context, provider);
-            }
-          },
-          icon: const Icon(Icons.arrow_forward, color: Colors.white, size: 28),
+
+        // Next/Finish Button
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            color: const Color(0xFF6B8CAE),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: IconButton(
+            onPressed: () {
+              if (isGroupQuestion) {
+                // For group questions (Part 3, 6, 7), jump to next group
+                _moveToNextGroup(provider);
+              } else if (provider.hasNextQuestion) {
+                provider.nextQuestion();
+              } else {
+                _showFinishConfirmation(context, provider);
+              }
+            },
+            icon: const Icon(
+              Icons.arrow_forward,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 
