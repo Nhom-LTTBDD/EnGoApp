@@ -22,6 +22,14 @@ class AuthProvider extends ChangeNotifier {
   AuthState _state = AuthInitial();
   AuthState get state => _state;
 
+  // Getter để lấy user hiện tại
+  dynamic get currentUser {
+    if (_state is Authenticated) {
+      return (_state as Authenticated).user;
+    }
+    return null;
+  }
+
   // Callback để reset profile khi logout
   VoidCallback? onLogout;
   // Callback để reset profile khi login/register thành công

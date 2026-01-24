@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:en_go_app/routes/app_routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../providers/personal_vocabulary_provider.dart';
+import '../../providers/auth/auth_provider.dart';
 import '../common/app_button.dart';
 
 class ProfileStatsCard extends StatelessWidget {
@@ -48,16 +49,28 @@ class ProfileStatsCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           // Button xem kết quả test
-          SizedBox(
-            width: double.infinity,
-            child: AppButton(
-              onPressed: () {
-                Navigator.pushNamed(context, AppRoutes.test);
-              },
-              text: 'Xem kết quả bài test',
-              variant: AppButtonVariant.success,
-              size: AppButtonSize.medium,
-            ),
+          Consumer<AuthProvider>(
+            builder: (context, authProvider, _) {
+              final userId = authProvider.currentUser?.id;
+
+              return SizedBox(
+                width: double.infinity,
+                child: AppButton(
+                  onPressed: userId != null
+                      ? () {
+                          Navigator.pushNamed(
+                            context,
+                            AppRoutes.testHistory,
+                            arguments: {'userId': userId},
+                          );
+                        }
+                      : null,
+                  text: 'Xem lịch sử bài test',
+                  variant: AppButtonVariant.success,
+                  size: AppButtonSize.medium,
+                ),
+              );
+            },
           ),
         ],
       ),
