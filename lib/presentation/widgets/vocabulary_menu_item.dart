@@ -122,7 +122,7 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
           child: GestureDetector(
             onTapDown: _handleTapDown,
             onTapUp: _handleTapUp,
-            onTapCancel: _handleTapCancel,            
+            onTapCancel: _handleTapCancel,
             onTap: widget.isEnabled ? widget.onTap : null,
             child: AnimatedContainer(
               duration: AnimationUtils.normalDuration,
@@ -134,8 +134,8 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
               padding: _effectiveConfig.padding,
               decoration: BoxDecoration(
                 color: _isPressed
-                    ? Colors.white.withValues(alpha: 0.9)
-                    : Colors.white,
+                    ? getCardBackground(context).withValues(alpha: 0.9)
+                    : getCardBackground(context),
                 borderRadius: BorderRadius.circular(
                   _effectiveConfig.borderRadius,
                 ),
@@ -157,6 +157,7 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
       },
     );
   }
+
   Widget _buildContent() {
     return Row(
       children: [
@@ -164,14 +165,14 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
           padding: const EdgeInsets.all(spaceSm),
           decoration: BoxDecoration(
             color: widget.isEnabled
-                ? const Color.fromARGB(255, 0, 0, 0).withValues(alpha: 0.1)
+                ? getTextPrimary(context).withValues(alpha: 0.1)
                 : getTextThird(context).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             widget.menuType.icon,
             color: widget.isEnabled
-                ? const Color(0xFF1196EF)
+                ? _effectiveConfig.iconColor
                 : getTextThird(context),
             size: 24,
           ),
@@ -182,7 +183,7 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
             widget.menuType.title,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: widget.isEnabled
-                  ? const Color.fromARGB(255, 0, 0, 0)
+                  ? getTextPrimary(context)
                   : getTextThird(context),
               fontWeight: FontWeight.w600,
             ),
@@ -194,7 +195,7 @@ class _VocabularyMenuItemState extends State<VocabularyMenuItem>
         ] else if (widget.isEnabled) ...[
           Icon(
             Icons.arrow_forward_ios,
-            color: const Color(0xFF1196EF),
+            color: _effectiveConfig.iconColor,
             size: 16,
           ),
         ],

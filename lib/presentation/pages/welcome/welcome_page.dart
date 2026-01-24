@@ -16,14 +16,13 @@ class WelcomePage extends StatefulWidget {
 }
 
 class _WelcomePageState extends State<WelcomePage>
-    with TickerProviderStateMixin {
-  late AnimationController _logoController;
+    with SingleTickerProviderStateMixin {
   late AnimationController _contentController;
-  late Animation<double> _logoScaleAnimation;
-  late Animation<double> _logoFadeAnimation;
-  late List<Animation<double>> _cardAnimations;
+  late List<Animation<double>> _cardSlideAnimations;
   late Animation<Offset> _buttonSlideAnimation;
   late Animation<double> _buttonFadeAnimation;
+  bool _isImageCached = false;
+  bool _hasPreCached = false;
 
   @override
   void initState() {
@@ -31,41 +30,48 @@ class _WelcomePageState extends State<WelcomePage>
     _initAnimations();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Precache chỉ 1 lần
+    if (!_hasPreCached) {
+      _hasPreCached = true;
+      _precacheAssets();
+    }
+  }
+
+  Future<void> _precacheAssets() async {
+    // Precache background image - context đã available
+    await precacheImage(const AssetImage(kBackgroundJpg), context);
+    if (mounted) {
+      setState(() {
+        _isImageCached = true;
+      });
+      // Start animation sau khi image cached
+      if (!_contentController.isAnimating) {
+        _contentController.forward();
+      }
+    }
+  }
+
   void _initAnimations() {
-    // Logo animation - Giảm duration để mượt hơn
-    _logoController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-
-    _logoScaleAnimation = Tween<double>(
-      begin: 0.5,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeOut));
-
-    _logoFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
-      ),
-    );
-
-    // Content animation - Giảm duration để mượt hơn
+    // Content animation - giảm duration để giảm load
     _contentController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 700),
       vsync: this,
     );
 
-    // Staggered card animations
-    _cardAnimations = List.generate(
+    // Card slide animations - giảm số lượng animation frame
+    _cardSlideAnimations = List.generate(
       3,
       (index) => Tween<double>(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(
           parent: _contentController,
           curve: Interval(
-            0.2 + (index * 0.15),
+            index * 0.2,
             0.5 + (index * 0.15),
-            curve: Curves.easeOutCubic,
+            curve: Curves
+                .easeOut, // Thay Curves.easeOutCubic bằng easeOut để mượt hơn
           ),
         ),
       ),
@@ -73,7 +79,7 @@ class _WelcomePageState extends State<WelcomePage>
 
     // Button animation
     _buttonSlideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
           CurvedAnimation(
             parent: _contentController,
             curve: const Interval(0.7, 1.0, curve: Curves.easeOut),
@@ -87,24 +93,11 @@ class _WelcomePageState extends State<WelcomePage>
       ),
     );
 
-    // Start animations
-    _logoController.forward().then((_) {
-      _contentController.forward();
-    });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Precache images ASYNC để không block UI
-    Future.microtask(() {
-      precacheImage(const AssetImage(kBackgroundJpg), context);
-    });
+    // Start animation CHỈ sau khi image cached (được trigger trong _precacheAssets)
   }
 
   @override
   void dispose() {
-    _logoController.dispose();
     _contentController.dispose();
     super.dispose();
   }
@@ -121,13 +114,15 @@ class _WelcomePageState extends State<WelcomePage>
         child: Container(
           width: double.infinity,
           height: double.infinity,
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage(kBackgroundJpg),
-              fit: BoxFit.cover,
-              filterQuality: FilterQuality.low,
-            ),
-          ),
+          decoration: _isImageCached
+              ? const BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(kBackgroundJpg),
+                    fit: BoxFit.cover,
+                    filterQuality: FilterQuality.medium,
+                  ),
+                )
+              : const BoxDecoration(color: Color(0xFFE3F2FD)),
           child: SafeArea(
             child: SingleChildScrollView(
               physics: const ClampingScrollPhysics(),
@@ -149,57 +144,49 @@ class _WelcomePageState extends State<WelcomePage>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const SizedBox(height: 40),
-                        // Animated Logo
-                        AnimatedBuilder(
-                          animation: _logoController,
-                          builder: (context, child) {
-                            return FadeTransition(
-                              opacity: _logoFadeAnimation,
-                              child: ScaleTransition(
-                                scale: _logoScaleAnimation,
-                                child: RepaintBoundary(
-                                  child: Hero(
-                                    tag: 'app_logo',
-                                    child: SvgPicture.asset(
-                                      kIconBirdWelcome,
-                                      width: 150,
-                                      height: 150,
-                                    ),
+                        // Logo - hiển thị ngay không animation
+                        RepaintBoundary(
+                          child: Hero(
+                            tag: 'app_logo',
+                            child: SvgPicture.asset(
+                              kIconBirdWelcome,
+                              width: 120,
+                              height: 120,
+                              placeholderBuilder: (context) => const SizedBox(
+                                width: 120,
+                                height: 120,
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
                                   ),
                                 ),
                               ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        // Title with fade
-                        FadeTransition(
-                          opacity: _logoFadeAnimation,
-                          child: const Column(
-                            children: [
-                              Text('Welcome to EnGo App!', style: kH1),
-                              SizedBox(height: 10),
-                              Text('Unlock your English power', style: kH1),
-                            ],
+                            ),
                           ),
                         ),
+                        const SizedBox(height: 20),
+                        // Title - hiển thị ngay
+                        const Column(
+                          children: [
+                            Text('Welcome to EnGo App!', style: kH1),
+                            SizedBox(height: 10),
+                            Text('Unlock your English power', style: kH1),
+                          ],
+                        ),
                         const SizedBox(height: 30),
-                        // Feature Cards with staggered animation
+                        // Feature Cards with staggered progress animation
                         _buildFeatureCard(
-                          animation: _cardAnimations[0],
-
+                          animation: _cardSlideAnimations[0],
                           text: 'Chinh phục IELTS/TOEIC dễ dàng',
                         ),
                         const SizedBox(height: 12),
                         _buildFeatureCard(
-                          animation: _cardAnimations[1],
-
+                          animation: _cardSlideAnimations[1],
                           text: 'Flashcard và quiz giúp ghi nhớ nhanh',
                         ),
                         const SizedBox(height: 12),
                         _buildFeatureCard(
-                          animation: _cardAnimations[2],
-
+                          animation: _cardSlideAnimations[2],
                           text: 'Tổng hợp ngữ pháp đầy đủ và dễ hiểu',
                         ),
                         const SizedBox(height: 40),
@@ -228,22 +215,38 @@ class _WelcomePageState extends State<WelcomePage>
     required Animation<double> animation,
     required String text,
   }) {
-    return AnimatedBuilder(
-      animation: animation,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, 20 * (1 - animation.value)),
-          child: Opacity(opacity: animation.value, child: child),
-        );
-      },
-      child: Container(
-        width: 300,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: animation,
+        builder: (context, child) {
+          final progress = animation.value.clamp(0.0, 1.0);
+          if (progress == 0.0) {
+            return const SizedBox(width: 300, height: 44);
+          }
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              widthFactor: progress,
+              child: child,
+            ),
+          );
+        },
+        child: Container(
+          width: 300,
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            text,
+            style: kBodyEmphasized,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
-        child: Text(text, style: kBodyEmphasized, textAlign: TextAlign.center),
       ),
     );
   }
