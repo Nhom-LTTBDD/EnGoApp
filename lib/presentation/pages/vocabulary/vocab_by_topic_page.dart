@@ -219,6 +219,7 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
                                   'topicId': topic.id,
                                   'topicName': topic.name,
                                   'cardCount': topic.cards.length,
+                                  'mode': widget.mode,
                                 },
                               );
                             }

@@ -1,4 +1,5 @@
 // lib/presentation/pages/vocabulary/quiz_result_page.dart
+import 'package:en_go_app/presentation/pages/vocabulary/vocab_by_topic_page.dart';
 import 'package:en_go_app/presentation/widgets/quiz/quiz_action_button.dart';
 import 'package:en_go_app/presentation/widgets/quiz/quiz_result_of_answer.dart';
 import 'package:en_go_app/presentation/widgets/quiz/quiz_score.dart';
@@ -11,13 +12,14 @@ import '../../layout/main_layout.dart';
 /// Page hiển thị kết quả quiz
 class QuizResultPage extends StatelessWidget {
   final QuizResult result;
+  final TopicSelectionMode mode;
 
-  const QuizResultPage({super.key, required this.result});
+  const QuizResultPage({super.key, required this.result, required this.mode});
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: true, // Allow back navigation
+      canPop: false, // Disable back navigation - use action buttons instead
       child: MainLayout(
         title: 'VOCABULARY',
         currentIndex: -1,
@@ -73,7 +75,10 @@ class QuizResultPage extends StatelessWidget {
                   ),
 
                   // Action buttons
-                  QuizActionButtons(result: result),
+                  QuizActionButtons(
+                    result: result,
+                    mode: mode, // ← Pass mode to action buttons
+                  ),
                 ],
               ),
             ),

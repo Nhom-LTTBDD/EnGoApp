@@ -11,6 +11,7 @@ import '../../../data/repositories/vocabulary_repository_impl.dart';
 import '../../widgets/vocabulary/quiz_language_selector_sheet.dart';
 import '../../layout/main_layout.dart';
 import '../../widgets/quiz/quiz_build_info.dart';
+import '../vocabulary/vocab_by_topic_page.dart';
 
 /// Page thiết lập quiz trước khi làm bài
 /// Cho phép người dùng cấu hình:
@@ -19,11 +20,13 @@ import '../../widgets/quiz/quiz_build_info.dart';
 class QuizSettingsPage extends StatefulWidget {
   final String topicId;
   final String topicName;
+  final TopicSelectionMode mode;
 
   const QuizSettingsPage({
     super.key,
     required this.topicId,
     required this.topicName,
+    required this.mode,
   });
 
   @override
@@ -112,7 +115,11 @@ class _QuizSettingsPageState extends State<QuizSettingsPage> {
       answerLanguage: _answerLanguage,
     );
 
-    Navigator.pushNamed(context, AppRoutes.quiz, arguments: {'config': config});
+    Navigator.pushNamed(
+      context,
+      AppRoutes.quiz,
+      arguments: {'config': config, 'mode': widget.mode},
+    );
   }
 
   @override
@@ -122,143 +129,150 @@ class _QuizSettingsPageState extends State<QuizSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return MainLayout(
-      title: 'VOCABULARY',
-      currentIndex: -1, // -1 để không highlight bottom nav
-      showBottomNav: false, // Ẩn bottom navigation
-      child: Container(
-        decoration: BoxDecoration(color: getBackgroundColor(context)),
-        child: SafeArea(
-          child: _isLoadingCards
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(
-                        color: Theme.of(context).primaryColor,
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'Đang tải từ vựng...',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                )
-              : Column(
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(spaceMd),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Header
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.arrow_back,
-                                    color: getTextPrimary(context),
-                                  ),
-                                  // Pop back to quiz by topic page (don't push new page)
-                                  onPressed: () => Navigator.pop(context),
-                                ),
-                                Text(
-                                  'Thiết lập bài kiểm tra',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: getTextPrimary(context),
-                                  ),
-                                ),
-                                const SizedBox(width: 48), // Placeholder
-                              ],
-                            ),
-
-                            const SizedBox(height: spaceLg),
-
-                            // Số câu hỏi (read-only)
-                            BuildInfoRow(
-                              label: 'Số câu hỏi',
-                              value: '$_cardCount',
-                            ),
-
-                            const SizedBox(height: spaceMd),
-
-                            // Trả lời bằng (clickable)
-                            QuizLanguageSelector(
-                              questionLanguage: _questionLanguage,
-                              answerLanguage: _answerLanguage,
-                              onSelectQuestionLanguage: () =>
-                                  _showLanguageSelector(
-                                    isQuestionLanguage: false,
-                                  ),
-                            ),
-
-                            const SizedBox(height: spaceMd),
-                          ],
+    return PopScope(
+      canPop: true, // Allow back navigation
+      child: MainLayout(
+        title: 'VOCABULARY',
+        currentIndex: -1, // -1 để không highlight bottom nav
+        showBottomNav: false, // Ẩn bottom navigation
+        child: Container(
+          decoration: BoxDecoration(color: getBackgroundColor(context)),
+          child: SafeArea(
+            child: _isLoadingCards
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(
+                          color: Theme.of(context).primaryColor,
                         ),
-                      ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Đang tải từ vựng...',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ],
                     ),
-
-                    // Start Button
-                    Container(
-                      padding: const EdgeInsets.all(spaceMd),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: (_isLoadingCards || _cardCount == 0)
-                              ? null
-                              : _startQuiz,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).primaryColor,
-                            disabledBackgroundColor: getDisabledColor(context),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                  )
+                : Column(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.all(spaceMd),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (_isLoadingCards)
-                                const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
+                              // Header
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.arrow_back,
+                                      color: getTextPrimary(context),
+                                    ),
+                                    // Pop back to previous page
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                  ),
+                                  Text(
+                                    'Thiết lập bài kiểm tra',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: getTextPrimary(context),
                                     ),
                                   ),
-                                )
-                              else
-                                const Icon(
-                                  Icons.edit_square,
-                                  color: Colors.white,
-                                ),
-                              const SizedBox(width: 8),
-                              Text(
-                                _isLoadingCards
-                                    ? 'Đang tải...'
-                                    : 'Bắt đầu làm kiểm tra',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
+                                  const SizedBox(width: 48), // Placeholder
+                                ],
                               ),
+
+                              const SizedBox(height: spaceLg),
+
+                              // Số câu hỏi (read-only)
+                              BuildInfoRow(
+                                label: 'Số câu hỏi',
+                                value: '$_cardCount',
+                              ),
+
+                              const SizedBox(height: spaceMd),
+
+                              // Trả lời bằng (clickable)
+                              QuizLanguageSelector(
+                                questionLanguage: _questionLanguage,
+                                answerLanguage: _answerLanguage,
+                                onSelectQuestionLanguage: () =>
+                                    _showLanguageSelector(
+                                      isQuestionLanguage: false,
+                                    ),
+                              ),
+
+                              const SizedBox(height: spaceMd),
                             ],
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+
+                      // Start Button
+                      Container(
+                        padding: const EdgeInsets.all(spaceMd),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: (_isLoadingCards || _cardCount == 0)
+                                ? null
+                                : _startQuiz,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(context).primaryColor,
+                              disabledBackgroundColor: getDisabledColor(
+                                context,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                if (_isLoadingCards)
+                                  const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  const Icon(
+                                    Icons.edit_square,
+                                    color: Colors.white,
+                                  ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _isLoadingCards
+                                      ? 'Đang tải...'
+                                      : 'Bắt đầu làm kiểm tra',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
         ),
-      ),
-    );
+      ), // Close MainLayout
+    ); // Close PopScope
   }
 }

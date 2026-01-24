@@ -1,4 +1,5 @@
 import 'package:en_go_app/domain/entities/quiz_result.dart';
+import 'package:en_go_app/presentation/pages/vocabulary/vocab_by_topic_page.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../routes/app_routes.dart';
@@ -6,7 +7,13 @@ import '../../../core/theme/theme_helper.dart';
 
 class QuizActionButtons extends StatelessWidget {
   final QuizResult result;
-  const QuizActionButtons({super.key, required this.result});
+  final TopicSelectionMode mode;
+
+  const QuizActionButtons({
+    super.key,
+    required this.result,
+    required this.mode,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,17 +24,27 @@ class QuizActionButtons extends StatelessWidget {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () {
-              // Pop back to quiz settings (which is before quiz page that was replaced)
-              // Since quiz page was replaced by result page, we need to pop result
-              // and push settings again
-              Navigator.of(context).pop(); // Pop result page
-              Navigator.of(context).pop(); // Pop setting page
+              // Navigation depends on mode:
+              // - Flashcard mode: [Vocab] → [Topic(flashcard)] → [Flashcard Result] → [Settings] → [Quiz] → [Result]
+              //   After "retry": Pop to Topic(flashcard), then push Settings
+              // - Quiz mode: [Vocab] → [Topic(quiz)] → [Settings] → [Quiz] → [Result]
+              //   After "retry": Pop to Topic(quiz), then push Settings
+
+              // Pop until we reach the topic selection page
+              Navigator.of(context).popUntil(
+                (route) =>
+                    route.settings.name == AppRoutes.vocabByTopic ||
+                    route.isFirst,
+              );
+
+              // Then push settings again for the same topic
               Navigator.pushNamed(
                 context,
                 AppRoutes.quizSettings,
                 arguments: {
                   'topicId': result.topicId,
                   'topicName': result.topicName,
+                  'mode': mode,
                 },
               );
             },

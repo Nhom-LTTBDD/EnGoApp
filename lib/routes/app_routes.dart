@@ -215,16 +215,23 @@ class RouteGenerator {
         final args = settings.arguments as Map<String, dynamic>?;
         final topicId = args?['topicId'] as String? ?? '1';
         final topicName = args?['topicName'] as String? ?? 'Quiz';
+        final mode =
+            args?['mode'] as TopicSelectionMode? ?? TopicSelectionMode.quiz;
         // final cardCount = args?['cardCount'] as int? ?? 0;
         return MaterialPageRoute(
-          builder: (_) =>
-              QuizSettingsPage(topicId: topicId, topicName: topicName),
+          builder: (_) => QuizSettingsPage(
+            topicId: topicId,
+            topicName: topicName,
+            mode: mode,
+          ),
         );
 
       // Quiz case
       case AppRoutes.quiz:
         final args = settings.arguments as Map<String, dynamic>?;
         final config = args?['config'] as QuizConfig?;
+        final mode =
+            args?['mode'] as TopicSelectionMode? ?? TopicSelectionMode.quiz;
 
         if (config == null) {
           // Fallback if config not provided
@@ -235,12 +242,17 @@ class RouteGenerator {
           );
         }
 
-        return MaterialPageRoute(builder: (_) => QuizPage(config: config));
+        return MaterialPageRoute(
+          builder: (_) => QuizPage(config: config, mode: mode),
+        );
 
       // Quiz Result case
       case AppRoutes.quizResult:
         final args = settings.arguments as Map<String, dynamic>?;
         final result = args?['result'] as QuizResult?;
+        final mode =
+            args?['mode'] as TopicSelectionMode? ??
+            TopicSelectionMode.quiz; // Default to quiz mode
 
         if (result == null) {
           return MaterialPageRoute(
@@ -250,7 +262,7 @@ class RouteGenerator {
         }
 
         return MaterialPageRoute(
-          builder: (_) => QuizResultPage(result: result),
+          builder: (_) => QuizResultPage(result: result, mode: mode),
         );
 
       default:
