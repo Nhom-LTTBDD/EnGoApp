@@ -69,6 +69,18 @@ class TestHistory {
 
   // Convert to Map for Firestore
   Map<String, dynamic> toMap() {
+    // Convert userAnswers Map<int, String> to Map<String, dynamic> for Firestore
+    final userAnswersConverted = <String, dynamic>{};
+    userAnswers.forEach((key, value) {
+      userAnswersConverted[key.toString()] = value;
+    });
+
+    // Convert correctAnswersMap Map<int, String> to Map<String, dynamic> for Firestore
+    final correctAnswersMapConverted = <String, dynamic>{};
+    correctAnswersMap.forEach((key, value) {
+      correctAnswersMapConverted[key.toString()] = value;
+    });
+
     return {
       'id': id,
       'userId': userId,
@@ -80,10 +92,8 @@ class TestHistory {
       'listeningScore': listeningScore,
       'readingScore': readingScore,
       'totalScore': totalScore,
-      'userAnswers': userAnswers.map((k, v) => MapEntry(k.toString(), v)),
-      'correctAnswersMap': correctAnswersMap.map(
-        (k, v) => MapEntry(k.toString(), v),
-      ),
+      'userAnswers': userAnswersConverted,
+      'correctAnswersMap': correctAnswersMapConverted,
       'incorrectQuestions': incorrectQuestions,
       'timeSpent': timeSpent,
       'partScores': partScores,

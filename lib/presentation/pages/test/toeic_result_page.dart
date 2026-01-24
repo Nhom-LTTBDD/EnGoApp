@@ -1,12 +1,14 @@
 // lib/presentation/pages/test/toeic_result_page.dart
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/routes/app_routes.dart';
 import '../../../domain/entities/toeic_test_session.dart';
 import '../../../domain/entities/toeic_question.dart';
 import '../../../domain/entities/test_history.dart';
 import '../../../data/services/firebase_firestore_service.dart';
+import '../../providers/auth/auth_provider.dart';
 
 class ToeicResultPage extends StatefulWidget {
   final ToeicTestSession? session;
@@ -102,11 +104,17 @@ class _ToeicResultPageState extends State<ToeicResultPage> {
         };
       }
 
+      // Get actual user ID from AuthProvider
+      final userId = context.read<AuthProvider>().currentUser?.id;
+      if (userId == null) {
+        print('User not authenticated, cannot save test history');
+        return;
+      }
+
       // Create history object
       final history = TestHistory(
         id: 'test_${DateTime.now().millisecondsSinceEpoch}',
-        userId:
-            'user_${DateTime.now().millisecondsSinceEpoch}', // TODO: Get actual user ID
+        userId: userId,
         testId: 'test1',
         testName: widget.testName,
         completedAt: DateTime.now(),
