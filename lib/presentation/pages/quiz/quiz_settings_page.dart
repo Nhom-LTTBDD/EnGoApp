@@ -1,4 +1,5 @@
 // lib/presentation/pages/vocabulary/quiz_settings_page.dart
+import 'package:en_go_app/presentation/widgets/quiz/quiz_language_selector.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/theme/theme_helper.dart';
@@ -9,6 +10,7 @@ import '../../../domain/entities/quiz_language_mode.dart';
 import '../../../data/repositories/vocabulary_repository_impl.dart';
 import '../../widgets/vocabulary/quiz_language_selector_sheet.dart';
 import '../../layout/main_layout.dart';
+import '../../widgets/quiz/quiz_build_info.dart';
 
 /// Page thiết lập quiz trước khi làm bài
 /// Cho phép người dùng cấu hình:
@@ -114,6 +116,11 @@ class _QuizSettingsPageState extends State<QuizSettingsPage> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MainLayout(
       title: 'VOCABULARY',
@@ -150,6 +157,14 @@ class _QuizSettingsPageState extends State<QuizSettingsPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.arrow_back,
+                                    color: getTextPrimary(context),
+                                  ),
+                                  // Pop back to quiz by topic page (don't push new page)
+                                  onPressed: () => Navigator.pop(context),
+                                ),
                                 Text(
                                   'Thiết lập bài kiểm tra',
                                   style: TextStyle(
@@ -158,26 +173,29 @@ class _QuizSettingsPageState extends State<QuizSettingsPage> {
                                     color: getTextPrimary(context),
                                   ),
                                 ),
-                                Icon(
-                                  Icons.checklist_sharp,
-                                  color: Theme.of(context).primaryColor,
-                                  size: 40,
-                                ),
+                                const SizedBox(width: 48), // Placeholder
                               ],
                             ),
 
                             const SizedBox(height: spaceLg),
 
                             // Số câu hỏi (read-only)
-                            _buildInfoRow(
+                            BuildInfoRow(
                               label: 'Số câu hỏi',
-                              displayValue: '$_cardCount',
+                              value: '$_cardCount',
                             ),
 
                             const SizedBox(height: spaceMd),
 
                             // Trả lời bằng (clickable)
-                            _buildLanguageSelector(),
+                            QuizLanguageSelector(
+                              questionLanguage: _questionLanguage,
+                              answerLanguage: _answerLanguage,
+                              onSelectQuestionLanguage: () =>
+                                  _showLanguageSelector(
+                                    isQuestionLanguage: false,
+                                  ),
+                            ),
 
                             const SizedBox(height: spaceMd),
                           ],
@@ -242,68 +260,5 @@ class _QuizSettingsPageState extends State<QuizSettingsPage> {
         ),
       ),
     );
-  }
-
-  Widget _buildInfoRow({required String label, required String displayValue}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(fontSize: 16, color: getTextPrimary(context)),
-            ),
-          ],
-        ),
-        Text(
-          displayValue,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: getTextPrimary(context),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLanguageSelector() {
-    return InkWell(
-      onTap: () => _showLanguageSelector(isQuestionLanguage: false),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: spaceSm),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Trả lời bằng',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: getTextPrimary(context),
-                  ),
-                ),
-                Text(
-                  _getLanguageModeText(_answerLanguage),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-              ],
-            ),
-            Icon(Icons.chevron_right, color: getTextThird(context)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _getLanguageModeText(QuizLanguageMode mode) {
-    return mode.displayText;
   }
 }

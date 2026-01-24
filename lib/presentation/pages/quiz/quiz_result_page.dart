@@ -1,9 +1,11 @@
 // lib/presentation/pages/vocabulary/quiz_result_page.dart
+import 'package:en_go_app/presentation/widgets/quiz/quiz_action_button.dart';
+import 'package:en_go_app/presentation/widgets/quiz/quiz_result_of_answer.dart';
+import 'package:en_go_app/presentation/widgets/quiz/quiz_score.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/theme/theme_helper.dart';
 import '../../../domain/entities/quiz_result.dart';
-import '../../../routes/app_routes.dart';
 import '../../layout/main_layout.dart';
 
 /// Page hiển thị kết quả quiz
@@ -56,44 +58,22 @@ class QuizResultPage extends StatelessWidget {
 
                           const SizedBox(height: spaceLg),
 
-                          // Score circle
-                          _buildScoreCircle(context),
-
-                          const SizedBox(height: spaceLg),
-
-                          // Correct/Wrong count
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _buildCountBadge(
-                                context,
-                                label: 'Đúng',
-                                count: result.correctAnswers,
-                                color: Colors.green,
-                                icon: Icons.check_circle,
-                              ),
-                              const SizedBox(width: spaceMd),
-                              _buildCountBadge(
-                                context,
-                                label: 'Sai',
-                                count: result.wrongAnswers,
-                                color: Colors.red,
-                                icon: Icons.cancel,
-                              ),
-                            ],
-                          ),
+                          // Score
+                          QuizScore(result: result),
 
                           const SizedBox(height: spaceLg),
 
                           // Answer details
-                          _buildAnswerDetails(context),
+                          QuizResultOfAnswer(result: result),
+
+                          const SizedBox(height: spaceLg),
                         ],
                       ),
                     ),
                   ),
 
                   // Action buttons
-                  _buildActionButtons(context),
+                  QuizActionButtons(result: result),
                 ],
               ),
             ),
@@ -101,262 +81,5 @@ class QuizResultPage extends StatelessWidget {
         ), // Close MainLayout child (Container)
       ),
     ); // Close PopScope
-  }
-
-  Widget _buildScoreCircle(BuildContext context) {
-    final percentage = result.scorePercentage;
-    final color = percentage >= 80
-        ? getSuccessColor(context)
-        : percentage >= 60
-        ? getWarningColor(context)
-        : getErrorColor(context);
-
-    return Container(
-      width: 150,
-      height: 150,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: color, width: 8),
-      ),
-      child: Center(
-        child: Text(
-          '$percentage%',
-          style: TextStyle(
-            fontSize: 48,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCountBadge(
-    BuildContext context, {
-    required String label,
-    required int count,
-    required Color color,
-    required IconData icon,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.4)),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 32),
-          const SizedBox(height: spaceSm),
-          Text(
-            '$count',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: getTextPrimary(context),
-            ),
-          ),
-          Text(label, style: TextStyle(fontSize: 14, color: color)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAnswerDetails(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(spaceMd),
-      decoration: BoxDecoration(
-        color: getSurfaceColor(context),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: getBorderColor(context)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Đáp án của bạn',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: getTextPrimary(context),
-            ),
-          ),
-          const SizedBox(height: spaceMd),
-          ...result.questionResults.asMap().entries.map((entry) {
-            final index = entry.key;
-            final questionResult = entry.value;
-            return _buildAnswerRow(context, index + 1, questionResult);
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAnswerRow(
-    BuildContext context,
-    int questionNumber,
-    QuestionResult questionResult,
-  ) {
-    final color = questionResult.isCorrect
-        ? getSuccessColor(context)
-        : getErrorColor(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: spaceSm),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Question number
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-              border: Border.all(color: color.withOpacity(0.4)),
-            ),
-            child: Center(
-              child: Text(
-                '$questionNumber',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: getTextPrimary(context),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: spaceSm),
-          // Answer details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  questionResult.questionText,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: getTextPrimary(context),
-                  ),
-                ),
-                if (!questionResult.isCorrect) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    'Nghĩa sai: ${questionResult.userAnswer}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: getErrorColor(context),
-                    ),
-                  ),
-                  Text(
-                    'Nghĩa đúng: ${questionResult.correctAnswer}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: getSuccessColor(context),
-                    ),
-                  ),
-                ] else ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    'Đúng',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: getSuccessColor(context),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          // Status icon
-          Icon(
-            questionResult.isCorrect ? Icons.check_circle : Icons.cancel,
-            color: color,
-            size: 24,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(BuildContext context) {
-    return Column(
-      children: [
-        // Retry button - Go back to quiz settings
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () {
-              // Pop back to quiz settings (which is before quiz page that was replaced)
-              // Since quiz page was replaced by result page, we need to pop result
-              // and push settings again
-              Navigator.of(context).pop(); // Pop result page
-              Navigator.pushNamed(
-                context,
-                AppRoutes.quizSettings,
-                arguments: {
-                  'topicId': result.topicId,
-                  'topicName': result.topicName,
-                },
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.edit_note, color: Colors.white),
-                SizedBox(width: 8),
-                Text(
-                  'Làm bài kiểm tra mới',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: spaceSm),
-        // Back to home
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            onPressed: () {
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                AppRoutes.vocab,
-                (route) => false,
-              );
-            },
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              side: BorderSide(color: getBorderColor(context)),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(
-              'Về trang chủ',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: getTextPrimary(context),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
   }
 }
