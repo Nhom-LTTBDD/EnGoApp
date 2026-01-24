@@ -265,20 +265,6 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
               ),
             ),
 
-            // Debug: Check all questions for imageUrl
-            Builder(
-              builder: (context) {
-                if (question.questionNumber == 62 ||
-                    question.questionNumber == 63 ||
-                    question.questionNumber == 64 ||
-                    question.questionNumber == 66 ||
-                    question.questionNumber == 69) {
-                  // Debug info đã được xóa để clean up code
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-
             // Audio player cho listening parts (Part 1-4)
             // Chỉ hiển thị khi question có audioUrl và thuộc listening parts
             if (question.audioUrl != null && question.partNumber <= 4)
@@ -580,18 +566,8 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start, // Align trái
         children: [
-          // Hiển thị thông tin debug audio URL khi ở debug mode
           Consumer<ToeicTestProvider>(
             builder: (context, audioProvider, child) {
-              // Debug logs
-              print('🎵 Audio Player State: ${audioProvider.isAudioPlaying}');
-              print(
-                '🎵 Audio Duration: ${audioProvider.audioDuration.inSeconds}s',
-              );
-              print(
-                '🎵 Audio Position: ${audioProvider.audioPosition.inSeconds}s',
-              );
-
               return Row(
                 children: [
                   // Play/Pause button - Nút phát/tạm dừng audio
@@ -1141,8 +1117,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                 // Clear test state sau khi đã navigate
                 provider.finishTest();
               } catch (e) {
-                // Log lỗi nếu có vấn đề khi finish test
-                debugPrint('Error finishing test: $e');
+                // Ignore errors when finishing test
               }
             },
             child: const Text('Submit', style: TextStyle(color: Colors.green)),

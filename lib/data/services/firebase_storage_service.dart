@@ -17,15 +17,11 @@ class FirebaseStorageService {
   /// Enable Firebase Storage (default state)
   static void enableFirebaseStorage() {
     _useFirebaseStorage = true;
-    print('🔥 Firebase Storage enabled - will load data from cloud');
   }
 
   /// Disable Firebase Storage for fallback scenarios
   static void disableFirebaseStorage() {
     _useFirebaseStorage = false;
-    print(
-      '🚫 Firebase Storage disabled - all future calls will use local assets',
-    );
   }
 
   // Base paths trong Firebase Storage - gs://engoapp-91373.firebasestorage.app
@@ -38,20 +34,15 @@ class FirebaseStorageService {
   /// Load JSON data từ Firebase Storage
   static Future<Map<String, dynamic>> loadJsonData() async {
     if (!_useFirebaseStorage) {
-      print('🔄 Firebase Storage disabled, using local assets directly');
       return await _loadLocalJsonData();
     }
 
     try {
-      print('🔥 Loading JSON from Firebase Storage...');
-
       // Get download URL của JSON file với timeout
       final ref = _storage.ref(_jsonPath);
       final downloadUrl = await ref.getDownloadURL().timeout(
         const Duration(seconds: 5),
       );
-
-      print('🔥 JSON download URL: $downloadUrl');
 
       // Download JSON content với timeout
       final response = await http
@@ -60,20 +51,14 @@ class FirebaseStorageService {
 
       if (response.statusCode == 200) {
         final jsonString = response.body;
-        print('🔥 JSON loaded successfully, length: ${jsonString.length}');
 
         final data = json.decode(jsonString);
-        print('🔥 JSON parsed successfully');
-        print('🔥 Available tests: ${data.keys.toList()}');
 
         return data;
       } else {
         throw Exception('Failed to load JSON: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ Error loading JSON from Firebase: $e');
-      print('🔍 Error type: ${e.runtimeType}');
-
       if (e.toString().contains('Object not found') ||
           e.toString().contains('object-not-found') ||
           e.toString().contains('404')) {
@@ -155,9 +140,6 @@ class FirebaseStorageService {
       }
 
       final questionsData = partData['questions'] as List<dynamic>;
-      print(
-        '🔥 Loading ${questionsData.length} questions for part $partNumber from Firebase',
-      );
 
       final questions = <ToeicQuestion>[];
 
@@ -211,18 +193,11 @@ class FirebaseStorageService {
             passageText: questionData['passageText'],
           );
           questions.add(question);
-
-          print(
-            '✅ Processed question ${question.questionNumber} with Firebase URLs',
-          );
         } catch (e) {
           print('❌ Error creating question: $e');
         }
       }
 
-      print(
-        '🔥 Successfully loaded ${questions.length} questions from Firebase',
-      );
       return questions;
     } catch (e) {
       print('❌ Error loading questions from Firebase: $e');
@@ -461,7 +436,6 @@ class FirebaseStorageService {
       final downloadUrl = await ref.getDownloadURL().timeout(
         const Duration(seconds: 5),
       );
-      print('🎵 Audio URL resolved: $audioFile');
       return downloadUrl;
     } catch (e) {
       print('❌ Error getting audio URL for $audioFile: $e');

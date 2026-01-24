@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../../domain/entities/toeic_question.dart';
+import '../../../../data/services/firebase_storage_service.dart';
 
 class ToeicReviewPage extends StatefulWidget {
   final List<ToeicQuestion> questions;
@@ -25,6 +26,10 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
   String? currentAudioFile;
   Duration currentPosition = Duration.zero;
   Duration totalDuration = Duration.zero;
+
+  // Cache cho Firebase Storage URLs
+  final Map<String, String> _imageUrlCache = {};
+  final Map<String, String> _audioUrlCache = {};
 
   @override
   void initState() {
@@ -99,27 +104,34 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
   // Phương thức phát audio cho câu hỏi listening
   Future<void> _playAudio(String audioUrl) async {
     try {
-      // Chuyển đổi URL thành asset path để phát từ local assets
-      String assetPath = audioUrl;
-      if (!audioUrl.startsWith('audio/')) {
-        // Nếu audioUrl là full path, extract chỉ filename
-        final fileName = audioUrl.split('/').last;
-        assetPath = 'audio/toeic_test1/$fileName';
+      // Lấy Firebase Storage URL từ cache hoặc resolve từ Firebase
+      String firebaseUrl;
+      if (_audioUrlCache.containsKey(audioUrl)) {
+        firebaseUrl = _audioUrlCache[audioUrl]!;
+      } else {
+        // Resolve audio URL từ Firebase Storage
+        final url = await FirebaseStorageService.getAudioDownloadUrl(audioUrl);
+        if (url != null) {
+          firebaseUrl = url;
+          _audioUrlCache[audioUrl] = url;
+        } else {
+          throw Exception('Không thể tải audio từ Firebase Storage');
+        }
       }
 
       // Kiểm tra nếu đang phát audio này thì pause, ngược lại thì play
-      if (currentAudioFile == assetPath && isPlaying) {
+      if (currentAudioFile == audioUrl && isPlaying) {
         await audioPlayer?.pause();
         setState(() {
           isPlaying = false;
         });
       } else {
-        // Dừng audio hiện tại và phát audio mới
+        // Dừng audio hiện tại và phát audio từ Firebase URL
         await audioPlayer?.stop();
-        await audioPlayer?.play(AssetSource(assetPath));
+        await audioPlayer?.play(UrlSource(firebaseUrl));
         setState(() {
           isPlaying = true;
-          currentAudioFile = assetPath;
+          currentAudioFile = audioUrl;
         });
       }
     } catch (e) {
@@ -212,6 +224,103 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
     );
   }
 
+  // Widget hiển thị hình ảnh từ Firebase Storage
+  Widget _buildFirebaseImage(String imageUrl, {double? width, double? height}) {
+    return FutureBuilder<String?>(
+      future: _getFirebaseImageUrl(imageUrl),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            width: width,
+            height: height ?? 250,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
+              color: Colors.grey[100],
+            ),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasError || !snapshot.hasData) {
+          return Container(
+            width: width,
+            height: height ?? 250,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
+              color: Colors.grey[100],
+            ),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error, color: Colors.grey[400], size: 40),
+                  SizedBox(height: 8),
+                  Text(
+                    'Không thể tải hình',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            snapshot.data!,
+            width: width,
+            height: height ?? 250,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                width: width,
+                height: height ?? 250,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.grey[100],
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error, color: Colors.grey[400], size: 40),
+                      SizedBox(height: 8),
+                      Text(
+                        'Lỗi tải hình',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  // Helper method để lấy Firebase Storage URL với cache
+  Future<String?> _getFirebaseImageUrl(String imageUrl) async {
+    if (_imageUrlCache.containsKey(imageUrl)) {
+      return _imageUrlCache[imageUrl];
+    }
+
+    try {
+      final url = await FirebaseStorageService.getImageDownloadUrl(imageUrl);
+      if (url != null) {
+        _imageUrlCache[imageUrl] = url;
+      }
+      return url;
+    } catch (e) {
+      print('Error loading Firebase image: $e');
+      return null;
+    }
+  }
+
   // Widget hiển thị hình ảnh của câu hỏi (single image hoặc multiple images)
   Widget _buildImages() {
     final question = currentQuestion;
@@ -225,20 +334,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: Colors.grey[300]!),
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.asset(
-            question!.imageUrl!,
-            fit: BoxFit.contain,
-            // Error handler nếu không load được hình
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                padding: EdgeInsets.all(20),
-                child: Text('Không thể tải hình: ${question.imageUrl}'),
-              );
-            },
-          ),
-        ),
+        child: _buildFirebaseImage(question!.imageUrl!),
       );
     }
 
@@ -259,20 +355,10 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.grey[300]!),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  question.imageUrls![index],
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      padding: EdgeInsets.all(20),
-                      child: Text(
-                        'Không thể tải hình: ${question.imageUrls![index]}',
-                      ),
-                    );
-                  },
-                ),
+              child: _buildFirebaseImage(
+                question.imageUrls![index],
+                width: 300,
+                height: 250,
               ),
             );
           },
