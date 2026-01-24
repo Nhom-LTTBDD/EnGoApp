@@ -112,11 +112,11 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                   ),
                 ],
               ),
-              backgroundColor: Colors.red,
+              backgroundColor: getErrorColor(context),
               duration: const Duration(seconds: 8),
               action: SnackBarAction(
                 label: 'RETRY',
-                textColor: Colors.white,
+                textColor: getSurfaceColor(context),
                 onPressed: () {
                   Navigator.pop(context);
                 },
@@ -505,8 +505,8 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                       'Time: ${_formatDuration(remainingTime)}',
                       style: TextStyle(
                         color: remainingTime.inMinutes < 5
-                            ? Colors.red
-                            : Colors.white,
+                            ? getErrorColor(context)
+                            : getSurfaceColor(context),
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
@@ -522,7 +522,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                   backgroundColor: Theme.of(
                     context,
                   ).primaryColor.withOpacity(0.8),
-                  foregroundColor: Colors.white,
+                  foregroundColor: getSurfaceColor(context),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 12,
@@ -579,7 +579,9 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                             ? Icons.pause
                             : Icons.play_arrow,
                         size: 30, // Kích thước icon
-                        color: Colors.grey[400], // Màu xanh khi đang phát
+                        color: Theme.of(
+                          context,
+                        ).primaryColor, // Màu xanh khi đang phát
                       ),
                       padding: EdgeInsets.zero, // Không có padding
                     ),
@@ -595,9 +597,11 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                           ? audioProvider.audioPosition.inSeconds /
                                 audioProvider.audioDuration.inSeconds
                           : 0.0, // Giá trị 0 khi chưa có audio
-                      backgroundColor: Colors.grey[300], // Màu nền progress bar
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Color(0xFF4CAF50), // Màu xanh lá cho progress
+                      backgroundColor: getBorderColor(
+                        context,
+                      ), // Màu nền progress bar
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        getSuccessColor(context), // Màu xanh lá cho progress
                       ),
                       minHeight: 8, // Chiều cao minimum của progress bar
                     ),
@@ -632,8 +636,8 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
             ),
             child: Text(
               'Q${question.questionNumber}', // Hiển thị số câu hỏi
-              style: const TextStyle(
-                color: Colors.white, // Màu chữ trắng
+              style: TextStyle(
+                color: getSurfaceColor(context), // Màu chữ trắng
                 fontWeight: FontWeight.bold, // Font weight đậm
               ),
             ),
@@ -672,10 +676,17 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
       padding: const EdgeInsets.all(15),
       margin: const EdgeInsets.only(bottom: 15),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: getSurfaceColor(context).withOpacity(0.3),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(passage, style: const TextStyle(fontSize: 15, height: 1.5)),
+      child: Text(
+        passage,
+        style: TextStyle(
+          fontSize: 15,
+          height: 1.5,
+          color: getTextPrimary(context),
+        ),
+      ),
     );
   }
 
@@ -799,20 +810,25 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isSelected
-                        ? const Color(0xFF1E90FF) // Màu xanh dương khi chọn
-                        : Colors.grey[400], // Màu xám khi không chọn
+                        ? Theme.of(context)
+                              .primaryColor // Màu xanh dương khi chọn
+                        : getDisabledColor(context), // Màu xám khi không chọn
                   ),
                   child: isSelected
-                      ? const Icon(Icons.check, color: Colors.white, size: 16)
+                      ? Icon(
+                          Icons.check,
+                          color: getSurfaceColor(context),
+                          size: 16,
+                        )
                       : null,
                 ),
                 const SizedBox(width: 12),
                 Text(
                   '$optionLetter.',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 18,
-                    color: Colors.black87,
+                    color: getTextPrimary(context),
                   ),
                 ),
               ],
@@ -852,7 +868,11 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                 builder: (context) => const TranslationHelperDialog(),
               );
             },
-            icon: const Icon(Icons.translate, color: Colors.white, size: 28),
+            icon: Icon(
+              Icons.translate,
+              color: getSurfaceColor(context),
+              size: 28,
+            ),
             tooltip: 'Translation Helper',
           ),
         ),
@@ -876,9 +896,9 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                 _showFinishConfirmation(context, provider);
               }
             },
-            icon: const Icon(
+            icon: Icon(
               Icons.arrow_forward,
-              color: Colors.white,
+              color: getSurfaceColor(context),
               size: 28,
             ),
           ),
@@ -992,22 +1012,25 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                       height: 36, // Chiều cao cố định 36px cho mỗi ô
                       decoration: BoxDecoration(
                         color: isCurrent
-                            ? const Color(
-                                0xFF1E90FF,
-                              ) // Màu xanh dương cho câu hiện tại
+                            ? Theme.of(context)
+                                  .primaryColor // Màu xanh dương cho câu hiện tại
                             : isAnswered
-                            ? Colors.grey[400] // Màu xám cho câu đã trả lời
-                            : Colors.white, // Màu trắng cho câu chưa trả lời
+                            ? getDisabledColor(
+                                context,
+                              ) // Màu xám cho câu đã trả lời
+                            : getSurfaceColor(
+                                context,
+                              ), // Màu trắng cho câu chưa trả lời
                         border: Border.all(
-                          color: Colors.grey[300]!,
+                          color: getBorderColor(context),
                           width: 1,
                         ), // Viền xám nhạt dày 1px
                         borderRadius: BorderRadius.circular(6), // Bo góc 6px
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(
-                              0.1,
-                            ), // Màu bóng đen trong suốt 10%
+                            color: getTextPrimary(
+                              context,
+                            ).withOpacity(0.1), // Màu bóng đen trong suốt 10%
                             offset: const Offset(
                               0,
                               2,
@@ -1022,9 +1045,10 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                               .toString(), // Hiển thị số thứ tự câu hỏi thực tế
                           style: TextStyle(
                             color: isCurrent
-                                ? Colors.white
-                                : Colors
-                                      .black87, // Màu chữ: trắng nếu đang chọn, đen nếu không
+                                ? getSurfaceColor(context)
+                                : getTextPrimary(
+                                    context,
+                                  ), // Màu chữ: trắng nếu đang chọn, đen nếu không
                             fontWeight:
                                 FontWeight.w600, // Độ đậm font: semibold
                             fontSize: 14, // Cỡ chữ 14px

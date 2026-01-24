@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../../layout/main_layout.dart';
+import '../../../core/theme/theme_helper.dart';
 import '../../../domain/entities/test_history.dart';
 import '../../../data/services/firebase_firestore_service.dart';
 import '../../../routes/app_routes.dart';
@@ -70,31 +71,31 @@ class _TestHistoryPageState extends State<TestHistoryPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.history, size: 100, color: Colors.grey[400]),
+          Icon(Icons.history, size: 100, color: getDisabledColor(context)),
           const SizedBox(height: 20),
           Text(
             'Chưa có lịch sử làm bài',
             style: TextStyle(
               fontSize: 18,
-              color: Colors.grey[600],
+              color: getTextSecondary(context),
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 10),
           Text(
             'Hãy thử làm bài TOEIC đầu tiên!',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+            style: TextStyle(fontSize: 14, color: getTextThird(context)),
           ),
           const SizedBox(height: 30),
           ElevatedButton(
             onPressed: () => Navigator.pushNamed(context, AppRoutes.toeic),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
+              backgroundColor: Theme.of(context).primaryColor,
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
             ),
-            child: const Text(
+            child: Text(
               'Làm Bài TOEIC',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: getSurfaceColor(context)),
             ),
           ),
         ],
@@ -128,9 +129,13 @@ class _TestHistoryPageState extends State<TestHistoryPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '📊 Thống Kê Tổng Quan',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              'Thống Kê Tổng Quan',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: getTextSecondary(context),
+              ),
             ),
             const SizedBox(height: 15),
             Row(
@@ -140,7 +145,7 @@ class _TestHistoryPageState extends State<TestHistoryPage> {
                     'Số bài đã làm',
                     '${_statistics['totalTests'] ?? 0}',
                     Icons.quiz,
-                    Colors.blue,
+                    Theme.of(context).primaryColor,
                   ),
                 ),
                 Expanded(
@@ -148,7 +153,7 @@ class _TestHistoryPageState extends State<TestHistoryPage> {
                     'Điểm cao nhất',
                     '${_statistics['bestScore'] ?? 0}',
                     Icons.star,
-                    Colors.orange,
+                    getWarningColor(context),
                   ),
                 ),
               ],
@@ -161,7 +166,7 @@ class _TestHistoryPageState extends State<TestHistoryPage> {
                     'Điểm trung bình',
                     '${(_statistics['averageScore'] ?? 0.0).round()}',
                     Icons.trending_up,
-                    Colors.green,
+                    getSuccessColor(context),
                   ),
                 ),
                 Expanded(
@@ -169,7 +174,7 @@ class _TestHistoryPageState extends State<TestHistoryPage> {
                     'Độ chính xác',
                     '${(_statistics['averageAccuracy'] ?? 0.0).round()}%',
                     Icons.mail,
-                    Colors.purple,
+                    Theme.of(context).colorScheme.secondary,
                   ),
                 ),
               ],
@@ -295,10 +300,10 @@ class _TestHistoryPageState extends State<TestHistoryPage> {
   }
 
   Color _getScoreColor(int score) {
-    if (score >= 800) return Colors.green;
-    if (score >= 600) return Colors.orange;
-    if (score >= 400) return Colors.red;
-    return Colors.grey;
+    if (score >= 800) return getSuccessColor(context);
+    if (score >= 600) return getWarningColor(context);
+    if (score >= 400) return getErrorColor(context);
+    return getDisabledColor(context);
   }
 
   void _showHistoryDetail(TestHistory history) {
@@ -321,7 +326,8 @@ class _TestHistoryPageState extends State<TestHistoryPage> {
             children: [
               Text(
                 'Chi Tiết Kết Quả',
-                style: const TextStyle(
+                style: TextStyle(
+                  color: getTextSecondary(context),
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -350,9 +356,12 @@ class _TestHistoryPageState extends State<TestHistoryPage> {
           ),
 
           const SizedBox(height: 20),
-          const Text(
-            '📊 Kết Quả Theo Parts:',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          Text(
+            'Kết Quả Theo Parts:',
+            style: TextStyle(
+              color: getTextSecondary(context),
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 10),
 
@@ -367,7 +376,10 @@ class _TestHistoryPageState extends State<TestHistoryPage> {
                 return ListTile(
                   leading: CircleAvatar(
                     backgroundColor: Colors.blue,
-                    child: Text('$part'),
+                    child: Text(
+                      '$part',
+                      style: const TextStyle(color: Colors.white),
+                    ),
                   ),
                   title: Text('Part $part'),
                   subtitle: Text(
@@ -397,7 +409,7 @@ class _TestHistoryPageState extends State<TestHistoryPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey[600])),
+          Text(label, style: TextStyle(color: getTextSecondary(context))),
           Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
         ],
       ),
