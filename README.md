@@ -19,19 +19,23 @@
 
 ## ✨ Tính năng chính
 
-| 🔐 Xác thực & Hồ sơ                   | 📚 Học từ vựng & Flashcard             |
-| :------------------------------------ | :------------------------------------- |
-| • Đăng nhập Email & Google            | • Danh sách từ vựng theo chủ đề        |
-| • Quản lý hồ sơ cá nhân               | • Thêm từ vựng cá nhân                 |
-| • Theo dõi chuỗi học tập (**Streak**) | • Hệ thống **Flashcard thông minh**    |
-| • Bảo mật dữ liệu người dùng          | • Phát âm chuẩn với **Text-to-Speech** |
+### 🔐 Xác thực & Cá nhân hóa
 
-| 📝 Luyện thi TOEIC              | 🌐 Dịch thuật & Ngữ pháp          |
-| :------------------------------ | :-------------------------------- |
-| • Luyện tập các dạng bài TOEIC  | • Dịch văn bản đa ngôn ngữ        |
-| • Chấm điểm tự động             | • Kho bài giảng ngữ pháp chi tiết |
-| • Xem lại đáp án & Giải thích   | • Ví dụ minh họa & Bài tập        |
-| • Lưu lịch sử & Biểu đồ tiến bộ | • Hỗ trợ dịch nhanh từ mới        |
+- **Multi-Login:** Hỗ trợ Email/Password và Google Sign-In.
+- **Gamification:** Hệ thống **Streak** tạo động lực học tập hàng ngày.
+- **Profile:** Quản lý thông tin và lưu trữ tiến độ học tập trên Cloud.
+
+### 📚 Học tập thông minh (Smart Learning)
+
+- **Vocabulary:** Học theo chủ đề hoặc tự tạo bộ từ vựng cá nhân.
+- **Spaced Repetition:** Flashcard thông minh giúp ghi nhớ dài hạn.
+- **Audio:** Tích hợp **TTS** giúp luyện nghe và phát âm chuẩn xác.
+
+### 📝 Luyện thi & Dịch thuật
+
+- **TOEIC Mastery:** Làm bài test như thật với hệ thống chấm điểm và lưu lịch sử.
+- **Quick Translate:** Công cụ dịch thuật nhanh chóng hỗ trợ đọc hiểu tài liệu.
+- **Grammar:** Hệ thống bài học từ cơ bản đến nâng cao kèm bài tập thực hành.
 
 ## 🏗️ Kiến trúc
 
@@ -95,6 +99,7 @@ en_go_app/
 ---
 
 ## 👥 Contributors
+
 <table align="center">
   <thead>
     <tr>
