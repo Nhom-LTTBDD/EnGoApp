@@ -151,7 +151,7 @@ class _ToeicResultPageState extends State<ToeicResultPage> {
 
     return MainLayout(
       title: "TOEIC",
-      currentIndex: 1,
+      currentIndex: -1,
       child: Container(
         width: double.infinity,
         decoration: const BoxDecoration(
