@@ -6,14 +6,12 @@ import '../../../core/constants/app_spacing.dart';
 class SourceInputWidget extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onClear;
-  final ValueChanged<String> onChanged;
   final VoidCallback? onSpeak;
 
   const SourceInputWidget({
     super.key,
     required this.controller,
     required this.onClear,
-    required this.onChanged,
     this.onSpeak,
   });
 
@@ -67,7 +65,7 @@ class SourceInputWidget extends StatelessWidget {
           // Text field
           TextField(
             controller: controller,
-            maxLines: 6,
+            maxLines: 4,
             decoration: InputDecoration(
               hintText: 'Nhập hoặc dán văn bản cần dịch...',
               hintStyle: TextStyle(color: getTextThird(context)),
@@ -79,7 +77,6 @@ class SourceInputWidget extends StatelessWidget {
               color: getTextPrimary(context),
               height: 1.5,
             ),
-            onChanged: onChanged,
           ),
 
           // Footer
