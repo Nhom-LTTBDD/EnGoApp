@@ -116,6 +116,8 @@ en_go_app/
   <img src="assets/screenshots/vocabulary.png" width="250" alt="Vocabulary"/>
   <img src="assets/screenshots/flashcard.png" width="250" alt="Flashcard"/>
   <img src="assets/screenshots/test.png" width="250" alt="test">
+  <img src="assets/screenshots/profile.png" width="250" alt="profile">
+  <img src="assets/screenshots/translation.png" width="250" alt="translation">
 </div>
 
 ---
