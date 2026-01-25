@@ -24,21 +24,16 @@ class QuizActionButtons extends StatelessWidget {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () {
-              // Navigation depends on mode:
-              // - Flashcard mode: [Vocab] → [Topic(flashcard)] → [Flashcard Result] → [Settings] → [Quiz] → [Result]
-              //   After "retry": Pop to Topic(flashcard), then push Settings
-              // - Quiz mode: [Vocab] → [Topic(quiz)] → [Settings] → [Quiz] → [Result]
-              //   After "retry": Pop to Topic(quiz), then push Settings
+              // Simply pop back to quiz settings and push it again
+              // This works because Result page replaced Quiz page
+              // Stack: [...previous pages] → Settings → [Result (replaced Quiz)]
+              // After pop: [...previous pages] → Settings
+              // After push: [...previous pages] → Settings → New Settings
 
-              // Pop until we reach the topic selection page
-              Navigator.of(context).popUntil(
-                (route) =>
-                    route.settings.name == AppRoutes.vocabByTopic ||
-                    route.isFirst,
-              );
+              Navigator.pop(context); // Pop Result page
 
-              // Then push settings again for the same topic
-              Navigator.pushNamed(
+              // Then push settings again for retry
+              Navigator.pushReplacementNamed(
                 context,
                 AppRoutes.quizSettings,
                 arguments: {

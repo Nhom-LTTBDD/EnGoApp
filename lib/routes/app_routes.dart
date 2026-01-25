@@ -179,6 +179,7 @@ class RouteGenerator {
         final args = settings.arguments as Map<String, dynamic>?;
         final mode = args?['mode'] as TopicSelectionMode?;
         return MaterialPageRoute(
+          settings: settings, // Add this to enable route.settings.name check
           builder: (_) =>
               VocabByTopicPage(mode: mode ?? TopicSelectionMode.flashcard),
         );
