@@ -98,33 +98,16 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
 
       // Kiểm tra nếu không load được questions nào
       if (questions.isEmpty) {
-        // Hiển thị error message với hướng dẫn khắc phục
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'No questions available for selected parts',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
+            const SnackBar(
+              content: Text('No questions available'),
               backgroundColor: Colors.red,
-              duration: const Duration(seconds: 8),
-              action: SnackBarAction(
-                label: 'RETRY',
-                textColor: Colors.white,
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
+              duration: Duration(seconds: 5),
             ),
           );
         }
-        return; // Dừng xử lý nếu không có questions
+        return;
       }
     }
 
@@ -158,9 +141,6 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
   // Main build method - tạo UI chính cho trang test
   @override
   Widget build(BuildContext context) {
-    if (kDebugMode) {
-      print('[ToeicTestTakingPage] build() called - rebuilding page');
-    }
     return MainLayout(
       title: widget.testName, // Hiển thị tên test trên header
       currentIndex: -1, // Không highlight bottom nav item nào
@@ -242,11 +222,6 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     ToeicTestProvider provider,
     ToeicQuestion question,
   ) {
-    if (kDebugMode) {
-      print(
-        '[_buildSingleQuestion] Building question ${question.questionNumber}',
-      );
-    }
     return Expanded(
       child: SingleChildScrollView(
         // Cho phép scroll khi content dài
@@ -707,11 +682,6 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
           padding: const EdgeInsets.only(bottom: 12),
           child: GestureDetector(
             onTap: () {
-              if (kDebugMode) {
-                print(
-                  '[_buildOptions] Question ${question.questionNumber}, Answer $optionLetter',
-                );
-              }
               provider.selectAnswer(question.questionNumber, optionLetter);
             },
             child: Row(
@@ -782,11 +752,6 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
           padding: const EdgeInsets.only(bottom: 12),
           child: GestureDetector(
             onTap: () {
-              if (kDebugMode) {
-                print(
-                  '[_buildSimpleOptions] Question ${question.questionNumber}, Answer $optionLetter',
-                );
-              }
               provider.selectAnswer(question.questionNumber, optionLetter);
             },
             child: Row(
@@ -1179,11 +1144,6 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     double? height,
     BoxFit fit = BoxFit.contain,
   }) {
-    if (kDebugMode) {
-      print('[_buildImageWidget] Building image: $imageUrl');
-    }
-
-    // Sử dụng ImageDisplayWidget riêng để tránh rebuild
     return ImageDisplayWidget(
       imageUrl: imageUrl,
       width: width,
@@ -1213,12 +1173,6 @@ class ImageContainerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (kDebugMode) {
-      print(
-        '[ImageContainerWidget.build] Container for: $imageUrl (key: $key)',
-      );
-    }
-
     return RepaintBoundary(
       key: ValueKey('image_container_$imageUrl'),
       child: Container(
@@ -1230,11 +1184,6 @@ class ImageContainerWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           child: Builder(
             builder: (context) {
-              if (kDebugMode) {
-                print(
-                  '[ImageContainerWidget.Builder] Creating ImageDisplayWidget for: $imageUrl',
-                );
-              }
               return ImageDisplayWidget(
                 imageUrl: imageUrl,
                 width: double.infinity,
@@ -1281,25 +1230,13 @@ class _ImageDisplayWidgetState extends State<ImageDisplayWidget> {
   @override
   void initState() {
     super.initState();
-    if (kDebugMode) {
-      print(
-        '[_ImageDisplayWidgetState.initState] Creating future for: ${widget.imageUrl}',
-      );
-    }
-    // Tạo future CHỈ MỘT LẦN trong initState - KHÔNG tạo mới trong mỗi build
     _urlFuture = _getCachedFirebaseUrl(widget.imageUrl ?? '');
   }
 
   @override
   void didUpdateWidget(ImageDisplayWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Nếu imageUrl thay đổi, tạo future mới
     if (oldWidget.imageUrl != widget.imageUrl) {
-      if (kDebugMode) {
-        print(
-          '[_ImageDisplayWidgetState.didUpdateWidget] URL changed: ${oldWidget.imageUrl} -> ${widget.imageUrl}',
-        );
-      }
       _urlFuture = _getCachedFirebaseUrl(widget.imageUrl ?? '');
     }
   }
@@ -1308,45 +1245,20 @@ class _ImageDisplayWidgetState extends State<ImageDisplayWidget> {
   Widget build(BuildContext context) {
     if (widget.imageUrl == null) return const SizedBox.shrink();
 
-    if (kDebugMode) {
-      print(
-        '[_ImageDisplayWidgetState.build] Building image: ${widget.imageUrl}',
-      );
-    }
-
     // Handle Firebase Storage reference
     if (widget.imageUrl!.startsWith('firebase_image:')) {
-      // Tạo key duy nhất cho widget để tránh rebuild không cần thiết
-      final widgetKey = widget.imageWidgetKeys.putIfAbsent(widget.imageUrl!, () {
-        if (kDebugMode) {
-          print(
-            '[_ImageDisplayWidgetState] Creating NEW ValueKey for: ${widget.imageUrl}',
-          );
-        }
-        return ValueKey(widget.imageUrl);
-      });
-
-      if (kDebugMode) {
-        print(
-          '[_ImageDisplayWidgetState] FutureBuilder key: $widgetKey, imageUrl: ${widget.imageUrl}',
-        );
-      }
+      final widgetKey = widget.imageWidgetKeys.putIfAbsent(
+        widget.imageUrl!,
+        () {
+          return ValueKey(widget.imageUrl);
+        },
+      );
 
       return FutureBuilder<String?>(
         key: widgetKey,
-        future: _urlFuture, // ← SỬ DỤNG FUTURE TỬ STATE, KHÔNG TẠO MỚI!
+        future: _urlFuture,
         builder: (context, snapshot) {
-          if (kDebugMode) {
-            print(
-              '[_ImageDisplayWidgetState.FutureBuilder] imageUrl=${widget.imageUrl}, state=${snapshot.connectionState}, hasData=${snapshot.hasData}',
-            );
-          }
           if (snapshot.connectionState == ConnectionState.waiting) {
-            if (kDebugMode) {
-              print(
-                '[_ImageDisplayWidgetState.FutureBuilder.waiting] Loading: ${widget.imageUrl}',
-              );
-            }
             return Container(
               width: widget.width,
               height: widget.height,
@@ -1356,37 +1268,15 @@ class _ImageDisplayWidgetState extends State<ImageDisplayWidget> {
           }
 
           if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-            if (kDebugMode) {
-              print(
-                '[_ImageDisplayWidgetState.FutureBuilder.error] Error: ${snapshot.error}, imageUrl: ${widget.imageUrl}',
-              );
-            }
             return Container(
               width: widget.width,
               height: widget.height,
               color: Colors.grey[300],
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error, color: Colors.red, size: 48),
-                    SizedBox(height: 8),
-                    Text(
-                      'Error loading image from Firebase',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ],
-                ),
-              ),
+              child: const Center(child: Text('Error loading image')),
             );
           }
 
-          // Load image từ Firebase Storage URL với cache tốt hư
-          if (kDebugMode) {
-            print(
-              '[_ImageDisplayWidgetState.FutureBuilder.done] Rendering image.network: ${widget.imageUrl} -> ${snapshot.data}',
-            );
-          }
+          // Load image từ Firebase Storage URL
           return RepaintBoundary(
             key: ValueKey('repaint_${snapshot.data!}'),
             child: Image.network(
@@ -1409,55 +1299,21 @@ class _ImageDisplayWidgetState extends State<ImageDisplayWidget> {
                   : null,
               loadingBuilder: (context, child, loadingProgress) {
                 if (loadingProgress == null) {
-                  if (kDebugMode) {
-                    print(
-                      '[Image.network.loadingBuilder] Image loaded: ${widget.imageUrl}',
-                    );
-                  }
                   return child;
-                }
-                if (kDebugMode && loadingProgress.cumulativeBytesLoaded == 0) {
-                  print(
-                    '[Image.network.loadingBuilder] Start loading: ${widget.imageUrl}, total: ${loadingProgress.expectedTotalBytes}',
-                  );
                 }
                 return Container(
                   width: widget.width,
                   height: widget.height,
                   color: Colors.grey[200],
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                          : null,
-                    ),
-                  ),
+                  child: const Center(child: CircularProgressIndicator()),
                 );
               },
               errorBuilder: (context, error, stackTrace) {
-                if (kDebugMode) {
-                  print(
-                    '[Image.network.errorBuilder] Error loading: ${widget.imageUrl}, error: $error',
-                  );
-                }
                 return Container(
                   width: widget.width,
                   height: widget.height,
                   color: Colors.grey[300],
-                  child: const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.error, color: Colors.red, size: 48),
-                        SizedBox(height: 8),
-                        Text(
-                          'Network image failed',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ],
-                    ),
-                  ),
+                  child: const Center(child: Text('Error')),
                 );
               },
             ),
@@ -1493,44 +1349,19 @@ class _ImageDisplayWidgetState extends State<ImageDisplayWidget> {
   }
 
   Future<String?> _getCachedFirebaseUrl(String imageUrl) async {
-    if (kDebugMode) {
-      print('[_getCachedFirebaseUrl] Checking cache for: $imageUrl');
-    }
-
     if (widget.imageUrlCache.containsKey(imageUrl)) {
       final cachedUrl = widget.imageUrlCache[imageUrl];
-      if (kDebugMode) {
-        print(
-          '[_getCachedFirebaseUrl] Cache HIT for $imageUrl, returning: $cachedUrl',
-        );
-      }
       if (cachedUrl != null) {
         return cachedUrl;
       }
     }
 
-    if (kDebugMode) {
-      print(
-        '[_getCachedFirebaseUrl] Cache MISS for $imageUrl, fetching from Firebase...',
-      );
-    }
     try {
-      if (kDebugMode) {
-        print(
-          '[_getCachedFirebaseUrl] Calling FirebaseStorageService.resolveFirebaseUrl($imageUrl)',
-        );
-      }
       final url = await FirebaseStorageService.resolveFirebaseUrl(imageUrl);
       widget.imageUrlCache[imageUrl] = url;
-      if (kDebugMode) {
-        print('[_getCachedFirebaseUrl] Cache SAVED for $imageUrl -> $url');
-      }
       return url;
     } catch (e) {
       widget.imageUrlCache[imageUrl] = null;
-      if (kDebugMode) {
-        print('[_getCachedFirebaseUrl] Cache ERROR for $imageUrl: $e');
-      }
       return null;
     }
   }

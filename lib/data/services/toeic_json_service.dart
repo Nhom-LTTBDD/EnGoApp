@@ -1,8 +1,5 @@
 // lib/data/services/toeic_json_service.dart
 
-import 'dart:convert';
-import 'package:flutter/services.dart';
-
 import '../../domain/entities/toeic_question.dart';
 import '../../domain/entities/toeic_test.dart';
 import 'firebase_storage_service.dart';
@@ -17,23 +14,12 @@ class ToeicJsonService {
 
   /// ==============================
   /// LOAD QUESTIONS BY PART
-  /// Load questions theo thứ tự ưu tiên:
-  /// Firebase Storage -> Local Assets -> Demo
   /// ==============================
   static Future<List<ToeicQuestion>> loadQuestionsByPart(
     String testId,
     int partNumber,
   ) async {
-    try {
-      // Thử load từ Firebase Storage trước
-      return await _loadQuestionsFromFirebaseStorage(testId, partNumber);
-    } catch (firebaseError) {
-      try {
-        return await _loadQuestionsFromLocalAssets(testId, partNumber);
-      } catch (localError) {
-        return _createDemoQuestions(testId, partNumber);
-      }
-    }
+    return await _loadQuestionsFromFirebaseStorage(testId, partNumber);
   }
 
   /// Load questions từ Firebase Storage
@@ -41,9 +27,7 @@ class ToeicJsonService {
     String testId,
     int partNumber,
   ) async {
-    print('🔥 Firebase Storage: load | test=$testId | part=$partNumber');
-
-    // Sử dụng FirebaseStorageService để load JSON data trực tiếp
+    // Load JSON data từ Firebase Storage
     final jsonData = await FirebaseStorageService.loadJsonData();
 
     // Parse JSON để lấy questions cho test và part cụ thể
@@ -91,41 +75,6 @@ class ToeicJsonService {
     allQuestions.sort((a, b) => a.questionNumber.compareTo(b.questionNumber));
 
     return allQuestions;
-  }
-
-  /// ==============================
-  /// LOCAL ASSETS LOADER
-  /// ==============================
-  static Future<List<ToeicQuestion>> _loadQuestionsFromLocalAssets(
-    String testId,
-    int partNumber,
-  ) async {
-    print('📁 Local assets: load | test=$testId | part=$partNumber');
-
-    final jsonString = await rootBundle.loadString(
-      'assets/toeic_questions.json',
-    );
-    final Map<String, dynamic> data = json.decode(jsonString);
-
-    final testData = data[testId];
-    if (testData == null) {
-      throw Exception('Test $testId not found');
-    }
-
-    final parts = testData['parts'] as Map<String, dynamic>;
-    final partData = parts[partNumber.toString()];
-    if (partData == null) {
-      throw Exception('Part $partNumber not found');
-    }
-
-    final questionsData = partData['questions'] as List<dynamic>;
-    final questions = <ToeicQuestion>[];
-
-    for (final q in questionsData) {
-      questions.add(_mapJsonToQuestion(testId, partNumber, q));
-    }
-
-    return questions;
   }
 
   /// ==============================
@@ -208,28 +157,5 @@ class ToeicJsonService {
     }
 
     return grouped;
-  }
-
-  /// ==============================
-  /// DEMO QUESTIONS (LAST FALLBACK)
-  /// ==============================
-  static List<ToeicQuestion> _createDemoQuestions(
-    String testId,
-    int partNumber,
-  ) {
-    return [
-      ToeicQuestion(
-        id: 'demo_${partNumber}_1',
-        testId: testId,
-        partNumber: partNumber,
-        questionNumber: partNumber * 10,
-        questionType: 'demo',
-        questionText: 'Demo question for Part $partNumber',
-        options: ['A', 'B', 'C', 'D'],
-        correctAnswer: 'A',
-        explanation: 'Demo explanation',
-        order: partNumber * 10,
-      ),
-    ];
   }
 }
