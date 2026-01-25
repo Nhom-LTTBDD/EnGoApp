@@ -7,6 +7,7 @@ import 'package:en_go_app/routes/app_routes.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/theme_helper.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -39,20 +40,18 @@ class HomePage extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isDark
-                      ? Colors.white.withOpacity(0.1)
-                      : Colors.white.withOpacity(0.6),
+                  color: getSurfaceColor(
+                    context,
+                  ).withOpacity(isDark ? 0.1 : 0.6),
                   boxShadow: [
                     BoxShadow(
-                      color: isDark
-                          ? Colors.blue.withOpacity(0.3)
-                          : const Color(0xFF1196EF).withOpacity(0.25),
+                      color: Theme.of(context).primaryColor.withOpacity(0.3),
                       blurRadius: 20,
                       spreadRadius: 5,
                     ),
                     if (!isDark)
                       BoxShadow(
-                        color: Colors.white.withOpacity(0.8),
+                        color: getSurfaceColor(context).withOpacity(0.8),
                         blurRadius: 10,
                         spreadRadius: -5,
                         offset: const Offset(-5, -5),
@@ -68,7 +67,7 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 30),
               Text(
                 'Welcome to Home Page',
-                style: kH1.copyWith(color: const Color(0xFF1196EF)),
+                style: kH1.copyWith(color: Theme.of(context).primaryColor),
               ),
               const SizedBox(height: 20),
               _buildMenuButton(
@@ -130,7 +129,7 @@ class HomePage extends StatelessWidget {
         width: 200,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFFFFF).withOpacity(isDark ? 0.1 : 1),
+          color: getSurfaceColor(context).withOpacity(isDark ? 0.1 : 1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: buttonColor, width: 2),
           boxShadow: [
@@ -146,7 +145,7 @@ class HomePage extends StatelessWidget {
           text,
           textAlign: TextAlign.center,
           style: kBodyEmphasized.copyWith(
-            color: isDark ? Colors.white : buttonColor,
+            color: isDark ? getTextPrimary(context) : buttonColor,
             fontSize: 16,
             fontWeight: FontWeight.w700,
           ),

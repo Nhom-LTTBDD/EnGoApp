@@ -7,6 +7,7 @@ import '../../../core/theme/theme_helper.dart';
 import '../../../routes/app_routes.dart';
 import '../../widgets/flashcard/flashcard_action_button.dart';
 import '../../widgets/flashcard/flashcard_score_progress.dart';
+import '../vocabulary/vocab_by_topic_page.dart';
 
 /// Trang hiển thị kết quả học tập flashcard
 class FlashcardResultPage extends StatelessWidget {
@@ -88,7 +89,7 @@ class FlashcardResultPage extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: Colors.green,
+                              color: getSuccessColor(context),
                             ),
                           )
                         else
@@ -184,7 +185,11 @@ class FlashcardResultPage extends StatelessWidget {
               Navigator.pushNamed(
                 context,
                 AppRoutes.quizSettings,
-                arguments: {'topicId': topicId, 'topicName': topicName},
+                arguments: {
+                  'topicId': topicId,
+                  'topicName': topicName,
+                  'mode': TopicSelectionMode.flashcard,
+                },
               );
             },
           ),

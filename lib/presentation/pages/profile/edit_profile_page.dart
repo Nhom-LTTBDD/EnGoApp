@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/theme_helper.dart';
 import '../../providers/profile/profile_provider.dart';
 import '../../providers/profile/profile_state.dart';
 import '../../widgets/common/app_button.dart';
@@ -220,20 +221,26 @@ class _EditProfilePageState extends State<EditProfilePage> {
         labelText: 'Họ và tên',
         prefixIcon: Icon(
           Icons.person_outlined,
-          color: _nameFocusNode.hasFocus ? kPrimaryColor : Colors.grey.shade600,
+          color: _nameFocusNode.hasFocus
+              ? Theme.of(context).primaryColor
+              : getTextSecondary(context),
         ),
-        labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 16),
-        floatingLabelStyle: const TextStyle(color: kPrimaryColor, fontSize: 14),
+        labelStyle: TextStyle(color: getTextSecondary(context), fontSize: 16),
+        floatingLabelStyle: TextStyle(
+          color: Theme.of(context).primaryColor,
+          fontSize: 14,
+        ),
         filled: true,
-        fillColor: (themeExt?.cardBackground ?? Colors.white).withOpacity(
-          themeExt?.surfaceOpacity ?? 0.9,
-        ),
+        fillColor: getCardBackground(context).withOpacity(0.9),
         border: const OutlineInputBorder(),
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey.shade400, width: 1.5),
+          borderSide: BorderSide(color: getBorderColor(context), width: 1.5),
         ),
-        focusedBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: kPrimaryColor, width: 2.5),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Theme.of(context).primaryColor,
+            width: 2.5,
+          ),
         ),
         errorBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: kDanger, width: 1.5),
@@ -264,15 +271,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         decoration: BoxDecoration(
-          color: (themeExt?.cardBackground ?? Colors.white).withOpacity(
-            themeExt?.surfaceOpacity ?? 0.9,
-          ),
-          border: Border.all(color: Colors.grey.shade400, width: 1.5),
+          color: getCardBackground(context).withOpacity(0.9),
+          border: Border.all(color: getBorderColor(context), width: 1.5),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
           children: [
-            Icon(Icons.cake_outlined, color: Colors.grey.shade600),
+            Icon(Icons.cake_outlined, color: getTextSecondary(context)),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -282,12 +287,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 style: TextStyle(
                   fontSize: 16,
                   color: _selectedDate != null
-                      ? Theme.of(context).textTheme.bodyLarge?.color
-                      : Colors.grey[600],
+                      ? getTextPrimary(context)
+                      : getTextSecondary(context),
                 ),
               ),
             ),
-            const Icon(Icons.calendar_today, color: kPrimaryColor),
+            Icon(Icons.calendar_today, color: Theme.of(context).primaryColor),
           ],
         ),
       ),

@@ -13,12 +13,14 @@ import '../../../domain/entities/vocabulary_card.dart';
 import '../../../domain/entities/question_type.dart';
 import '../../../data/repositories/vocabulary_repository_impl.dart';
 import '../../../routes/app_routes.dart';
+import '../vocabulary/vocab_by_topic_page.dart';
 
 /// Page làm quiz theo topic
 class QuizPage extends StatefulWidget {
   final QuizConfig config;
+  final TopicSelectionMode mode;
 
-  const QuizPage({super.key, required this.config});
+  const QuizPage({super.key, required this.config, required this.mode});
 
   @override
   State<QuizPage> createState() => _QuizPageState();
@@ -223,7 +225,7 @@ class _QuizPageState extends State<QuizPage> {
     Navigator.pushReplacementNamed(
       context,
       AppRoutes.quizResult,
-      arguments: {'result': result},
+      arguments: {'result': result, 'mode': widget.mode},
     );
   }
 

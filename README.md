@@ -39,13 +39,34 @@
 
 ## 🏗️ Kiến trúc
 
-Ứng dụng được xây dựng theo kiến trúc **Clean Architecture** với 3 lớp chính:
+<p>Ứng dụng được xây dựng theo kiến trúc <strong>Clean Architecture</strong> với 3 lớp chính:</p>
 
-| Lớp              | Công nghệ                         | Mô tả                               |
-| ---------------- | --------------------------------- | ----------------------------------- |
-| **Presentation** | Flutter, Provider                 | Giao diện người dùng, quản lý state |
-| **Domain**       | Dart, Equatable, Dartz            | Business logic, Use cases, Entities |
-| **Data**         | Firebase, HTTP, SharedPreferences | Repository, Data sources, Models    |
+<table align='center'>
+  <thead>
+    <tr>
+      <th>Lớp</th>
+      <th>Công nghệ</th>
+      <th>Mô tả</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Presentation</strong></td>
+      <td>Flutter, Provider</td>
+      <td>Giao diện người dùng, quản lý state</td>
+    </tr>
+    <tr>
+      <td><strong>Domain</strong></td>
+      <td>Dart, Equatable, Dartz</td>
+      <td>Business logic, Use cases, Entities</td>
+    </tr>
+    <tr>
+      <td><strong>Data</strong></td>
+      <td>Firebase, HTTP, SharedPreferences</td>
+      <td>Repository, Data sources, Models</td>
+    </tr>
+  </tbody>
+</table>
 
 ### 📁 Cấu trúc thư mục
 
@@ -91,9 +112,12 @@ en_go_app/
 ## 📸 Screenshots
 
 <div align="center">
-  <img src="docs/screenshots/home.png" width="250" alt="Home Screen"/>
-  <img src="docs/screenshots/vocabulary.png" width="250" alt="Vocabulary"/>
-  <img src="docs/screenshots/flashcard.png" width="250" alt="Flashcard"/>
+  <img src="assets/screenshots/home.png" width="250" alt="Home Screen"/>
+  <img src="assets/screenshots/vocabulary.png" width="250" alt="Vocabulary"/>
+  <img src="assets/screenshots/flashcard.png" width="250" alt="Flashcard"/>
+  <img src="assets/screenshots/test.png" width="250" alt="test">
+  <img src="assets/screenshots/profile.png" width="250" alt="profile">
+  <img src="assets/screenshots/translation.png" width="250" alt="translation">
 </div>
 
 ---
@@ -130,7 +154,7 @@ en_go_app/
           <sub><b>Trần Hoàng Phương</b></sub>
         </a>
       </td>
-      <td align="center"><b>Test Specialist</b></td>
+      <td align="center"><b>Member</b></td>
       <td>
         • Phát triển toàn bộ module <b>Làm bài Test</b><br />
         • Xử lý logic <b>chấm điểm</b> và hiển thị kết quả bài thi
@@ -143,7 +167,7 @@ en_go_app/
           <sub><b>Trần Tuấn Anh</b></sub>
         </a>
       </td>
-      <td align="center"><b>Interactive Dev</b></td>
+      <td align="center"><b>Member</b></td>
       <td>
         • Hệ thống <b>Flashcard</b> học tập thông minh<br />
         • Công cụ <b>Dịch từ vựng</b> và các bài <b>Quiz</b> củng cố
@@ -156,7 +180,7 @@ en_go_app/
           <sub><b>Hồ Tấn Đạt</b></sub>
         </a>
       </td>
-      <td align="center"><b>Content Dev</b></td>
+      <td align="center"><b>Member</b></td>
       <td>
         • Hệ thống kho từ vựng <b>Vocabulary</b><br />
         • Xây dựng bài học và bài tập <b>Ngữ pháp (Grammar)</b>
@@ -164,9 +188,3 @@ en_go_app/
     </tr>
   </tbody>
 </table>
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
----

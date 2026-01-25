@@ -50,6 +50,26 @@ Color getCardBackground(BuildContext context) {
 
 /// Gradient colors cho background
 List<Color> getBackgroundGradient(BuildContext context) {
-  return getThemeExtension(context)?.backgroundGradientColors ?? 
+  return getThemeExtension(context)?.backgroundGradientColors ??
       [const Color(0xFFFFFFFF), const Color(0xFFB2E0FF)];
+}
+
+/// Màu success (green)
+Color getSuccessColor(BuildContext context) {
+  return getThemeExtension(context)?.successColor ?? const Color(0xFF4CAF50);
+}
+
+/// Màu warning (orange)
+Color getWarningColor(BuildContext context) {
+  return getThemeExtension(context)?.warningColor ?? const Color(0xFFFF9800);
+}
+
+/// Màu error (red)
+Color getErrorColor(BuildContext context) {
+  return getThemeExtension(context)?.errorColor ?? const Color(0xFFF44336);
+}
+
+/// Màu disabled
+Color getDisabledColor(BuildContext context) {
+  return getThemeExtension(context)?.disabledColor ?? const Color(0xFFBDBDBD);
 }

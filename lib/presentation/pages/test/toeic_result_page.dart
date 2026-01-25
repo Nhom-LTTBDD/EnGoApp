@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/routes/app_routes.dart';
+import '../../../core/theme/theme_helper.dart';
 import '../../../domain/entities/toeic_test_session.dart';
 import '../../../domain/entities/toeic_question.dart';
 import '../../../domain/entities/test_history.dart';
@@ -154,14 +155,7 @@ class _ToeicResultPageState extends State<ToeicResultPage> {
       currentIndex: -1,
       child: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF1E90FF), Color(0xFFE0E0E0)],
-            stops: [0.0, 0.3],
-          ),
-        ),
+        color: getBackgroundColor(context),
         child: Column(
           children: [
             // Header
@@ -169,14 +163,14 @@ class _ToeicResultPageState extends State<ToeicResultPage> {
               padding: const EdgeInsets.all(15),
               child: Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'TOEIC',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Theme.of(context).primaryColor,
                       ),
                     ),
                   ),
@@ -190,10 +184,10 @@ class _ToeicResultPageState extends State<ToeicResultPage> {
               child: Text(
                 widget.testName,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1E90FF),
+                  color: Theme.of(context).primaryColor,
                 ),
               ),
             ),
@@ -205,7 +199,7 @@ class _ToeicResultPageState extends State<ToeicResultPage> {
                 margin: const EdgeInsets.all(20),
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: getSurfaceColor(context),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -219,12 +213,12 @@ class _ToeicResultPageState extends State<ToeicResultPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // TEST RESULT Title
-                    const Text(
+                    Text(
                       'TEST RESULT',
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey,
+                        color: getTextSecondary(context),
                         letterSpacing: 2,
                       ),
                     ),
@@ -239,37 +233,37 @@ class _ToeicResultPageState extends State<ToeicResultPage> {
                             children: [
                               Text(
                                 'LISTENING: ${widget.listeningScore}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.grey,
+                                  color: getTextSecondary(context),
                                 ),
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 'Correct: ${widget.listeningCorrect}/${widget.listeningTotal}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.green,
+                                  color: getSuccessColor(context),
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Wrong: ${widget.listeningWrong}/${widget.listeningTotal}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.red,
+                                  color: getErrorColor(context),
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Unanswered: ${widget.listeningUnanswered}/${widget.listeningTotal}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.orange,
+                                  color: getWarningColor(context),
                                 ),
                               ),
                             ],
@@ -282,37 +276,37 @@ class _ToeicResultPageState extends State<ToeicResultPage> {
                             children: [
                               Text(
                                 'READING: ${widget.readingScore}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.grey,
+                                  color: getTextSecondary(context),
                                 ),
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 'Correct: ${widget.readingCorrect}/${widget.readingTotal}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.green,
+                                  color: getSuccessColor(context),
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Wrong: ${widget.readingWrong}/${widget.readingTotal}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.red,
+                                  color: getErrorColor(context),
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Unanswered: ${widget.readingUnanswered}/${widget.readingTotal}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.orange,
+                                  color: getWarningColor(context),
                                 ),
                               ),
                             ],
@@ -328,16 +322,19 @@ class _ToeicResultPageState extends State<ToeicResultPage> {
                       height: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.green.withOpacity(0.2),
-                        border: Border.all(color: Colors.green, width: 4),
+                        color: getSuccessColor(context).withOpacity(0.2),
+                        border: Border.all(
+                          color: getSuccessColor(context),
+                          width: 4,
+                        ),
                       ),
                       child: Center(
                         child: Text(
                           widget.totalScore.toString(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 36,
                             fontWeight: FontWeight.bold,
-                            color: Colors.green,
+                            color: getSuccessColor(context),
                           ),
                         ),
                       ),
@@ -361,8 +358,8 @@ class _ToeicResultPageState extends State<ToeicResultPage> {
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF1E90FF),
-                              foregroundColor: Colors.white,
+                              backgroundColor: Theme.of(context).primaryColor,
+                              foregroundColor: getSurfaceColor(context),
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(25),
@@ -405,18 +402,18 @@ class _ToeicResultPageState extends State<ToeicResultPage> {
                                 );
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
+                                  SnackBar(
+                                    content: const Text(
                                       'Không có dữ liệu để xem lại bài làm!',
                                     ),
-                                    backgroundColor: Colors.red,
+                                    backgroundColor: getErrorColor(context),
                                   ),
                                 );
                               }
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              foregroundColor: Colors.white,
+                              backgroundColor: getSuccessColor(context),
+                              foregroundColor: getSurfaceColor(context),
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(25),
