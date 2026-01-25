@@ -130,7 +130,7 @@ en_go_app/
           <sub><b>Trần Hoàng Phương</b></sub>
         </a>
       </td>
-      <td align="center"><b>Test Specialist</b></td>
+      <td align="center"><b>Member</b></td>
       <td>
         • Phát triển toàn bộ module <b>Làm bài Test</b><br />
         • Xử lý logic <b>chấm điểm</b> và hiển thị kết quả bài thi
@@ -143,7 +143,7 @@ en_go_app/
           <sub><b>Trần Tuấn Anh</b></sub>
         </a>
       </td>
-      <td align="center"><b>Interactive Dev</b></td>
+      <td align="center"><b>Member</b></td>
       <td>
         • Hệ thống <b>Flashcard</b> học tập thông minh<br />
         • Công cụ <b>Dịch từ vựng</b> và các bài <b>Quiz</b> củng cố
@@ -156,7 +156,7 @@ en_go_app/
           <sub><b>Hồ Tấn Đạt</b></sub>
         </a>
       </td>
-      <td align="center"><b>Content Dev</b></td>
+      <td align="center"><b>Member</b></td>
       <td>
         • Hệ thống kho từ vựng <b>Vocabulary</b><br />
         • Xây dựng bài học và bài tập <b>Ngữ pháp (Grammar)</b>
