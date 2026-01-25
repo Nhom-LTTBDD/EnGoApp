@@ -39,13 +39,34 @@
 
 ## 🏗️ Kiến trúc
 
-Ứng dụng được xây dựng theo kiến trúc **Clean Architecture** với 3 lớp chính:
+<p>Ứng dụng được xây dựng theo kiến trúc <strong>Clean Architecture</strong> với 3 lớp chính:</p>
 
-| Lớp              | Công nghệ                         | Mô tả                               |
-| ---------------- | --------------------------------- | ----------------------------------- |
-| **Presentation** | Flutter, Provider                 | Giao diện người dùng, quản lý state |
-| **Domain**       | Dart, Equatable, Dartz            | Business logic, Use cases, Entities |
-| **Data**         | Firebase, HTTP, SharedPreferences | Repository, Data sources, Models    |
+<table align='center'>
+  <thead>
+    <tr>
+      <th>Lớp</th>
+      <th>Công nghệ</th>
+      <th>Mô tả</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Presentation</strong></td>
+      <td>Flutter, Provider</td>
+      <td>Giao diện người dùng, quản lý state</td>
+    </tr>
+    <tr>
+      <td><strong>Domain</strong></td>
+      <td>Dart, Equatable, Dartz</td>
+      <td>Business logic, Use cases, Entities</td>
+    </tr>
+    <tr>
+      <td><strong>Data</strong></td>
+      <td>Firebase, HTTP, SharedPreferences</td>
+      <td>Repository, Data sources, Models</td>
+    </tr>
+  </tbody>
+</table>
 
 ### 📁 Cấu trúc thư mục
 
@@ -91,9 +112,10 @@ en_go_app/
 ## 📸 Screenshots
 
 <div align="center">
-  <img src="docs/screenshots/home.png" width="250" alt="Home Screen"/>
-  <img src="docs/screenshots/vocabulary.png" width="250" alt="Vocabulary"/>
-  <img src="docs/screenshots/flashcard.png" width="250" alt="Flashcard"/>
+  <img src="assets/screenshots/home.png" width="250" alt="Home Screen"/>
+  <img src="assets/screenshots/vocabulary.png" width="250" alt="Vocabulary"/>
+  <img src="assets/screenshots/flashcard.png" width="250" alt="Flashcard"/>
+  <img src="assets/screenshots/test.png" width="250" alt="test">
 </div>
 
 ---
@@ -164,9 +186,3 @@ en_go_app/
     </tr>
   </tbody>
 </table>
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
----
