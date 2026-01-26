@@ -188,16 +188,16 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
                     itemCount: topics.length,
                     itemBuilder: (context, index) {
                       final topic = topics[index];
-                      final emoji = _getTopicEmoji(topic.id);
-
-                      return Padding(
+                      final emoji = _getTopicEmoji(topic.id);                      return Padding(
                         padding: const EdgeInsets.only(bottom: spaceMd),
                         child: TopicCard(
                           title: topic.name,
                           subtitle: topic.description,
                           cardCount: topic.cards.length,
                           emoji: emoji,
-                          imageAsset: topic.imageUrl,
+                          // Use imageUrl for Firebase Storage, fallback to imageAsset for local
+                          imageUrl: (topic.imageUrl != null && topic.imageUrl!.startsWith('http')) ? topic.imageUrl : null,
+                          imageAsset: (topic.imageUrl != null && !topic.imageUrl!.startsWith('http')) ? topic.imageUrl : null,
                           onTap: () {
                             // Navigate dựa vào mode
                             if (widget.mode == TopicSelectionMode.flashcard) {
