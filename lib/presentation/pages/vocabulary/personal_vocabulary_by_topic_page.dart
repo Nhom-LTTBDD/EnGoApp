@@ -20,50 +20,56 @@ class PersonalVocabularyByTopicPage extends StatefulWidget {
 
 class _PersonalVocabularyByTopicPageState
     extends State<PersonalVocabularyByTopicPage> {
-  
-  // Topic metadata
+  // Topic metadata - Sử dụng Firebase Storage URLs giống vocab_by_topic_page
   final Map<String, Map<String, String>> _topicMetadata = {
     'food': {
       'emoji': '🍔',
       'name': 'Food & Drinks',
       'description': 'Từ vựng về đồ ăn và đồ uống',
-      'image': 'assets/images/food_drinks.png',
+      'image':
+          'https://storage.googleapis.com/engoapp-91373.firebasestorage.app/topic_images/food.png',
     },
     'business': {
       'emoji': '💼',
       'name': 'Business & Economics',
       'description': 'Từ vựng về kinh doanh và kinh tế',
-      'image': 'assets/images/business_economy.png',
+      'image':
+          'https://storage.googleapis.com/engoapp-91373.firebasestorage.app/topic_images/business.png',
     },
     'technology': {
       'emoji': '💻',
       'name': 'Technology',
       'description': 'Từ vựng về công nghệ',
-      'image': 'assets/images/technology.png',
+      'image':
+          'https://storage.googleapis.com/engoapp-91373.firebasestorage.app/topic_images/technology.png',
     },
     'travel': {
       'emoji': '✈️',
       'name': 'Travel',
       'description': 'Từ vựng về du lịch',
-      'image': 'assets/images/travel.png',
+      'image':
+          'https://storage.googleapis.com/engoapp-91373.firebasestorage.app/topic_images/travel.png',
     },
     'health': {
       'emoji': '🏥',
       'name': 'Health',
       'description': 'Từ vựng về sức khỏe',
-      'image': 'assets/images/health.png',
+      'image':
+          'https://storage.googleapis.com/engoapp-91373.firebasestorage.app/topic_images/health.png',
     },
     'education': {
       'emoji': '📚',
       'name': 'Education',
       'description': 'Từ vựng về giáo dục',
-      'image': 'assets/images/education.png',
+      'image':
+          'https://storage.googleapis.com/engoapp-91373.firebasestorage.app/topic_images/education.png',
     },
     'nature': {
       'emoji': '🌳',
       'name': 'Nature & Environment',
       'description': 'Từ vựng về thiên nhiên',
-      'image': 'assets/images/nature_environment.png',
+      'image':
+          'https://storage.googleapis.com/engoapp-91373.firebasestorage.app/topic_images/nature.png',
     },
   };
 
@@ -71,7 +77,8 @@ class _PersonalVocabularyByTopicPageState
   Widget build(BuildContext context) {
     return MainLayout(
       title: 'BỘ TỪ CỦA BẠN',
-      currentIndex: -1,      child: Container(
+      currentIndex: -1,
+      child: Container(
         width: double.infinity,
         decoration: BoxDecoration(color: getBackgroundColor(context)),
         child: Column(
@@ -85,7 +92,8 @@ class _PersonalVocabularyByTopicPageState
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [                  Text(
+                children: [
+                  Text(
                     'Bộ Từ Của Bạn',
                     style: TextStyle(
                       fontSize: 28,
@@ -114,16 +122,15 @@ class _PersonalVocabularyByTopicPageState
               child: Consumer<PersonalVocabularyProvider>(
                 builder: (context, provider, child) {
                   if (provider.isLoading) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (provider.error != null) {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [                          Icon(
+                        children: [
+                          Icon(
                             Icons.error_outline,
                             size: 64,
                             color: getTextThird(context),
@@ -152,7 +159,8 @@ class _PersonalVocabularyByTopicPageState
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [                          Icon(
+                        children: [
+                          Icon(
                             Icons.star_border,
                             size: 80,
                             color: getTextThird(context),
@@ -204,7 +212,8 @@ class _PersonalVocabularyByTopicPageState
                           subtitle: metadata['description']!,
                           cardCount: cardCount,
                           emoji: metadata['emoji']!,
-                          imageAsset: metadata['image']!,
+                          // Sử dụng imageUrl cho Firebase Storage (giống vocab_by_topic_page)
+                          imageUrl: metadata['image']!,
                           onTap: () {
                             // Navigate to personal vocab cards by topic
                             Navigator.pushNamed(
@@ -229,7 +238,7 @@ class _PersonalVocabularyByTopicPageState
   /// Group personal cards by their topic ID
   Map<String, int> _groupCardsByTopic(PersonalVocabularyProvider provider) {
     final cardsByTopic = <String, int>{};
-    
+
     for (final card in provider.personalCards) {
       // Extract topic ID from card ID (format: topicId_number)
       final topicId = _extractTopicId(card.id);

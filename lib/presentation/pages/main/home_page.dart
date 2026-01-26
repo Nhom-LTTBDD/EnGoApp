@@ -45,17 +45,10 @@ class HomePage extends StatelessWidget {
                   ).withOpacity(isDark ? 0.1 : 0.6),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).primaryColor.withOpacity(0.3),
-                      blurRadius: 20,
-                      spreadRadius: 5,
+                      color: Theme.of(context).primaryColor.withOpacity(0.2),
+                      blurRadius: 15,
+                      spreadRadius: 2,
                     ),
-                    if (!isDark)
-                      BoxShadow(
-                        color: getSurfaceColor(context).withOpacity(0.8),
-                        blurRadius: 10,
-                        spreadRadius: -5,
-                        offset: const Offset(-5, -5),
-                      ),
                   ],
                 ),
                 child: SvgPicture.asset(
@@ -134,10 +127,9 @@ class HomePage extends StatelessWidget {
           border: Border.all(color: buttonColor, width: 2),
           boxShadow: [
             BoxShadow(
-              color: buttonColor.withOpacity(0.4),
-              blurRadius: 8,
+              color: buttonColor.withOpacity(0.25),
+              blurRadius: 6,
               offset: const Offset(0, 2),
-              spreadRadius: 1,
             ),
           ],
         ),

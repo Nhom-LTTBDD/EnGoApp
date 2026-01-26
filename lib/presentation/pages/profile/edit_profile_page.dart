@@ -1,5 +1,7 @@
 // lib/presentation/pages/profile/edit_profile_page.dart
 // Trang chỉnh sửa thông tin profile
+// Cho phép user cập nhật họ tên và ngày sinh
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
@@ -84,6 +86,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   /// Xử lý lưu thông tin profile
+  /// Validate form trước khi gọi API update
   Future<void> _handleSave(BuildContext context) async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 

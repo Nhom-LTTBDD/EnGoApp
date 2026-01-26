@@ -29,10 +29,8 @@ class PersonalVocabularyProvider with ChangeNotifier {
     required DictionaryRepository dictionaryRepository,
   }) : _service = service,
        _vocabularyRepository = vocabularyRepository,
-       _dictionaryRepository = dictionaryRepository {
-    // Load personal vocabulary when provider is created
-    loadPersonalVocabulary();
-  }
+       _dictionaryRepository = dictionaryRepository;
+  // Note: Data will be loaded lazily when setUserId is called or when explicitly requested
 
   // Getters
   List<String> get bookmarkedCardIds => _bookmarkedCardIds;
@@ -50,9 +48,8 @@ class PersonalVocabularyProvider with ChangeNotifier {
       );
       _userId = userId;
       loadPersonalVocabulary();
-    } else {
-      _logInfo('PersonalVocabularyProvider: User ID already set to $userId');
     }
+    // Remove the "already set" log to reduce log spam
   }
 
   // Get current userId (for debugging)
@@ -60,9 +57,7 @@ class PersonalVocabularyProvider with ChangeNotifier {
   Future<void> loadPersonalVocabulary() async {
     // Don't load with default user - wait for real userId
     if (_userId == 'default_user') {
-      _logWarning(
-        'Skipping load with default_user - waiting for real userId',
-      );
+      _logWarning('Skipping load with default_user - waiting for real userId');
       return;
     }
 
@@ -87,17 +82,30 @@ class PersonalVocabularyProvider with ChangeNotifier {
       );
       _logInfo('Card IDs: ${_bookmarkedCardIds.join(", ")}');
 
-      // Load and enrich all cards
+      // Load and enrich all cards - PARALLEL loading for better performance
       _personalCards = [];
       var loadedCount = 0;
       var failedCount = 0;
 
       if (_bookmarkedCardIds.isNotEmpty) {
-        for (var i = 0; i < _bookmarkedCardIds.length; i++) {
-          final cardId = _bookmarkedCardIds[i];
-          _logInfo('Loading card ${i + 1}/${_bookmarkedCardIds.length}: $cardId');
+        // Load tất cả cards song song thay vì tuần tự
+        final loadFutures = _bookmarkedCardIds.asMap().entries.map((entry) {
+          final i = entry.key;
+          final cardId = entry.value;
+          _logInfo(
+            'Loading card ${i + 1}/${_bookmarkedCardIds.length}: $cardId',
+          );
+          return _loadAndEnrichCard(cardId);
+        });
 
-          final card = await _loadAndEnrichCard(cardId);
+        // Đợi tất cả load xong cùng lúc
+        final results = await Future.wait(loadFutures);
+
+        // Process results
+        for (var i = 0; i < results.length; i++) {
+          final card = results[i];
+          final cardId = _bookmarkedCardIds[i];
+
           if (card != null) {
             _personalCards.add(card);
             loadedCount++;
@@ -235,11 +243,15 @@ class PersonalVocabularyProvider with ChangeNotifier {
         final enrichedCard = await _dictionaryRepository.enrichVocabularyCard(
           card,
         );
-        _logInfo(' enriched successfully with phonetic: ${enrichedCard.phonetic ?? "N/A"}');
+        _logInfo(
+          ' enriched successfully with phonetic: ${enrichedCard.phonetic ?? "N/A"}',
+        );
         return enrichedCard;
       } catch (e) {
         // Nếu không enrich được, vẫn trả về card gốc
-        _logWarning('Could not enrich card ${card.english}, using original: $e');
+        _logWarning(
+          'Could not enrich card ${card.english}, using original: $e',
+        );
         return card;
       }
     } catch (e) {

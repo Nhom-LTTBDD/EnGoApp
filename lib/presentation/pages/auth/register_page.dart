@@ -1,5 +1,9 @@
 // lib/presentation/pages/auth/register_page.dart
+// Trang đăng ký tài khoản mới
+// Bao gồm: form nhập liệu, password strength indicator, validation
+
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:en_go_app/presentation/layout/auth_layout.dart';
 import 'package:en_go_app/core/constants/app_text_styles.dart';
@@ -8,6 +12,49 @@ import 'package:en_go_app/routes/app_routes.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/auth_state.dart';
 import '../../widgets/common/app_button.dart';
+
+// ============================================================================
+// Top-level function cho password strength calculation
+// Chạy trong isolate riêng để không block main thread
+// ============================================================================
+Map<String, dynamic> _calculatePasswordStrength(String password) {
+  double strength = 0.0;
+
+  if (password.isEmpty) {
+    return {'strength': 0.0, 'text': '', 'color': Colors.grey.value};
+  }
+
+  // Tính điểm dựa trên độ dài
+  if (password.length >= 8) strength += 0.3; // Mật khẩu tối thiểu 8 ký tự
+  if (password.length >= 12) strength += 0.1; // Thưởng nếu >= 12 ký tự
+
+  // Tính điểm dựa trên độ đa dạng ký tự
+  if (password.contains(RegExp(r'[A-Z]'))) strength += 0.2; // Chữ hoa
+  if (password.contains(RegExp(r'[a-z]'))) strength += 0.2; // Chữ thường
+  if (password.contains(RegExp(r'[0-9]'))) strength += 0.2; // Số
+  if (password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]')))
+    strength += 0.1; // Ký tự đặc biệt
+
+  String strengthText;
+  int strengthColor;
+
+  if (strength <= 0.3) {
+    strengthText = 'Yếu';
+    strengthColor = kDanger.value;
+  } else if (strength <= 0.6) {
+    strengthText = 'Trung bình';
+    strengthColor = Colors.orange.value;
+  } else {
+    strengthText = 'Mạnh';
+    strengthColor = Colors.green.value;
+  }
+
+  return {
+    'strength': strength.clamp(0.0, 1.0),
+    'text': strengthText,
+    'color': strengthColor,
+  };
+}
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -40,47 +87,20 @@ class _RegisterPageState extends State<RegisterPage> {
     _passwordController.addListener(_updatePasswordStrength);
   }
 
-  void _updatePasswordStrength() {
+  /// Cập nhật độ mạnh của mật khẩu
+  /// Chạy trong isolate riêng để tránh block main thread khi user nhập
+  void _updatePasswordStrength() async {
     final password = _passwordController.text;
-    double strength = 0.0;
 
-    if (password.isEmpty) {
-      setState(() {
-        _passwordStrength = 0.0;
-        _passwordStrengthText = '';
-        _passwordStrengthColor = Colors.grey;
-      });
-      return;
-    }
+    // Chạy tính toán trong isolate để không làm chậm UI
+    final result = await compute(_calculatePasswordStrength, password);
 
-    // Length check
-    if (password.length >= 8) strength += 0.3;
-    if (password.length >= 12) strength += 0.1;
-
-    // Character variety checks
-    if (password.contains(RegExp(r'[A-Z]'))) strength += 0.2;
-    if (password.contains(RegExp(r'[a-z]'))) strength += 0.2;
-    if (password.contains(RegExp(r'[0-9]'))) strength += 0.2;
-    if (password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) strength += 0.1;
-
-    String strengthText;
-    Color strengthColor;
-
-    if (strength <= 0.3) {
-      strengthText = 'Yếu';
-      strengthColor = kDanger;
-    } else if (strength <= 0.6) {
-      strengthText = 'Trung bình';
-      strengthColor = Colors.orange;
-    } else {
-      strengthText = 'Mạnh';
-      strengthColor = Colors.green;
-    }
+    if (!mounted) return;
 
     setState(() {
-      _passwordStrength = strength.clamp(0.0, 1.0);
-      _passwordStrengthText = strengthText;
-      _passwordStrengthColor = strengthColor;
+      _passwordStrength = result['strength'];
+      _passwordStrengthText = result['text'];
+      _passwordStrengthColor = Color(result['color']);
     });
   }
 

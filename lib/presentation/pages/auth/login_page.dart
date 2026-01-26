@@ -1,4 +1,7 @@
 // lib/presentation/pages/auth/login_page.dart
+// Trang đăng nhập
+// Bao gồm: form đăng nhập email/password, Google Sign In, forgot password link
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';

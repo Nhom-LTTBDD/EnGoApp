@@ -18,7 +18,10 @@ import 'presentation/providers/profile/streak_provider.dart';
 import 'presentation/providers/flashcard_progress_provider.dart';
 import 'routes/app_routes.dart';
 
-void main() {
+void main() async {
+  // Ensure Flutter is initialized before any async operations
+  WidgetsFlutterBinding.ensureInitialized();
+
   runApp(const MyApp());
 }
 
@@ -50,7 +53,8 @@ class _MyAppState extends State<MyApp> {
       final firestore = FirebaseFirestore.instance;
       firestore.settings = const Settings(
         persistenceEnabled: true, // Enable offline persistence
-        cacheSizeBytes: 10485760, // 10MB cache thay vì unlimited để giảm memory
+        cacheSizeBytes:
+            5242880, // 5MB cache để giảm memory pressure khi khởi động
       );
 
       // Initialize DI
@@ -79,9 +83,23 @@ class _MyAppState extends State<MyApp> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
-                CircularProgressIndicator(color: Color(0xFF1196EF)),
-                SizedBox(height: 16),
-                Text('Loading...', style: TextStyle(fontSize: 16)),
+                SizedBox(
+                  width: 60,
+                  height: 60,
+                  child: CircularProgressIndicator(
+                    color: Color(0xFF1196EF),
+                    strokeWidth: 4,
+                  ),
+                ),
+                SizedBox(height: 24),
+                Text(
+                  'Đang khởi tạo...',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF333333),
+                  ),
+                ),
               ],
             ),
           ),
@@ -93,12 +111,33 @@ class _MyAppState extends State<MyApp> {
     if (_error) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: Scaffold(body: Center(child: Text('Initialization Error'))),
+        home: Scaffold(
+          backgroundColor: Colors.white,
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                const Text(
+                  'Lỗi khởi tạo ứng dụng',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Vui lòng khởi động lại ứng dụng',
+                  style: TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     } // App initialized successfully
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()..loadTheme()),
+        // Load theme synchronously from DI-injected SharedPreferences
+        ChangeNotifierProvider(create: (_) => di.sl<ThemeProvider>()),
         ChangeNotifierProvider(create: (_) => di.sl<ProfileProvider>()),
 
         // ⚠️ AuthProvider PHẢI được tạo TRƯỚC PersonalVocabularyProvider
@@ -117,18 +156,18 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProxyProvider<AuthProvider, PersonalVocabularyProvider>(
           create: (_) => di.sl<PersonalVocabularyProvider>(),
           update: (_, authProvider, personalVocabProvider) {
+            final provider =
+                personalVocabProvider ?? di.sl<PersonalVocabularyProvider>();
             // Khi user login/logout, update userId trong PersonalVocabularyProvider
             if (authProvider.state is Authenticated) {
               final user = (authProvider.state as Authenticated).user;
-              print('Auth state: Authenticated - Setting userId: ${user.id}');
-              // Chạy async để không block main thread
-              Future.microtask(() => personalVocabProvider?.setUserId(user.id));
-            } else {
-              print(
-                'Auth state: Not authenticated - ${authProvider.state.runtimeType}',
-              );
+              // Chỉ update nếu userId khác với current userId
+              if (provider.currentUserId != user.id) {
+                // Defer loading để không block main thread
+                Future.microtask(() => provider.setUserId(user.id));
+              }
             }
-            return personalVocabProvider ?? di.sl<PersonalVocabularyProvider>();
+            return provider;
           },
         ),
 
@@ -136,14 +175,14 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProxyProvider<AuthProvider, StreakProvider>(
           create: (_) => di.sl<StreakProvider>(),
           update: (_, authProvider, streakProvider) {
+            final provider = streakProvider ?? di.sl<StreakProvider>();
             // Khi user login/logout, update userId trong StreakProvider
             if (authProvider.state is Authenticated) {
               final user = (authProvider.state as Authenticated).user;
-              print('Streak: Setting userId: ${user.id}');
-              // Chạy async để không block main thread
-              Future.microtask(() => streakProvider?.setUserId(user.id));
+              // Defer loading để không block main thread
+              Future.microtask(() => provider.setUserId(user.id));
             }
-            return streakProvider ?? di.sl<StreakProvider>();
+            return provider;
           },
         ),
 
@@ -151,14 +190,15 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProxyProvider<AuthProvider, FlashcardProgressProvider>(
           create: (_) => di.sl<FlashcardProgressProvider>(),
           update: (_, authProvider, progressProvider) {
+            final provider =
+                progressProvider ?? di.sl<FlashcardProgressProvider>();
             // Khi user login/logout, update userId trong FlashcardProgressProvider
             if (authProvider.state is Authenticated) {
               final user = (authProvider.state as Authenticated).user;
-              print('FlashcardProgress: Setting userId: ${user.id}');
-              // Chạy async để không block main thread
-              Future.microtask(() => progressProvider?.setUserId(user.id));
+              // Defer update để không block main thread
+              Future.microtask(() => provider.setUserId(user.id));
             }
-            return progressProvider ?? di.sl<FlashcardProgressProvider>();
+            return provider;
           },
         ),
 

@@ -5,29 +5,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeProvider extends ChangeNotifier {
   static const String _themeKey = 'theme_mode';
-  bool _isDarkMode = false;
-  bool _isLoading = false;
+  final SharedPreferences _prefs;
+  late bool _isDarkMode;
+
+  ThemeProvider(this._prefs) {
+    // Load theme synchronously from already-initialized SharedPreferences
+    _isDarkMode = _prefs.getBool(_themeKey) ?? false;
+  }
 
   bool get isDarkMode => _isDarkMode;
-  bool get isLoading => _isLoading;
-
-  /// Load theme từ SharedPreferences khi app khởi động
-  Future<void> loadTheme() async {
-    try {
-      _isLoading = true;
-      notifyListeners();
-
-      final prefs = await SharedPreferences.getInstance();
-      _isDarkMode = prefs.getBool(_themeKey) ?? false;
-
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error loading theme: $e');
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
 
   /// Toggle giữa light và dark mode
   Future<void> toggleTheme() async {
@@ -35,8 +21,7 @@ class ThemeProvider extends ChangeNotifier {
       _isDarkMode = !_isDarkMode;
       notifyListeners();
 
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_themeKey, _isDarkMode);
+      await _prefs.setBool(_themeKey, _isDarkMode);
     } catch (e) {
       debugPrint('Error saving theme: $e');
       // Revert nếu lỗi
@@ -53,8 +38,7 @@ class ThemeProvider extends ChangeNotifier {
       _isDarkMode = isDark;
       notifyListeners();
 
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_themeKey, _isDarkMode);
+      await _prefs.setBool(_themeKey, _isDarkMode);
     } catch (e) {
       debugPrint('Error setting theme: $e');
       _isDarkMode = !isDark;

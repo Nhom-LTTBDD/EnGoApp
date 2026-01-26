@@ -1,4 +1,7 @@
 // lib/presentation/pages/welcome/splash_page.dart
+// Trang splash - màn hình khởi động app
+// Kiểm tra trạng thái đăng nhập và điều hướng đến trang phù hợp
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../routes/app_routes.dart';
@@ -22,8 +25,13 @@ class _SplashPageState extends State<SplashPage> {
     });
   }
 
-  /// Kiểm tra auth status và navigate đến trang phù hợp
+  /// Kiểm tra trạng thái xác thực và điều hướng đến trang phù hợp
+  /// - Nếu đã đăng nhập: điều hướng đến home
+  /// - Nếu chưa đăng nhập: điều hướng đến welcome page
   Future<void> _checkAuthAndNavigate() async {
+    // Delay 1 giây để framework warmup và giảm startup frame drops
+    await Future.delayed(const Duration(milliseconds: 1000));
+
     final authProvider = context.read<AuthProvider>();
 
     // Kiểm tra auth status (silent - không trigger loading state)
@@ -45,14 +53,17 @@ class _SplashPageState extends State<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // App icon
             Icon(Icons.school, size: 100, color: Colors.blue),
             SizedBox(height: 20),
+
+            // App name
             Text(
               'EnGo App',
               style: TextStyle(
@@ -62,6 +73,8 @@ class _SplashPageState extends State<SplashPage> {
               ),
             ),
             SizedBox(height: 20),
+
+            // Loading indicator
             CircularProgressIndicator(),
           ],
         ),
