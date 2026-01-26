@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:provider/provider.dart';
-import '../../core/theme/theme_helper.dart';
-import '../../data/services/firebase_storage_service.dart';
-import '../providers/toeic_test_provider.dart';
+import '../../../core/theme/theme_helper.dart';
+import '../../../data/services/firebase_storage_service.dart';
+import '../../providers/toeic_test_provider.dart';
 
 /// Widget phát audio chung cho tất cả các trang (taking_page, review_page)
 /// Hỗ trợ cache URL, progress bar, play/pause button
@@ -188,7 +188,7 @@ class _SharedAudioPlayerWidgetState extends State<SharedAudioPlayerWidget> {
                           ? Icons.pause
                           : Icons.play_arrow,
                       size: 30,
-                      color: Colors.grey,
+                      color: Theme.of(context).primaryColor,
                     ),
                     padding: EdgeInsets.zero,
                   ),
@@ -216,36 +216,6 @@ class _SharedAudioPlayerWidgetState extends State<SharedAudioPlayerWidget> {
     }
 
     // Mode: standalone (không dùng Provider)
-    if (isLoading) {
-      return Padding(
-        padding: EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 40,
-              height: 40,
-              child: CircularProgressIndicator(
-                strokeWidth: 3,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  Theme.of(context).primaryColor,
-                ),
-              ),
-            ),
-            SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Đang tải audio...',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: getTextSecondary(context),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     if (errorMessage != null) {
       return Padding(
         padding: EdgeInsets.symmetric(vertical: 12),
@@ -285,28 +255,15 @@ class _SharedAudioPlayerWidgetState extends State<SharedAudioPlayerWidget> {
           SizedBox(width: 12),
           // Progress bar
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                LinearProgressIndicator(
-                  value: totalDuration.inSeconds > 0
-                      ? currentPosition.inSeconds / totalDuration.inSeconds
-                      : 0.0,
-                  backgroundColor: getBorderColor(context),
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    getSuccessColor(context),
-                  ),
-                  minHeight: 8,
-                ),
-                SizedBox(height: 4),
-                Text(
-                  '${_formatDuration(currentPosition)} / ${_formatDuration(totalDuration)}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: getTextSecondary(context),
-                  ),
-                ),
-              ],
+            child: LinearProgressIndicator(
+              value: totalDuration.inSeconds > 0
+                  ? currentPosition.inSeconds / totalDuration.inSeconds
+                  : 0.0,
+              backgroundColor: getBorderColor(context),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                getSuccessColor(context),
+              ),
+              minHeight: 8,
             ),
           ),
         ],

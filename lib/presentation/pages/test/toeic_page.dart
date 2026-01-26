@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; // import tv material là chứa các widget cơ bản như text, column, row
 import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/routes/app_routes.dart';
 import '../../../data/datasources/toeic_sample_data.dart';
@@ -141,7 +141,7 @@ class ToeicPage extends StatelessWidget {
                             'Đang tải dữ liệu TOEIC...',
                             style: TextStyle(
                               fontSize: 16,
-                              color: getTextThird(context),
+                              color: getSurfaceColor(context),
                             ),
                           ),
                         ],
