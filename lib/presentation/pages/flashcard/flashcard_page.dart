@@ -35,6 +35,9 @@ class _FlashcardPageState extends State<FlashcardPage>
   // Store the current cards being studied (for checking completion)
   List<dynamic> _currentCards = [];
 
+  // Track if we're showing loading before result page
+  bool _isShowingResultLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -151,6 +154,13 @@ class _FlashcardPageState extends State<FlashcardPage>
       }
     } else {
       print('[FLASHCARD] User not authenticated - skipping Firebase save');
+    }
+
+    // Hide loading and show result page
+    if (mounted) {
+      setState(() {
+        _isShowingResultLoading = false;
+      });
     }
 
     final result = await Navigator.push(
@@ -324,7 +334,9 @@ class _FlashcardPageState extends State<FlashcardPage>
     }
   }
 
-  void _animateAndSwipeRight() {
+  /// Generic swipe animation handler
+  /// [isRight] - true for swipe right (mastered), false for swipe left (learning)
+  void _animateAndSwipe({required bool isRight}) {
     final flashcardProvider = context.read<FlashcardProvider>();
     final vocabProvider = context.read<VocabularyProvider>();
 
@@ -337,11 +349,20 @@ class _FlashcardPageState extends State<FlashcardPage>
       const Duration(milliseconds: FlashcardConstants.transitionDelay),
       () {
         if (mounted) {
-          // Get current card and mark as mastered
+          // Get current card and mark appropriately
           final currentCard = _currentCards[flashcardProvider.currentCardIndex];
-          flashcardProvider.markCardAsMastered(currentCard.id);
 
-          flashcardProvider.incrementCorrect();
+          if (isRight) {
+            // Swipe right - mark as mastered
+            flashcardProvider.markCardAsMastered(currentCard.id);
+            flashcardProvider.incrementCorrect();
+          } else {
+            // Swipe left - mark as learning
+            flashcardProvider.markCardAsLearning(currentCard.id);
+            flashcardProvider.incrementWrong();
+          }
+
+          // Common actions for both swipes
           flashcardProvider.nextCard();
           flashcardProvider.resetFlip();
           flashcardProvider.resetDrag();
@@ -352,6 +373,11 @@ class _FlashcardPageState extends State<FlashcardPage>
 
           // Check if finished (use _currentCards instead of all vocabulary cards)
           if (flashcardProvider.currentCardIndex >= _currentCards.length) {
+            // Show loading state
+            setState(() {
+              _isShowingResultLoading = true;
+            });
+
             Future.delayed(
               const Duration(milliseconds: FlashcardConstants.transitionDelay),
               () {
@@ -364,48 +390,21 @@ class _FlashcardPageState extends State<FlashcardPage>
     );
   }
 
+  void _animateAndSwipeRight() {
+    _animateAndSwipe(isRight: true);
+  }
+
   void _animateAndSwipeLeft() {
-    final flashcardProvider = context.read<FlashcardProvider>();
-    final vocabProvider = context.read<VocabularyProvider>();
-
-    // Animate card flying out
-    setState(() {
-      flashcardProvider.setCommittedToSwipe(true);
-    });
-
-    Future.delayed(
-      const Duration(milliseconds: FlashcardConstants.transitionDelay),
-      () {
-        if (mounted) {
-          // Get current card and mark as learning
-          final currentCard = _currentCards[flashcardProvider.currentCardIndex];
-          flashcardProvider.markCardAsLearning(currentCard.id);
-
-          flashcardProvider.incrementWrong();
-          flashcardProvider.nextCard();
-          flashcardProvider.resetFlip();
-          flashcardProvider.resetDrag();
-
-          vocabProvider.setCurrentCardIndex(flashcardProvider.currentCardIndex);
-          _animationController.reset();
-          vocabProvider.resetCardFlip();
-
-          // Check if finished (use _currentCards instead of all vocabulary cards)
-          if (flashcardProvider.currentCardIndex >= _currentCards.length) {
-            Future.delayed(
-              const Duration(milliseconds: FlashcardConstants.transitionDelay),
-              () {
-                if (mounted) _showResultDialog();
-              },
-            );
-          }
-        }
-      },
-    );
+    _animateAndSwipe(isRight: false);
   }
 
   @override
   Widget build(BuildContext context) {
+    // Show loading when waiting for result page
+    if (_isShowingResultLoading) {
+      return _buildLoadingState();
+    }
+
     return Consumer3<
       VocabularyProvider,
       FlashcardProvider,
