@@ -58,7 +58,18 @@ class ToeicTestProvider extends ChangeNotifier {
 
     // Initialize audio player
     _initAudioPlayer();
-
+    // Auto-play audio for the first question if it's a listening question
+    if (!isFullTest) {
+      final firstQuestion = currentQuestion;
+      if (firstQuestion != null &&
+          firstQuestion.audioUrl != null &&
+          firstQuestion.partNumber <= 4) {
+        // Schedule autoplay for next frame to ensure UI is ready
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          playAudio(firstQuestion.audioUrl!);
+        });
+      }
+    }
     // Start timer if time limit is set
     if (timeLimit != null && timeLimit > 0) {
       _startTimer();
