@@ -611,20 +611,19 @@ class VocabularyRepositoryImpl implements VocabularyRepository {// ========== FO
     'health': _healthCards,
     'education': _educationCards,
     'nature': _natureCards,
-  };
-  @override
+  };  @override
   Future<List<VocabularyTopic>> getVocabularyTopics() async {
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 500));
 
-    // Return all topics
+    // Return all topics with Firebase Storage URLs
     return [
       VocabularyTopic(
         id: 'food',
         name: ' Food & Drinks',
         description: 'Học từ vựng về đồ ăn và đồ uống hàng ngày',
         cards: _foodCards,
-        imageUrl: 'assets/images/food_drinks.png',
+        imageUrl: 'https://storage.googleapis.com/engoapp-91373.firebasestorage.app/topic_images/food.png',
         createdBy: 'system',
         createdAt: DateTime.now().subtract(const Duration(days: 30)),
         updatedAt: DateTime.now(),
@@ -634,7 +633,7 @@ class VocabularyRepositoryImpl implements VocabularyRepository {// ========== FO
         name: ' Business & Economics',
         description: 'Từ vựng về kinh doanh, kinh tế và tài chính',
         cards: _businessCards,
-        imageUrl: 'assets/images/business_economy.png',
+        imageUrl: 'https://storage.googleapis.com/engoapp-91373.firebasestorage.app/topic_images/business.png',
         createdBy: 'system',
         createdAt: DateTime.now().subtract(const Duration(days: 28)),
         updatedAt: DateTime.now(),
@@ -644,7 +643,7 @@ class VocabularyRepositoryImpl implements VocabularyRepository {// ========== FO
         name: ' Technology',
         description: 'Từ vựng về công nghệ thông tin và công nghệ hiện đại',
         cards: _technologyCards,
-        imageUrl: 'assets/images/technology.png',
+        imageUrl: 'https://storage.googleapis.com/engoapp-91373.firebasestorage.app/topic_images/technology.png',
         createdBy: 'system',
         createdAt: DateTime.now().subtract(const Duration(days: 26)),
         updatedAt: DateTime.now(),
@@ -654,7 +653,7 @@ class VocabularyRepositoryImpl implements VocabularyRepository {// ========== FO
         name: ' Travel',
         description: 'Từ vựng thiết yếu cho du lịch và khám phá',
         cards: _travelCards,
-        imageUrl: 'assets/images/travel.png',
+        imageUrl: 'https://storage.googleapis.com/engoapp-91373.firebasestorage.app/topic_images/travel.png',
         createdBy: 'system',
         createdAt: DateTime.now().subtract(const Duration(days: 24)),
         updatedAt: DateTime.now(),
@@ -664,7 +663,7 @@ class VocabularyRepositoryImpl implements VocabularyRepository {// ========== FO
         name: ' Health',
         description: 'Từ vựng về sức khỏe, y tế và chăm sóc bản thân',
         cards: _healthCards,
-        imageUrl: 'assets/images/health.png',
+        imageUrl: 'https://storage.googleapis.com/engoapp-91373.firebasestorage.app/topic_images/health.png',
         createdBy: 'system',
         createdAt: DateTime.now().subtract(const Duration(days: 22)),
         updatedAt: DateTime.now(),
@@ -674,7 +673,7 @@ class VocabularyRepositoryImpl implements VocabularyRepository {// ========== FO
         name: ' Education',
         description: 'Từ vựng về giáo dục, học tập và tri thức',
         cards: _educationCards,
-        imageUrl: 'assets/images/education.png',
+        imageUrl: 'https://storage.googleapis.com/engoapp-91373.firebasestorage.app/topic_images/education.png',
         createdBy: 'system',
         createdAt: DateTime.now().subtract(const Duration(days: 20)),
         updatedAt: DateTime.now(),
@@ -684,7 +683,7 @@ class VocabularyRepositoryImpl implements VocabularyRepository {// ========== FO
         name: ' Nature & Environment',
         description: 'Từ vựng về thiên nhiên và môi trường xung quanh',
         cards: _natureCards,
-        imageUrl: 'assets/images/nature_environment.png',
+        imageUrl: 'https://storage.googleapis.com/engoapp-91373.firebasestorage.app/topic_images/nature.png',
         createdBy: 'system',
         createdAt: DateTime.now().subtract(const Duration(days: 18)),
         updatedAt: DateTime.now(),

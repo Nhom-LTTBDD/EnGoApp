@@ -2,6 +2,7 @@
 // Widget card hiển thị chủ đề từ vựng
 
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_spacing.dart';
 import '../../core/theme/theme_helper.dart';
@@ -72,25 +73,7 @@ class TopicCard extends StatelessWidget {
                   topLeft: Radius.circular(12),
                   topRight: Radius.circular(12),
                 ),
-                child: imageAsset != null
-                    ? Image.asset(imageAsset!, fit: BoxFit.cover)
-                    : imageUrl != null
-                    ? Image.network(
-                        imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Center(
-                            child: Icon(
-                              Icons.image_not_supported,
-                              color: Colors.grey,
-                              size: 48,
-                            ),
-                          );
-                        },
-                      )
-                    : const Center(
-                        child: Icon(Icons.image, color: Colors.grey, size: 48),
-                      ),
+                child: _buildTopicImage(),
               ),
             ), // Phần title, subtitle, count và nút arrow
             Container(
@@ -184,6 +167,74 @@ class TopicCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+  /// Build topic image - support both network (Firebase Storage) and local assets
+  /// Optimized to prevent frame drops
+  Widget _buildTopicImage() {
+    // Priority 1: Check if imageUrl is network URL (Firebase Storage)
+    if (imageUrl != null && imageUrl!.startsWith('http')) {
+      return CachedNetworkImage(
+        imageUrl: imageUrl!,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        // Optimized configurations to reduce frame drops
+        fadeInDuration: const Duration(milliseconds: 200),
+        fadeOutDuration: const Duration(milliseconds: 100),
+        memCacheWidth: 400, // Limit memory cache size
+        memCacheHeight: 300,
+        maxWidthDiskCache: 800, // Limit disk cache size
+        maxHeightDiskCache: 600,
+        placeholder: (context, url) => Container(
+          color: Colors.grey[200],
+          child: const Center(
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        ),
+        errorWidget: (context, url, error) => Container(
+          color: Colors.grey[300],
+          child: const Icon(
+            Icons.image_not_supported,
+            color: Colors.grey,
+            size: 48,
+          ),
+        ),
+      );
+    }
+    
+    // Priority 2: Local asset image
+    if (imageAsset != null) {
+      return Image.asset(
+        imageAsset!,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        cacheWidth: 400, // Optimize asset loading
+        cacheHeight: 300,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey[300],
+            child: const Icon(
+              Icons.image_not_supported,
+              color: Colors.grey,
+              size: 48,
+            ),
+          );
+        },
+      );
+    }
+    
+    // Priority 3: Fallback - no image
+    return Container(
+      color: Colors.grey[200],
+      child: const Center(
+        child: Icon(Icons.image, color: Colors.grey, size: 48),
       ),
     );
   }

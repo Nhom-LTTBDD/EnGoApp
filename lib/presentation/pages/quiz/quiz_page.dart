@@ -13,6 +13,7 @@ import '../../../domain/entities/vocabulary_card.dart';
 import '../../../domain/entities/question_type.dart';
 import '../../../data/repositories/vocabulary_repository_impl.dart';
 import '../../../routes/app_routes.dart';
+import '../../widgets/quiz/quiz_widget.dart';
 import '../vocabulary/vocab_by_topic_page.dart';
 
 /// Page làm quiz theo topic
@@ -242,24 +243,13 @@ class _QuizPageState extends State<QuizPage> {
               child: SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.all(spaceMd),
-                  child: Column(
-                    children: [
-                      // Progress indicator
-                      _buildProgressIndicator(_questions.length),
-                      const SizedBox(height: spaceLg),
-
-                      // Question card
-                      Expanded(
-                        child: _buildQuestionCard(
-                          _questions[_currentQuestionIndex],
-                        ),
-                      ),
-                      const SizedBox(height: spaceLg),
-
-                      // Answer options
-                      _buildAnswerOptions(_questions[_currentQuestionIndex]),
-                      const SizedBox(height: spaceMd),
-                    ],
+                  child: QuizWidget(
+                    questions: _questions,
+                    config: widget.config,
+                    currentQuestionIndex: _currentQuestionIndex,
+                    hasAnswered: _hasAnswered,
+                    onAnswerTap: _handleAnswerTap,
+                    onClose: () => Navigator.pop(context),
                   ),
                 ),
               ),
@@ -276,126 +266,6 @@ class _QuizPageState extends State<QuizPage> {
           SizedBox(height: spaceMd),
           Text('Đang tải câu hỏi...'),
         ],
-      ),
-    );
-  }
-
-  Widget _buildProgressIndicator(int totalQuestions) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: Icon(Icons.close, color: getTextPrimary(context)),
-        ),
-        Text(
-          'Câu ${_currentQuestionIndex + 1} / $totalQuestions',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: getTextPrimary(context),
-          ),
-        ),
-        const SizedBox(width: 48), // Placeholder for balance
-      ],
-    );
-  }
-
-  Widget _buildQuestionCard(QuizQuestion question) {
-    // Determine label based on language mode
-    String label;
-    if (widget.config.answerLanguage == QuizLanguageMode.vietnameseToEnglish) {
-      label = 'Chọn câu trả lời';
-    } else {
-      label = 'Nghĩa của thuật ngữ';
-    }
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(spaceLg),
-      decoration: BoxDecoration(
-        color: getSurfaceColor(context),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: getBorderColor(context)),
-        boxShadow: [
-          BoxShadow(
-            color: getTextPrimary(context).withValues(alpha: 0.1),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Thuật ngữ',
-            style: TextStyle(fontSize: 14, color: getTextThird(context)),
-          ),
-          const SizedBox(height: spaceMd),
-          Text(
-            question.questionText,
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: getTextPrimary(context),
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: spaceLg),
-          Text(
-            label,
-            style: TextStyle(fontSize: 14, color: getTextThird(context)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAnswerOptions(QuizQuestion question) {
-    return Column(
-      children: question.answers.map((answer) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: spaceSm),
-          child: _buildAnswerButton(answer),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildAnswerButton(QuizAnswer answer) {
-    final showResult = _hasAnswered;
-
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: showResult ? null : () => _handleAnswerTap(answer),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-          backgroundColor: getSurfaceColor(context),
-          foregroundColor: getTextPrimary(context),
-          disabledBackgroundColor: getSurfaceColor(context),
-          disabledForegroundColor: getTextPrimary(context),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: getBorderColor(context), width: 2),
-          ),
-          elevation: 0,
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                answer.text,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: getTextPrimary(context),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
