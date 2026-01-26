@@ -13,31 +13,31 @@
   <img src="https://img.shields.io/badge/AI-Gemini%20API-8E75C2?logo=googlegemini">
 </p>
 
-## 📱 Giới thiệu
+##  Giới thiệu
 
 **EnGo** là ứng dụng học tiếng Anh toàn diện được xây dựng bằng **Flutter**, tích hợp **Firebase** cho xác thực và lưu trữ dữ liệu. Ứng dụng cung cấp nhiều tính năng học tập như từ vựng, ngữ pháp, flashcard, bài test TOEIC và dịch thuật, giúp người dùng nâng cao khả năng tiếng Anh một cách hiệu quả.
 
-## ✨ Tính năng chính
+##  Tính năng chính
 
-### 🔐 Xác thực & Cá nhân hóa
+###  Xác thực & Cá nhân hóa
 
 - **Multi-Login:** Hỗ trợ Email/Password và Google Sign-In.
 - **Gamification:** Hệ thống **Streak** tạo động lực học tập hàng ngày.
 - **Profile:** Quản lý thông tin và lưu trữ tiến độ học tập trên Cloud.
 
-### 📚 Học tập thông minh (Smart Learning)
+###  Học tập thông minh (Smart Learning)
 
 - **Vocabulary:** Học theo chủ đề hoặc tự tạo bộ từ vựng cá nhân.
 - **Spaced Repetition:** Flashcard thông minh giúp ghi nhớ dài hạn.
 - **Audio:** Tích hợp **TTS** giúp luyện nghe và phát âm chuẩn xác.
 
-### 📝 Luyện thi & Dịch thuật
+###  Luyện thi & Dịch thuật
 
 - **TOEIC Mastery:** Làm bài test như thật với hệ thống chấm điểm và lưu lịch sử.
 - **Quick Translate:** Công cụ dịch thuật nhanh chóng hỗ trợ đọc hiểu tài liệu.
 - **Grammar:** Hệ thống bài học từ cơ bản đến nâng cao kèm bài tập thực hành.
 
-## 🏗️ Kiến trúc
+##  Kiến trúc
 
 <p>Ứng dụng được xây dựng theo kiến trúc <strong>Clean Architecture</strong> với 3 lớp chính:</p>
 
