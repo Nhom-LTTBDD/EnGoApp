@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
 import '../../../../domain/entities/toeic_question.dart';
 import '../../../../data/services/firebase_storage_service.dart';
 import '../../../../core/theme/theme_helper.dart';
+import '../../../../presentation/widgets/shared_audio_player_widget.dart';
 
 class ToeicReviewPage extends StatefulWidget {
   final List<ToeicQuestion> questions;
@@ -22,58 +22,17 @@ class ToeicReviewPage extends StatefulWidget {
 
 class _ToeicReviewPageState extends State<ToeicReviewPage> {
   int currentQuestionIndex = 0;
-  AudioPlayer? audioPlayer;
-  bool isPlaying = false;
-  String? currentAudioFile;
-  Duration currentPosition = Duration.zero;
-  Duration totalDuration = Duration.zero;
 
   // Cache cho Firebase Storage URLs
   final Map<String, String> _imageUrlCache = {};
-  final Map<String, String> _audioUrlCache = {};
 
   @override
   void initState() {
     super.initState();
-
-    // Khởi tạo audio player để phát audio trong review
-    audioPlayer = AudioPlayer();
-
-    // Setup các listener để theo dõi trạng thái audio player
-
-    // Listener cho trạng thái play/pause
-    audioPlayer?.onPlayerStateChanged.listen((state) {
-      if (mounted) {
-        setState(() {
-          isPlaying = state == PlayerState.playing;
-        });
-      }
-    });
-
-    // Listener cho vị trí hiện tại của audio (để update progress bar)
-    audioPlayer?.onPositionChanged.listen((position) {
-      if (mounted) {
-        setState(() {
-          currentPosition = position;
-        });
-      }
-    });
-
-    // Listener cho tổng thời lượng audio
-    audioPlayer?.onDurationChanged.listen((duration) {
-      if (mounted) {
-        setState(() {
-          totalDuration = duration;
-        });
-      }
-    });
   }
 
   @override
   void dispose() {
-    // Dừng audio và giải phóng resources khi thoát trang
-    audioPlayer?.stop();
-    audioPlayer?.dispose();
     super.dispose();
   }
 
@@ -102,52 +61,6 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
         userAnswer?.toLowerCase() == question.correctAnswer.toLowerCase();
   }
 
-  // Phương thức phát audio cho câu hỏi listening
-  Future<void> _playAudio(String audioUrl) async {
-    try {
-      // Lấy Firebase Storage URL từ cache hoặc resolve từ Firebase
-      String firebaseUrl;
-      if (_audioUrlCache.containsKey(audioUrl)) {
-        firebaseUrl = _audioUrlCache[audioUrl]!;
-      } else {
-        // Resolve audio URL từ Firebase Storage
-        final url = await FirebaseStorageService.resolveFirebaseUrl(audioUrl);
-        if (url != null) {
-          firebaseUrl = url;
-          _audioUrlCache[audioUrl] = url;
-        } else {
-          throw Exception('Không thể tải audio từ Firebase Storage');
-        }
-      }
-
-      // Kiểm tra nếu đang phát audio này thì pause, ngược lại thì play
-      if (currentAudioFile == audioUrl && isPlaying) {
-        await audioPlayer?.pause();
-        setState(() {
-          isPlaying = false;
-        });
-      } else {
-        // Dừng audio hiện tại và phát audio từ Firebase URL
-        await audioPlayer?.stop();
-        await audioPlayer?.play(UrlSource(firebaseUrl));
-        setState(() {
-          isPlaying = true;
-          currentAudioFile = audioUrl;
-        });
-      }
-    } catch (e) {
-      // Hiển thị thông báo lỗi nếu không thể phát audio
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Không thể phát audio: $e'),
-            backgroundColor: getErrorColor(context),
-          ),
-        );
-      }
-    }
-  }
-
   // Widget tạo nút phát audio với progress bar
   Widget _buildAudioButton() {
     final question = currentQuestion;
@@ -156,72 +69,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
 
     return Container(
       padding: EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              // Nút Play/Pause
-              Container(
-                width: 40,
-                height: 40,
-                child: IconButton(
-                  onPressed: () => _playAudio(question!.audioUrl!),
-                  icon: Icon(
-                    // Hiển thị icon pause nếu đang phát, ngược lại hiển thị play
-                    isPlaying && currentAudioFile != null
-                        ? Icons.pause
-                        : Icons.play_arrow,
-                    size: 28,
-                    color: getTextPrimary(context),
-                  ),
-                  padding: EdgeInsets.zero,
-                ),
-              ),
-              SizedBox(width: 12),
-              // Progress bar và time display
-              Expanded(
-                child: Column(
-                  children: [
-                    // Progress bar hiển thị tiến độ phát audio
-                    LinearProgressIndicator(
-                      value: totalDuration.inSeconds > 0
-                          ? currentPosition.inSeconds / totalDuration.inSeconds
-                          : 0.0,
-                      backgroundColor: getBorderColor(context),
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Color(0xFF4CAF50), // Màu xanh progress bar
-                      ),
-                      minHeight: 8,
-                    ),
-                    SizedBox(height: 4),
-                    // Hiển thị thời gian hiện tại và tổng thời gian
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _formatDuration(currentPosition),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: getTextSecondary(context),
-                          ),
-                        ),
-                        Text(
-                          _formatDuration(totalDuration),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: getTextSecondary(context),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+      child: SharedAudioPlayerWidget(audioUrl: question!.audioUrl!),
     );
   }
 
@@ -616,12 +464,6 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                 ? () {
                     setState(() {
                       currentQuestionIndex--;
-                      // Reset audio state khi chuyển câu
-                      isPlaying = false;
-                      currentAudioFile = null;
-                      currentPosition = Duration.zero;
-                      totalDuration = Duration.zero;
-                      audioPlayer?.stop();
                     });
                   }
                 : null,
@@ -640,12 +482,6 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                 ? () {
                     setState(() {
                       currentQuestionIndex++;
-                      // Reset audio state khi chuyển câu
-                      isPlaying = false;
-                      currentAudioFile = null;
-                      currentPosition = Duration.zero;
-                      totalDuration = Duration.zero;
-                      audioPlayer?.stop();
                     });
                   }
                 : null,

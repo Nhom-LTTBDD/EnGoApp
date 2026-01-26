@@ -25,6 +25,8 @@ import '../../../routes/app_routes.dart';
 import 'package:en_go_app/core/theme/theme_helper.dart';
 // Translation helper widget
 import '../../widgets/test/translation_helper_dialog.dart';
+// Shared audio player widget
+import '../../widgets/shared_audio_player_widget.dart';
 
 // StatefulWidget cho trang làm bài test TOEIC
 // Hỗ trợ cả full test (7 parts) và test riêng lẻ theo parts
@@ -541,68 +543,8 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
   /// [audioUrl] - Đường dẫn tới file audio cần phát
   Widget _buildAudioPlayer(ToeicTestProvider provider, String audioUrl) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16), // Margin dưới audio player
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, // Align trái
-        children: [
-          Consumer<ToeicTestProvider>(
-            builder: (context, audioProvider, child) {
-              return Row(
-                children: [
-                  // Play/Pause button - Nút phát/tạm dừng audio
-                  SizedBox(
-                    width: 40, // Chiều rộng cố định cho button
-                    height: 40, // Chiều cao cố định cho button
-                    child: IconButton(
-                      onPressed: () {
-                        // Toggle phát/tạm dừng audio khi nhấn nút
-                        if (audioProvider.isAudioPlaying) {
-                          audioProvider.pauseAudio(); // Tạm dừng nếu đang phát
-                        } else {
-                          audioProvider.playAudio(
-                            audioUrl,
-                          ); // Phát audio nếu đang dừng
-                        }
-                      },
-                      icon: Icon(
-                        // Hiển thị icon tương ứng với trạng thái audio
-                        audioProvider.isAudioPlaying
-                            ? Icons.pause
-                            : Icons.play_arrow,
-                        size: 30, // Kích thước icon
-                        color: Theme.of(
-                          context,
-                        ).primaryColor, // Màu xanh khi đang phát
-                      ),
-                      padding: EdgeInsets.zero, // Không có padding
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 12,
-                  ), // Khoảng cách giữa button và progress bar
-                  // Thanh hiển thị tiến trình audio
-                  Expanded(
-                    child: LinearProgressIndicator(
-                      // Tính giá trị progress dựa trên thời gian hiện tại và tổng thời gian
-                      value: audioProvider.audioDuration.inSeconds > 0
-                          ? audioProvider.audioPosition.inSeconds /
-                                audioProvider.audioDuration.inSeconds
-                          : 0.0, // Giá trị 0 khi chưa có audio
-                      backgroundColor: getBorderColor(
-                        context,
-                      ), // Màu nền progress bar
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        getSuccessColor(context), // Màu xanh lá cho progress
-                      ),
-                      minHeight: 8, // Chiều cao minimum của progress bar
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
+      margin: const EdgeInsets.only(bottom: 16),
+      child: SharedAudioPlayerWidget(audioUrl: audioUrl, useProvider: true),
     );
   }
 
