@@ -17,82 +17,91 @@ class HomePage extends StatelessWidget {
     final themeExt = Theme.of(context).extension<AppThemeExtension>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return MainLayout(
-      title: 'EnGo App',
-      currentIndex: 0,
-      child: RepaintBoundary(
-        child: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors:
-                  themeExt?.backgroundGradientColors ??
-                  [Colors.white, const Color(0xFFB2E0FF)],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+    return PopScope(
+      canPop: false, // Ngăn swipe back vì đây là trang chính
+      onPopInvoked: (bool didPop) {
+        if (didPop) return;
+        // Không làm gì - giữ user ở trang home
+        // Đây là trang chính, không có trang trước để quay về
+      },
+      child: MainLayout(
+        title: 'EnGo App',
+        currentIndex: 0,
+        child: RepaintBoundary(
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors:
+                    themeExt?.backgroundGradientColors ??
+                    [Colors.white, const Color(0xFFB2E0FF)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
             ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logo với container và shadow để nổi bật
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: getSurfaceColor(
-                    context,
-                  ).withOpacity(isDark ? 0.1 : 0.6),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).primaryColor.withOpacity(0.2),
-                      blurRadius: 15,
-                      spreadRadius: 2,
-                    ),
-                  ],
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Logo với container và shadow để nổi bật
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: getSurfaceColor(
+                      context,
+                    ).withOpacity(isDark ? 0.1 : 0.6),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Theme.of(context).primaryColor.withOpacity(0.2),
+                        blurRadius: 15,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: SvgPicture.asset(
+                    isDark ? kIconEagleDark : kIconEagleLight,
+                    width: 160,
+                    height: 160,
+                  ),
                 ),
-                child: SvgPicture.asset(
-                  isDark ? kIconEagleDark : kIconEagleLight,
-                  width: 160,
-                  height: 160,
+                const SizedBox(height: 30),
+                Text(
+                  'Welcome to Home Page',
+                  style: kH1.copyWith(color: Theme.of(context).primaryColor),
                 ),
-              ),
-              const SizedBox(height: 30),
-              Text(
-                'Welcome to Home Page',
-                style: kH1.copyWith(color: Theme.of(context).primaryColor),
-              ),
-              const SizedBox(height: 20),
-              _buildMenuButton(
-                context,
-                color: 'blue',
-                text: 'Vocabulary',
-                onPressed: () => Navigator.pushNamed(context, AppRoutes.vocab),
-              ),
-              const SizedBox(height: 10),
-              _buildMenuButton(
-                context,
-                color: 'green',
-                text: 'Test',
-                onPressed: () => Navigator.pushNamed(context, AppRoutes.test),
-              ),
-              const SizedBox(height: 10),
-              _buildMenuButton(
-                context,
-                color: 'special',
-                text: 'Grammar',
-                onPressed: () =>
-                    Navigator.pushNamed(context, AppRoutes.grammar),
-              ),
-              const SizedBox(height: 10),
-              _buildMenuButton(
-                context,
-                color: 'blue',
-                text: 'Translation',
-                onPressed: () =>
-                    Navigator.pushNamed(context, AppRoutes.translation),
-              ),
-            ],
+                const SizedBox(height: 20),
+                _buildMenuButton(
+                  context,
+                  color: 'blue',
+                  text: 'Vocabulary',
+                  onPressed: () =>
+                      Navigator.pushNamed(context, AppRoutes.vocab),
+                ),
+                const SizedBox(height: 10),
+                _buildMenuButton(
+                  context,
+                  color: 'green',
+                  text: 'Test',
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.test),
+                ),
+                const SizedBox(height: 10),
+                _buildMenuButton(
+                  context,
+                  color: 'special',
+                  text: 'Grammar',
+                  onPressed: () =>
+                      Navigator.pushNamed(context, AppRoutes.grammar),
+                ),
+                const SizedBox(height: 10),
+                _buildMenuButton(
+                  context,
+                  color: 'blue',
+                  text: 'Translation',
+                  onPressed: () =>
+                      Navigator.pushNamed(context, AppRoutes.translation),
+                ),
+              ],
+            ),
           ),
         ),
       ),
