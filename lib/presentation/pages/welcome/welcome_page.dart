@@ -18,77 +18,31 @@ class WelcomePage extends StatefulWidget {
 class _WelcomePageState extends State<WelcomePage>
     with SingleTickerProviderStateMixin {
   late AnimationController _contentController;
-  late List<Animation<double>> _cardSlideAnimations;
-  late Animation<Offset> _buttonSlideAnimation;
-  late Animation<double> _buttonFadeAnimation;
-  bool _isImageCached = false;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
     _initAnimations();
-    // Precache ngay trong initState - trước khi build
+    // Start animation immediately - don't wait for assets
+    _contentController.forward();
+    // Precache in background without blocking
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _precacheAssets();
-      // Start animation sau precache
-      if (mounted && !_contentController.isAnimating) {
-        _contentController.forward();
+      if (mounted) {
+        precacheImage(const AssetImage(kBackgroundJpg), context);
       }
     });
   }
 
-  Future<void> _precacheAssets() async {
-    // Precache background image - chỉ update flag, không setState
-    try {
-      await precacheImage(const AssetImage(kBackgroundJpg), context);
-      if (mounted) {
-        _isImageCached = true;
-      }
-    } catch (error) {
-      // Ignore precache errors
-      if (mounted) {
-        _isImageCached = true;
-      }
-    }
-  }
-
   void _initAnimations() {
-    // Content animation - giảm duration
+    // Single simple fade animation
     _contentController = AnimationController(
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 400),
       vsync: this,
     );
 
-    // Card slide animations - giảm số lượng animation frame
-    const simpleCurve = Curves.easeOut;
-    _cardSlideAnimations = List.generate(
-      3,
-      (index) => Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(
-          parent: _contentController,
-          curve: Interval(
-            index * 0.15,
-            0.5 + (index * 0.15),
-            curve: simpleCurve,
-          ),
-        ),
-      ),
-    );
-
-    // Button animation - giảm complexity
-    _buttonSlideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _contentController,
-            curve: const Interval(0.6, 1.0, curve: simpleCurve),
-          ),
-        );
-
-    _buttonFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _contentController,
-        curve: const Interval(0.6, 1.0, curve: simpleCurve),
-      ),
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _contentController, curve: Curves.easeIn),
     );
   }
 
@@ -106,30 +60,29 @@ class _WelcomePageState extends State<WelcomePage>
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: const AppHeader(title: 'EnGo App', elevation: 0.0),
-      body: RepaintBoundary(
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: _isImageCached
-              ? const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(kBackgroundJpg),
-                    fit: BoxFit.cover,
-                    filterQuality: FilterQuality.medium,
-                  ),
-                )
-              : const BoxDecoration(color: Color(0xFFE3F2FD)),
-          child: SafeArea(
-            child: SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight:
-                      screenHeight -
-                      kToolbarHeight -
-                      MediaQuery.of(context).padding.top -
-                      MediaQuery.of(context).padding.bottom,
-                ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(kBackgroundJpg),
+            fit: BoxFit.cover,
+            filterQuality: FilterQuality.low,
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight:
+                    screenHeight -
+                    kToolbarHeight -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom,
+              ),
+              child: FadeTransition(
+                opacity: _fadeAnimation,
                 child: Center(
                   child: Padding(
                     padding: EdgeInsets.symmetric(
@@ -140,24 +93,13 @@ class _WelcomePageState extends State<WelcomePage>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const SizedBox(height: 40),
-                        // Logo - hiển thị ngay không animation
-                        RepaintBoundary(
-                          child: Hero(
-                            tag: 'app_logo',
-                            child: SvgPicture.asset(
-                              kIconBirdWelcome,
-                              width: 120,
-                              height: 120,
-                              placeholderBuilder: (context) => const SizedBox(
-                                width: 120,
-                                height: 120,
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                              ),
-                            ),
+                        // Logo
+                        Hero(
+                          tag: 'app_logo',
+                          child: SvgPicture.asset(
+                            kIconBirdWelcome,
+                            width: 120,
+                            height: 120,
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -170,30 +112,19 @@ class _WelcomePageState extends State<WelcomePage>
                           ],
                         ),
                         const SizedBox(height: 30),
-                        // Feature Cards with staggered progress animation
+                        // Feature Cards - static for performance
+                        _buildFeatureCard('Chinh phục IELTS/TOEIC dễ dàng'),
+                        const SizedBox(height: 12),
                         _buildFeatureCard(
-                          animation: _cardSlideAnimations[0],
-                          text: 'Chinh phục IELTS/TOEIC dễ dàng',
+                          'Flashcard và quiz giúp ghi nhớ nhanh',
                         ),
                         const SizedBox(height: 12),
                         _buildFeatureCard(
-                          animation: _cardSlideAnimations[1],
-                          text: 'Flashcard và quiz giúp ghi nhớ nhanh',
-                        ),
-                        const SizedBox(height: 12),
-                        _buildFeatureCard(
-                          animation: _cardSlideAnimations[2],
-                          text: 'Tổng hợp ngữ pháp đầy đủ và dễ hiểu',
+                          'Tổng hợp ngữ pháp đầy đủ và dễ hiểu',
                         ),
                         const SizedBox(height: 40),
-                        // Animated Button
-                        SlideTransition(
-                          position: _buttonSlideAnimation,
-                          child: FadeTransition(
-                            opacity: _buttonFadeAnimation,
-                            child: _buildGetStartedButton(context),
-                          ),
-                        ),
+                        // Button
+                        _buildGetStartedButton(context),
                         const SizedBox(height: 20),
                       ],
                     ),
@@ -207,39 +138,20 @@ class _WelcomePageState extends State<WelcomePage>
     );
   }
 
-  Widget _buildFeatureCard({
-    required Animation<double> animation,
-    required String text,
-  }) {
-    return AnimatedBuilder(
-      animation: animation,
-      builder: (context, child) {
-        final progress = animation.value;
-        if (progress < 0.01) {
-          return const SizedBox(width: 300, height: 44);
-        }
-        return Opacity(
-          opacity: progress,
-          child: Transform.translate(
-            offset: Offset((1 - progress) * 50, 0),
-            child: child,
-          ),
-        );
-      },
-      child: Container(
-        width: 300,
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Text(
-          text,
-          style: kBodyEmphasized,
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+  Widget _buildFeatureCard(String text) {
+    return Container(
+      width: 300,
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        text,
+        style: kBodyEmphasized,
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
