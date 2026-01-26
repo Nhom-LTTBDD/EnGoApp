@@ -4,9 +4,15 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../domain/entities/toeic_question.dart';
 import '../../domain/entities/toeic_test.dart';
+
+// Top-level function for JSON decoding in isolate
+Map<String, dynamic> _parseJsonString(String jsonString) {
+  return json.decode(jsonString) as Map<String, dynamic>;
+}
 
 class FirebaseStorageService {
   static final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -52,7 +58,8 @@ class FirebaseStorageService {
       if (response.statusCode == 200) {
         final jsonString = response.body;
 
-        final data = json.decode(jsonString);
+        // Parse JSON in isolate to avoid blocking main thread
+        final data = await compute(_parseJsonString, jsonString);
 
         return data;
       } else {
@@ -80,7 +87,8 @@ class FirebaseStorageService {
       final String jsonString = await rootBundle.loadString(
         'assets/toeic_questions.json',
       );
-      return json.decode(jsonString);
+      // Parse JSON in isolate
+      return await compute(_parseJsonString, jsonString);
     } catch (e) {
       return {};
     }

@@ -1,10 +1,21 @@
 // lib/core/services/personal_vocabulary_service.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 import '../../data/models/personal_vocabulary_model.dart';
 import '../constants/vocabulary_constants.dart';
+
+// Top-level functions for JSON parsing in isolates
+Map<String, dynamic>? _parseJsonFromString(String? jsonString) {
+  if (jsonString == null) return null;
+  return jsonDecode(jsonString) as Map<String, dynamic>;
+}
+
+String _encodeJsonToString(Map<String, dynamic> json) {
+  return jsonEncode(json);
+}
 
 /// Service quản lý từ vựng cá nhân với chiến lược Hybrid Storage.
 ///
@@ -36,7 +47,7 @@ class PersonalVocabularyService {
   Future<PersonalVocabularyModel> getPersonalVocabulary(String userId) async {
     try {
       _logInfo('🔍 getPersonalVocabulary called for userId: $userId');
-      
+
       // Strategy 1: Đọc từ local storage (fastest)
       final localModel = await _loadFromLocal();
       if (localModel != null && localModel.userId == userId) {
@@ -50,8 +61,12 @@ class PersonalVocabularyService {
       _logInfo(VocabularyConstants.logLoadingFromCloud);
       final cloudModel = await _loadFromCloud(userId);
       if (cloudModel != null) {
-        _logInfo('☁️ Cloud model found: ${cloudModel.vocabularyCardIds.length} cards');
-        _logInfo('📋 Card IDs from cloud: ${cloudModel.vocabularyCardIds.join(", ")}');
+        _logInfo(
+          '☁️ Cloud model found: ${cloudModel.vocabularyCardIds.length} cards',
+        );
+        _logInfo(
+          '📋 Card IDs from cloud: ${cloudModel.vocabularyCardIds.join(", ")}',
+        );
         await _saveToLocal(cloudModel);
         _logInfo(
           '${VocabularyConstants.logRestoredFromCloud}: ${cloudModel.vocabularyCardIds.length} cards',
@@ -122,10 +137,13 @@ class PersonalVocabularyService {
     final model = await getPersonalVocabulary(userId);
     return model.vocabularyCardIds;
   }
+
   /// Force load từ cloud và save vào local (dùng khi sync hoặc refresh)
   Future<PersonalVocabularyModel> forceLoadFromCloud(String userId) async {
     try {
-      print('[PERSONAL_VOCAB_SERVICE] Force loading from cloud for user: $userId');
+      print(
+        '[PERSONAL_VOCAB_SERVICE] Force loading from cloud for user: $userId',
+      );
       final cloudModel = await _loadFromCloud(userId);
 
       if (cloudModel != null) {
@@ -154,7 +172,8 @@ class PersonalVocabularyService {
   // ============================================================================
   Future<void> _saveToLocal(PersonalVocabularyModel model) async {
     try {
-      final jsonString = jsonEncode(model.toJson());
+      // Encode JSON in isolate to avoid blocking main thread
+      final jsonString = await compute(_encodeJsonToString, model.toJson());
       await _prefs.setString(_storageKey, jsonString);
       _logInfo(VocabularyConstants.logSavedToLocal);
     } catch (e) {
@@ -279,13 +298,16 @@ class PersonalVocabularyService {
         return null;
       }
 
-      final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
+      // Parse JSON in isolate to avoid blocking main thread
+      final jsonMap = await compute(_parseJsonFromString, jsonString);
+      if (jsonMap == null) return null;
+
       return PersonalVocabularyModel.fromJson(jsonMap);
     } catch (e) {
       _logError('${VocabularyConstants.errorSavingToLocal}: $e');
       return null;
     }
-  }  // ============================================================================
+  } // ============================================================================
   // LOGGING HELPERS
   // ============================================================================
 
