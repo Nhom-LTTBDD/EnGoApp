@@ -26,11 +26,11 @@ import 'package:en_go_app/core/theme/theme_helper.dart';
 // Translation helper widget
 import '../../widgets/test/translation_helper_dialog.dart';
 // Shared audio player widget
-import '../../widgets/shared_audio_player_widget.dart';
+import '../../widgets/toeic/shared_audio_player_widget.dart';
 // Quiz summary widget
 import '../../widgets/test/toeic_quiz_summary_widget.dart';
 // Question display widget
-import '../../widgets/test/toeic_question_display_widget.dart';
+import '../../widgets/toeic/toeic_question_display_widget.dart';
 
 // StatefulWidget cho trang làm bài test TOEIC
 // Hỗ trợ cả full test (7 parts) và test riêng lẻ theo parts

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../domain/entities/toeic_question.dart';
 import '../../../../data/services/firebase_storage_service.dart';
 import '../../../../core/theme/theme_helper.dart';
-import '../../../../presentation/widgets/shared_audio_player_widget.dart';
+import '../../../widgets/toeic/shared_audio_player_widget.dart';
 
 class ToeicReviewPage extends StatefulWidget {
   final List<ToeicQuestion> questions;
@@ -68,8 +68,12 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
     if (question?.audioUrl == null) return SizedBox.shrink();
 
     return Container(
-      padding: EdgeInsets.all(16),
-      child: SharedAudioPlayerWidget(audioUrl: question!.audioUrl!),
+      padding: const EdgeInsets.all(16),
+      child: SharedAudioPlayerWidget(
+        key: ValueKey('audio_${question!.audioUrl}'),
+        audioUrl: question.audioUrl!,
+        useProvider: false,
+      ),
     );
   }
 
@@ -184,10 +188,6 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
       return Container(
         margin: EdgeInsets.symmetric(vertical: 10),
         height: 250,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: getBorderColor(context)),
-        ),
         alignment: Alignment.center,
         child: _buildFirebaseImage(question!.imageUrl!),
       );
@@ -592,7 +592,6 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 20),
 
                   // Audio button
                   _buildAudioButton(),

@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/theme_helper.dart';
 import '../../../domain/entities/toeic_question.dart';
 import '../../providers/toeic_test_provider.dart';
-import 'toeic_quiz_summary_widget.dart';
+import '../test/toeic_quiz_summary_widget.dart';
 
 /// Widget hiển thị câu hỏi TOEIC
 /// Tự động chọn hiển thị single question hoặc group question dựa trên partNumber
