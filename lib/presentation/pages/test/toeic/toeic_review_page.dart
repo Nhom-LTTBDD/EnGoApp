@@ -665,62 +665,60 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
     bool isUserAnswer = userAnswer?.toUpperCase() == optionLetter;
     bool isCorrectAnswer = question.correctAnswer.toUpperCase() == optionLetter;
 
-    Color backgroundColor;
-    Color borderColor;
+    // Determine colors
+    Color circleColor;
     Color textColor;
+    IconData? displayIcon;
 
     if (isCorrectAnswer) {
-      backgroundColor = getSuccessColor(context).withOpacity(0.1);
-      borderColor = getSuccessColor(context).withOpacity(0.4);
+      // Correct answer: green background
+      circleColor = getSuccessColor(context);
       textColor = getSuccessColor(context);
-    } else if (isUserAnswer) {
-      backgroundColor = getErrorColor(context).withOpacity(0.1);
-      borderColor = getErrorColor(context).withOpacity(0.4);
+      displayIcon = Icons.check;
+    } else if (isUserAnswer && !isCorrectAnswer) {
+      // Wrong answer selected by user: red/error color
+      circleColor = getErrorColor(context);
       textColor = getErrorColor(context);
+      displayIcon = Icons.close;
     } else {
-      backgroundColor = getSurfaceColor(context);
-      borderColor = getBorderColor(context);
+      // Not selected: grey
+      circleColor = getDisabledColor(context);
       textColor = getTextPrimary(context);
+      displayIcon = null;
     }
 
-    return Container(
-      margin: EdgeInsets.only(bottom: 10),
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: borderColor),
-      ),
+    return Padding(
+      padding: EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Circle with icon
           Container(
-            width: 30,
-            height: 30,
+            width: 24,
+            height: 24,
+            margin: EdgeInsets.only(top: 2),
             decoration: BoxDecoration(
-              color: isCorrectAnswer
-                  ? getSuccessColor(context)
-                  : isUserAnswer
-                  ? getErrorColor(context)
-                  : getDisabledColor(context),
-              borderRadius: BorderRadius.circular(15),
+              shape: BoxShape.circle,
+              color: circleColor,
             ),
-            child: Center(
-              child: Text(
-                optionLetter,
-                style: TextStyle(
-                  color: getSurfaceColor(context),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-            ),
+            child: displayIcon != null
+                ? Icon(displayIcon, color: getSurfaceColor(context), size: 16)
+                : null,
           ),
           SizedBox(width: 12),
+          // Option text
           Expanded(
-            child: Text(
-              optionText,
-              style: TextStyle(fontSize: 16, color: textColor, height: 1.4),
+            child: RichText(
+              text: TextSpan(
+                style: TextStyle(fontSize: 16, color: textColor),
+                children: [
+                  TextSpan(
+                    text: '$optionLetter. ',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
+                  ),
+                  TextSpan(text: optionText, style: TextStyle(fontSize: 16)),
+                ],
+              ),
             ),
           ),
         ],
