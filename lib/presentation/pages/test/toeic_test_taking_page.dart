@@ -27,6 +27,10 @@ import 'package:en_go_app/core/theme/theme_helper.dart';
 import '../../widgets/test/translation_helper_dialog.dart';
 // Shared audio player widget
 import '../../widgets/shared_audio_player_widget.dart';
+// Quiz summary widget
+import '../../widgets/test/toeic_quiz_summary_widget.dart';
+// Question display widget
+import '../../widgets/test/toeic_question_display_widget.dart';
 
 // StatefulWidget cho trang làm bài test TOEIC
 // Hỗ trợ cả full test (7 parts) và test riêng lẻ theo parts
@@ -113,11 +117,11 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                   ),
                 ],
               ),
-              backgroundColor: Colors.red,
+              backgroundColor: getErrorColor(context),
               duration: const Duration(seconds: 8),
               action: SnackBarAction(
                 label: 'RETRY',
-                textColor: Colors.white,
+                textColor: getSurfaceColor(context),
                 onPressed: () {
                   Navigator.pop(context);
                 },
@@ -198,27 +202,30 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Logic phân biệt loại question để render UI phù hợp
-                            if ((currentQuestion.partNumber == 3 ||
-                                    currentQuestion.partNumber == 4) ||
-                                (currentQuestion.partNumber >= 6 &&
-                                    currentQuestion.groupId != null)) ...[
-                              // Group questions: Part 3,4,6,7 có nhiều câu chung context
-                              _buildGroupQuestions(context, provider),
-                            ] else ...[
-                              // Single questions: Part 1,2,5 mỗi câu độc lập
-                              _buildSingleQuestion(
-                                context,
-                                provider,
-                                currentQuestion,
-                              ),
-                            ],
+                            // Question display widget - handles both single and group questions
+                            ToeicQuestionDisplayWidget(
+                              imageWidgetKeys: _imageWidgetKeys,
+                              imageUrlCache: _imageUrlCache,
+                              buildOptions: _buildOptions,
+                              buildSimpleOptions: _buildSimpleOptions,
+                              buildNavigationButtons: _buildNavigationButtons,
+                              buildAudioPlayer: _buildAudioPlayer,
+                              buildImageContainer: (url, height) =>
+                                  ImageContainerWidget(
+                                    key: ValueKey('image_$url'),
+                                    imageUrl: url,
+                                    height: height,
+                                    imageWidgetKeys: _imageWidgetKeys,
+                                    imageUrlCache: _imageUrlCache,
+                                  ),
+                            ),
+
+                            // Navigation buttons
+                            _buildNavigationButtons(provider),
 
                             const SizedBox(
                               height: 16,
-                            ), // Khoảng cách trước navigation
-                            // Navigation buttons để chuyển câu tiếp theo
-                            _buildNavigationButtons(provider),
+                            ), // Spacing before navigation
                           ],
                         ),
                       );
@@ -233,245 +240,25 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     );
   }
 
-  // Build UI cho single question (Part 1, 2, 5)
-  // Các parts này không có group, mỗi question hiển thị độc lập
+  /// NOTE: _buildSingleQuestion has been moved to ToeicQuestionDisplayWidget
+  /// Keep this method for backward compatibility
+  @Deprecated('Use ToeicQuestionDisplayWidget instead')
   Widget _buildSingleQuestion(
     BuildContext context,
     ToeicTestProvider provider,
     ToeicQuestion question,
   ) {
-    return Expanded(
-      child: SingleChildScrollView(
-        // Cho phép scroll khi content dài
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Hiển thị số thứ tự câu hỏi với font size lớn
-            RepaintBoundary(
-              key: ValueKey('question_header_${question.questionNumber}'),
-              child: Text(
-                '${question.questionNumber}.',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: getTextPrimary(context), // Màu text từ theme
-                ),
-              ),
-            ),
-
-            // Audio player cho listening parts (Part 1-4)
-            // Chỉ hiển thị khi question có audioUrl và thuộc listening parts
-            if (question.audioUrl != null && question.partNumber <= 4)
-              RepaintBoundary(
-                key: ValueKey('audio_${question.questionNumber}'),
-                child: _buildAudioPlayer(provider, question.audioUrl!),
-              ),
-
-            // Hiển thị hình ảnh cho Part 1 và một số câu Part 3 có hình
-            if (question.imageUrl != null &&
-                (question.partNumber == 1 || question.partNumber == 3)) ...[
-              // Sử dụng widget riêng để prevent rebuild hoàn toàn
-              ImageContainerWidget(
-                key: ValueKey('image_container_${question.imageUrl}'),
-                imageUrl: question.imageUrl!,
-                height: 200,
-                imageWidgetKeys: _imageWidgetKeys,
-                imageUrlCache: _imageUrlCache,
-              ),
-            ],
-
-            // Question text (only for Part 3 and above)
-            if (question.questionText != null && question.partNumber >= 3)
-              RepaintBoundary(
-                key: ValueKey('question_text_${question.questionNumber}'),
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Text(
-                    question.questionText!,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ),
-              ),
-
-            // Part 1 and 2: Only show simple A,B,C,D buttons
-            if (question.partNumber <= 2)
-              _buildSimpleOptions(provider, question)
-            // Part 3+: Show full options with text
-            else
-              _buildOptions(context, provider, question),
-
-            const SizedBox(height: 24),
-            // Question grid - moved to scrollable area
-            _buildQuestionGrid(provider),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
+    return Container();
   }
 
-  // Build UI for group questions (Part 3, 4, 6, 7 with groupId)
+  /// NOTE: _buildGroupQuestions has been moved to ToeicQuestionDisplayWidget
+  /// Keep this method for backward compatibility
+  @Deprecated('Use ToeicQuestionDisplayWidget instead')
   Widget _buildGroupQuestions(
     BuildContext context,
     ToeicTestProvider provider,
   ) {
-    final currentQuestion = provider.currentQuestion;
-    if (currentQuestion == null) return Container();
-
-    // Tìm tất cả questions trong cùng group (Part 3, 4, 6, 7)
-    final groupQuestions =
-        provider.questions
-            .where(
-              (q) =>
-                  q.partNumber == currentQuestion.partNumber &&
-                  q.groupId == currentQuestion.groupId,
-            )
-            .toList()
-          ..sort((a, b) => a.questionNumber.compareTo(b.questionNumber));
-
-    if (groupQuestions.isEmpty)
-      return _buildSingleQuestion(context, provider, currentQuestion);
-
-    // Find a question in the group that has images
-    final questionWithImages = groupQuestions.firstWhere(
-      (q) =>
-          q.imageUrl != null ||
-          (q.imageUrls != null && q.imageUrls!.isNotEmpty),
-      orElse: () => groupQuestions.first,
-    );
-
-    return Expanded(
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Conversation header
-            RepaintBoundary(
-              key: ValueKey('header_group_${currentQuestion.groupId}'),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Questions ${groupQuestions.first.questionNumber}-${groupQuestions.last.questionNumber}',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-              ),
-            ),
-
-            // Audio player - for listening parts (Part 1-4)
-            // Audio player cho listening parts của group questions
-            // Kiểm tra audioUrl từ question đầu tiên trong group
-            if (groupQuestions.first.audioUrl != null &&
-                groupQuestions.first.partNumber <= 4)
-              RepaintBoundary(
-                key: ValueKey('audio_group_${currentQuestion.groupId}'),
-                child: _buildAudioPlayer(
-                  provider,
-                  groupQuestions.first.audioUrl!,
-                ),
-              ),
-
-            // Isolate images widget để tránh rebuild khi chọn đáp án
-            RepaintBoundary(
-              key: ValueKey('images_group_${currentQuestion.groupId}'),
-              child: Column(
-                children: [
-                  // Multiple images (Part 7 với array imageFiles)
-                  // Tạo column chứa danh sách hình ảnh nếu có nhiều hình
-                  if (questionWithImages.imageUrls != null &&
-                      questionWithImages.imageUrls!.isNotEmpty)
-                    Column(
-                      children: questionWithImages.imageUrls!
-                          .asMap()
-                          .entries
-                          .map(
-                            (imageEntry) => ImageContainerWidget(
-                              key: ValueKey(
-                                'image_group_${currentQuestion.groupId}_${imageEntry.key}',
-                              ),
-                              imageUrl: imageEntry.value,
-                              height: 250,
-                              imageWidgetKeys: _imageWidgetKeys,
-                              imageUrlCache: _imageUrlCache,
-                            ),
-                          )
-                          .toList(), // Chuyển đổi map thành list widgets
-                    )
-                  // Single image (for Part 3, Part 6 with single imageFile)
-                  // Hiển thị một hình ảnh duy nhất cho các part khác
-                  else if (questionWithImages.imageUrl != null)
-                    ImageContainerWidget(
-                      key: ValueKey(
-                        'image_group_${currentQuestion.groupId}_single',
-                      ),
-                      imageUrl: questionWithImages.imageUrl!,
-                      height: 250,
-                      imageWidgetKeys: _imageWidgetKeys,
-                      imageUrlCache: _imageUrlCache,
-                    ),
-                ],
-              ),
-            ),
-
-            // Hiển thị tất cả câu hỏi trong group (thường là 3 câu)
-            // Sử dụng asMap().entries để có cả index và question object
-            ...groupQuestions.asMap().entries.map((entry) {
-              final index = entry.key; // Index của câu hỏi trong group
-              final question = entry.value; // Object câu hỏi
-
-              return Container(
-                margin: const EdgeInsets.only(
-                  bottom: 20,
-                ), // Margin giữa các câu hỏi
-                padding: const EdgeInsets.all(
-                  16,
-                ), // Padding bên trong container
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: getDividerColor(context),
-                  ), // Border với theme color
-                  borderRadius: BorderRadius.circular(8), // Bo góc container
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start, // Align trái
-                  children: [
-                    // Hiển thị số câu hỏi và text câu hỏi
-                    Text(
-                      question.questionText ??
-                          'Question ${question.questionNumber}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600, // Font weight semibold
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 12,
-                    ), // Spacing giữa question và options
-                    // Hiển thị các lựa chọn A, B, C, D cho câu hỏi này
-                    _buildOptions(context, provider, question),
-                  ],
-                ),
-              );
-            }), // Convert map thành list widgets
-
-            const SizedBox(height: 24), // Spacing trước question grid
-            // Question grid - di chuyển vào scrollable area
-            _buildQuestionGrid(provider),
-            const SizedBox(height: 16), // Spacing cuối
-          ],
-        ),
-      ),
-    );
+    return Container();
   }
 
   Widget _buildHeader(
@@ -556,7 +343,9 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     return Container(
       padding: const EdgeInsets.all(10), // Padding bên trong container
       decoration: BoxDecoration(
-        color: const Color(0xFF1E90FF).withOpacity(0.1), // Màu nền xanh nhạt
+        color: Theme.of(
+          context,
+        ).primaryColor.withOpacity(0.1), // Màu nền xanh nhạt
         borderRadius: BorderRadius.circular(8), // Bo góc
       ),
       child: Row(
@@ -564,7 +353,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
           Container(
             padding: const EdgeInsets.all(8), // Padding cho number container
             decoration: BoxDecoration(
-              color: const Color(0xFF1E90FF), // Màu xanh dương
+              color: Theme.of(context).primaryColor, // Màu xanh dương
               borderRadius: BorderRadius.circular(8), // Bo góc
             ),
             child: Text(
@@ -578,10 +367,10 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
           const SizedBox(width: 10), // Khoảng cách giữa number và part info
           Text(
             'Part ${question.partNumber}', // Hiển thị số part
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600, // Font weight semibold
-              color: Color(0xFF1E90FF), // Màu xanh dương
+              color: Theme.of(context).primaryColor, // Màu xanh dương
             ),
           ),
         ],
@@ -663,11 +452,16 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isSelected
-                        ? const Color(0xFF1E90FF) // Màu xanh dương khi chọn
-                        : Colors.grey[400], // Màu xám khi không chọn
+                        ? Theme.of(context)
+                              .primaryColor // Màu xanh dương khi chọn
+                        : getDisabledColor(context), // Màu xám khi không chọn
                   ),
                   child: isSelected
-                      ? const Icon(Icons.check, color: Colors.white, size: 16)
+                      ? Icon(
+                          Icons.check,
+                          color: getSurfaceColor(context),
+                          size: 16,
+                        )
                       : null,
                 ),
                 const SizedBox(width: 12),
@@ -779,7 +573,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
           width: 50,
           height: 50,
           decoration: BoxDecoration(
-            color: const Color(0xFF4CAF50), // Green color for translation
+            color: getSuccessColor(context), // Green color for translation
             borderRadius: BorderRadius.circular(8),
           ),
           child: IconButton(
@@ -805,7 +599,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
           width: 50,
           height: 50,
           decoration: BoxDecoration(
-            color: const Color(0xFF6B8CAE),
+            color: Theme.of(context).primaryColor,
             borderRadius: BorderRadius.circular(8),
           ),
           child: IconButton(
@@ -870,123 +664,11 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
   }
 
   /// Build question grid widget - Tạo lưới hiển thị tất cả câu hỏi
-  /// Đây là phần review với 200 ô số câu, hiển thị trạng thái đã trả lời/chưa trả lời
-  /// Logic: Tạo grid layout 9 cột x nhiều hàng để hiển thị tối đa 200 câu hỏi
-  ///
-  /// [provider] - ToeicTestProvider chứa danh sách câu hỏi và trạng thái
+  /// NOTE: Đã tách ra thành ToeicQuizSummaryWidget trong file toeic_quiz_summary_widget.dart
+  /// Hãy sử dụng widget đó thay vì method này
+  @Deprecated('Use ToeicQuizSummaryWidget instead')
   Widget _buildQuestionGrid(ToeicTestProvider provider) {
-    const itemsPerRow = 9; // Số câu hỏi trên mỗi hàng - cố định 9 cột
-    final questions =
-        provider.questions; // Lấy danh sách tất cả câu hỏi từ provider
-    if (questions.isEmpty)
-      return Container(); // Trả về container rỗng nếu không có câu hỏi
-
-    // Lấy danh sách số thứ tự câu hỏi thực tế từ các câu hỏi đã load
-    final questionNumbers = questions.map((q) => q.questionNumber).toList()
-      ..sort(); // Sắp xếp theo thứ tự tăng dần
-    final minQuestion = questionNumbers.first; // Câu hỏi đầu tiên (thường là 1)
-    final maxQuestion =
-        questionNumbers.last; // Câu hỏi cuối cùng (thường là 200)
-    final totalQuestions = questions.length; // Tổng số câu hỏi
-
-    final rows = (totalQuestions / itemsPerRow)
-        .ceil(); // Tính số hàng cần thiết (làm tròn lên)
-
-    return Container(
-      child: Column(
-        children: List.generate(rows, (rowIndex) {
-          // Tạo từng hàng
-          final startIndex =
-              rowIndex * itemsPerRow; // Index bắt đầu của hàng này
-
-          return Padding(
-            padding: const EdgeInsets.only(
-              bottom: 6,
-            ), // Khoảng cách 6px giữa các hàng
-            child: Row(
-              children: List.generate(itemsPerRow, (colIndex) {
-                // Tạo 9 cột cho mỗi hàng
-                final questionIndex =
-                    startIndex + colIndex; // Index câu hỏi hiện tại
-                if (questionIndex >= totalQuestions) {
-                  return Expanded(
-                    child: Container(),
-                  ); // Container rỗng nếu vượt quá số câu hỏi
-                }
-
-                // Sử dụng số thứ tự câu hỏi thực tế từ danh sách đã load
-                final actualQuestionNumber = questionNumbers[questionIndex];
-                final isAnswered =
-                    provider.getAnswer(actualQuestionNumber) !=
-                    null; // Kiểm tra đã trả lời chưa
-                final isCurrent =
-                    questionIndex ==
-                    provider.currentIndex; // Kiểm tra có phải câu hiện tại
-
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => provider.goToQuestion(
-                      questionIndex,
-                    ), // Chuyển đến câu hỏi khi tap
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 2,
-                      ), // Margin ngang 2px mỗi bên
-                      height: 36, // Chiều cao cố định 36px cho mỗi ô
-                      decoration: BoxDecoration(
-                        color: isCurrent
-                            ? Theme.of(context)
-                                  .primaryColor // Màu xanh dương cho câu hiện tại
-                            : isAnswered
-                            ? getDisabledColor(
-                                context,
-                              ) // Màu xám cho câu đã trả lời
-                            : getSurfaceColor(
-                                context,
-                              ), // Màu trắng cho câu chưa trả lời
-                        border: Border.all(
-                          color: getBorderColor(context),
-                          width: 1,
-                        ), // Viền xám nhạt dày 1px
-                        borderRadius: BorderRadius.circular(6), // Bo góc 6px
-                        boxShadow: [
-                          BoxShadow(
-                            color: getTextPrimary(
-                              context,
-                            ).withOpacity(0.1), // Màu bóng đen trong suốt 10%
-                            offset: const Offset(
-                              0,
-                              2,
-                            ), // Độ lệch bóng: 0px ngang, 2px dọc
-                            blurRadius: 2, // Độ mờ của bóng 2px
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Text(
-                          actualQuestionNumber
-                              .toString(), // Hiển thị số thứ tự câu hỏi thực tế
-                          style: TextStyle(
-                            color: isCurrent
-                                ? getSurfaceColor(context)
-                                : getTextPrimary(
-                                    context,
-                                  ), // Màu chữ: trắng nếu đang chọn, đen nếu không
-                            fontWeight:
-                                FontWeight.w600, // Độ đậm font: semibold
-                            fontSize: 14, // Cỡ chữ 14px
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          );
-        }),
-      ),
-    );
+    return const ToeicQuizSummaryWidget();
   }
 
   String _formatDuration(Duration duration) {
@@ -1018,7 +700,10 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
               Navigator.pop(context);
               Navigator.pop(context);
             },
-            child: const Text('Exit', style: TextStyle(color: Colors.red)),
+            child: Text(
+              'Exit',
+              style: TextStyle(color: getErrorColor(context)),
+            ),
           ),
         ],
       ),
@@ -1244,7 +929,7 @@ class _ImageDisplayWidgetState extends State<ImageDisplayWidget> {
             return Container(
               width: widget.width,
               height: widget.height,
-              color: Colors.grey[200],
+              color: getBackgroundColor(context),
               child: const Center(child: CircularProgressIndicator()),
             );
           }
@@ -1253,7 +938,7 @@ class _ImageDisplayWidgetState extends State<ImageDisplayWidget> {
             return Container(
               width: widget.width,
               height: widget.height,
-              color: Colors.grey[300],
+              color: getDisabledColor(context),
               child: const Center(child: Text('Error loading image')),
             );
           }
@@ -1286,7 +971,7 @@ class _ImageDisplayWidgetState extends State<ImageDisplayWidget> {
                 return Container(
                   width: widget.width,
                   height: widget.height,
-                  color: Colors.grey[200],
+                  color: getBackgroundColor(context),
                   child: const Center(child: CircularProgressIndicator()),
                 );
               },
@@ -1294,7 +979,7 @@ class _ImageDisplayWidgetState extends State<ImageDisplayWidget> {
                 return Container(
                   width: widget.width,
                   height: widget.height,
-                  color: Colors.grey[300],
+                  color: getDisabledColor(context),
                   child: const Center(child: Text('Error')),
                 );
               },
@@ -1314,14 +999,17 @@ class _ImageDisplayWidgetState extends State<ImageDisplayWidget> {
         return Container(
           width: widget.width,
           height: widget.height,
-          color: Colors.grey[300],
-          child: const Center(
+          color: getDisabledColor(context),
+          child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error, color: Colors.red, size: 48),
-                SizedBox(height: 8),
-                Text('Asset image failed', style: TextStyle(color: Colors.red)),
+                Icon(Icons.error, color: getErrorColor(context), size: 48),
+                const SizedBox(height: 8),
+                Text(
+                  'Asset image failed',
+                  style: TextStyle(color: getErrorColor(context)),
+                ),
               ],
             ),
           ),
