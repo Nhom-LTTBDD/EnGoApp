@@ -1,4 +1,7 @@
 // lib/presentation/pages/auth/terms_page.dart
+// Trang điều khoản dịch vụ
+// Hiển thị điều khoản sử dụng app và nút đồng ý
+
 import 'package:flutter/material.dart';
 import 'package:en_go_app/presentation/layout/auth_layout.dart';
 import 'package:en_go_app/core/constants/app_colors.dart';
@@ -28,11 +31,14 @@ class TermsPage extends StatelessWidget {
         ),
         child: Column(
           children: [
+            // Nội dung điều khoản
             const Text(
               'Vui lòng đọc kỹ các điều khoản dịch vụ trước khi sử dụng ứng dụng EnGo App. Bằng việc sử dụng ứng dụng, bạn đồng ý với các điều khoản này.',
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 20),
+
+            // Nút đồng ý và tiếp tục
             AppButton(
               onPressed: () {
                 Navigator.pushNamed(context, AppRoutes.register);

@@ -1,4 +1,7 @@
 // lib/presentation/pages/welcome/welcome_page.dart
+// Trang chào mừng - màn hình đầu tiên khi chưa đăng nhập
+// Hiển thị thông tin về app và nút Get Started để đăng nhập
+
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -24,9 +27,11 @@ class _WelcomePageState extends State<WelcomePage>
   void initState() {
     super.initState();
     _initAnimations();
-    // Start animation immediately - don't wait for assets
+
+    // Bắt đầu animation ngay lập tức - không đợi assets load
     _contentController.forward();
-    // Precache in background without blocking
+
+    // Precache background image trong background để không block UI
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         precacheImage(const AssetImage(kBackgroundJpg), context);
@@ -34,13 +39,16 @@ class _WelcomePageState extends State<WelcomePage>
     });
   }
 
+  /// Khởi tạo animation controllers và animations
+  /// Sử dụng fade-in đơn giản để tối ưu performance
   void _initAnimations() {
-    // Single simple fade animation
+    // Animation controller - 400ms cho fade in mượt mà
     _contentController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
     );
 
+    // Fade animation từ trong suốt đến hiện rõ
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _contentController, curve: Curves.easeIn),
     );
@@ -63,11 +71,12 @@ class _WelcomePageState extends State<WelcomePage>
       body: Container(
         width: double.infinity,
         height: double.infinity,
+        // Background image với FilterQuality.low để tối ưu performance
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage(kBackgroundJpg),
             fit: BoxFit.cover,
-            filterQuality: FilterQuality.low,
+            filterQuality: FilterQuality.low, // Giảm chất lượng để tăng tốc độ
           ),
         ),
         child: SafeArea(
@@ -112,7 +121,8 @@ class _WelcomePageState extends State<WelcomePage>
                           ],
                         ),
                         const SizedBox(height: 30),
-                        // Feature Cards - static for performance
+
+                        // Feature Cards - static để tối ưu performance (không animation)
                         _buildFeatureCard('Chinh phục IELTS/TOEIC dễ dàng'),
                         const SizedBox(height: 12),
                         _buildFeatureCard(
@@ -123,7 +133,8 @@ class _WelcomePageState extends State<WelcomePage>
                           'Tổng hợp ngữ pháp đầy đủ và dễ hiểu',
                         ),
                         const SizedBox(height: 40),
-                        // Button
+
+                        // Get Started Button
                         _buildGetStartedButton(context),
                         const SizedBox(height: 20),
                       ],
@@ -138,6 +149,8 @@ class _WelcomePageState extends State<WelcomePage>
     );
   }
 
+  /// Widget hiển thị feature card
+  /// Static widget (không có animation) để tối ưu performance
   Widget _buildFeatureCard(String text) {
     return Container(
       width: 300,
@@ -156,6 +169,7 @@ class _WelcomePageState extends State<WelcomePage>
     );
   }
 
+  /// Widget nút Get Started - điều hướng đến trang đăng nhập
   Widget _buildGetStartedButton(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40.0),

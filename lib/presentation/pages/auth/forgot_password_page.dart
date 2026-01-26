@@ -1,4 +1,7 @@
 // lib/presentation/pages/auth/forgot_password_page.dart
+// Trang quên mật khẩu
+// Gửi email đặt lại mật khẩu cho user
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:en_go_app/presentation/layout/auth_layout.dart';
