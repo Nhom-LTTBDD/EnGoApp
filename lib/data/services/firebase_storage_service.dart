@@ -62,18 +62,13 @@ class FirebaseStorageService {
       if (e.toString().contains('Object not found') ||
           e.toString().contains('object-not-found') ||
           e.toString().contains('404')) {
-        print('📁 File not found in Firebase Storage path: $_jsonPath');
-        print('💡 Make sure to upload questions.json to Firebase Storage');
         throw Exception('Firebase Storage file not found: $_jsonPath');
       } else if (e.toString().contains('Permission denied')) {
-        print('🚫 Permission denied - check Firebase Storage rules');
         throw Exception('Firebase Storage permission denied');
       } else if (e.toString().contains('Network') ||
           e.toString().contains('TimeoutException')) {
-        print('🌐 Network error - check internet connection');
         throw Exception('Firebase Storage network error');
       } else {
-        print('🔧 Unknown error - check Firebase configuration');
         throw Exception('Firebase Storage configuration error: $e');
       }
     }
@@ -87,7 +82,6 @@ class FirebaseStorageService {
       );
       return json.decode(jsonString);
     } catch (e) {
-      print('Error loading local JSON: $e');
       return {};
     }
   }
@@ -123,7 +117,6 @@ class FirebaseStorageService {
       final testData = data['test1'];
 
       if (testData == null) {
-        print('❌ Test1 not found in data');
         return [];
       }
 
@@ -133,9 +126,6 @@ class FirebaseStorageService {
       final partData = parts[partKey] ?? parts[partNumber];
 
       if (partData == null) {
-        print(
-          '❌ Part $partNumber not found (tried keys: "$partKey" and $partNumber)',
-        );
         return [];
       }
 
@@ -194,13 +184,12 @@ class FirebaseStorageService {
           );
           questions.add(question);
         } catch (e) {
-          print('❌ Error creating question: $e');
+          // Ignore errors for individual questions
         }
       }
 
       return questions;
     } catch (e) {
-      print('❌ Error loading questions from Firebase: $e');
       return [];
     }
   }
@@ -216,8 +205,6 @@ class FirebaseStorageService {
       final ref = _storage.ref('$_imagesPath$imageFile');
       return await ref.getDownloadURL();
     } catch (e) {
-      print('❌ Error getting image URL for $imageFile: $e');
-      // Fallback to local asset
       return 'assets/test_toeic/test_1/$imageFile';
     }
   }
@@ -225,7 +212,6 @@ class FirebaseStorageService {
   /// Get download URL cho audio file
   static Future<String?> _getAudioUrl(String audioFile) async {
     if (!_useFirebaseStorage) {
-      // Return local asset path when Firebase Storage is disabled
       return 'assets/audio/toeic_test1/$audioFile';
     }
 
@@ -233,8 +219,6 @@ class FirebaseStorageService {
       final ref = _storage.ref('$_audioPath$audioFile');
       return await ref.getDownloadURL();
     } catch (e) {
-      print('❌ Error getting audio URL for $audioFile: $e');
-      // Fallback to local asset
       return 'assets/audio/toeic_test1/$audioFile';
     }
   }
@@ -242,15 +226,10 @@ class FirebaseStorageService {
   /// Upload JSON data to Firebase Storage
   static Future<void> uploadJsonData(Map<String, dynamic> jsonData) async {
     try {
-      print('🔥 Uploading JSON data to Firebase Storage...');
-
       final jsonString = json.encode(jsonData);
       final ref = _storage.ref(_jsonPath);
-
       await ref.putString(jsonString, format: PutStringFormat.raw);
-      print('✅ JSON data uploaded successfully');
     } catch (e) {
-      print('❌ Error uploading JSON data: $e');
       rethrow;
     }
   }
@@ -261,16 +240,10 @@ class FirebaseStorageService {
     List<int> imageBytes,
   ) async {
     try {
-      print('🔥 Uploading image $fileName to Firebase Storage...');
-
       final ref = _storage.ref('$_imagesPath$fileName');
       await ref.putData(Uint8List.fromList(imageBytes));
-
-      final downloadUrl = await ref.getDownloadURL();
-      print('✅ Image $fileName uploaded successfully');
-      return downloadUrl;
+      return await ref.getDownloadURL();
     } catch (e) {
-      print('❌ Error uploading image $fileName: $e');
       return null;
     }
   }
@@ -281,16 +254,10 @@ class FirebaseStorageService {
     List<int> audioBytes,
   ) async {
     try {
-      print('🔥 Uploading audio $fileName to Firebase Storage...');
-
       final ref = _storage.ref('$_audioPath$fileName');
       await ref.putData(Uint8List.fromList(audioBytes));
-
-      final downloadUrl = await ref.getDownloadURL();
-      print('✅ Audio $fileName uploaded successfully');
-      return downloadUrl;
+      return await ref.getDownloadURL();
     } catch (e) {
-      print('❌ Error uploading audio $fileName: $e');
       return null;
     }
   }
@@ -312,7 +279,6 @@ class FirebaseStorageService {
       final ref = _storage.ref(path);
       return await ref.getMetadata();
     } catch (e) {
-      print('❌ Error getting metadata for $path: $e');
       return null;
     }
   }
@@ -322,10 +288,8 @@ class FirebaseStorageService {
     try {
       final ref = _storage.ref(path);
       await ref.delete();
-      print('🗑️ Deleted: $path');
       return true;
     } catch (e) {
-      print('❌ Error deleting $path: $e');
       return false;
     }
   }
@@ -333,33 +297,24 @@ class FirebaseStorageService {
   /// Delete all files in a folder
   static Future<void> deleteFolder(String folderPath) async {
     try {
-      print('🗑️ Deleting folder: $folderPath');
       final ref = _storage.ref(folderPath);
       final listResult = await ref.listAll();
 
-      // Delete all files
       for (final item in listResult.items) {
         await item.delete();
-        print('🗑️ Deleted file: ${item.name}');
       }
 
-      // Delete all subfolders recursively
       for (final prefix in listResult.prefixes) {
         await deleteFolder(prefix.fullPath);
       }
-
-      print('✅ Folder deleted: $folderPath');
     } catch (e) {
-      print('❌ Error deleting folder $folderPath: $e');
+      // Ignore errors
     }
   }
 
   /// Clean up old data structure
   static Future<void> cleanupOldData() async {
     try {
-      print('🧹 Attempting to clean up old data structure...');
-
-      // Delete old structure if exists - but continue even if fails
       final oldPaths = [
         'toeic_data/questions.json',
         'toeic_data/images',
@@ -376,13 +331,11 @@ class FirebaseStorageService {
             }
           }
         } catch (e) {
-          print('⚠️ Could not delete $path: $e (continuing anyway...)');
+          // Continue even if deletion fails
         }
       }
-
-      print('✅ Cleanup attempt completed (some files may remain)');
     } catch (e) {
-      print('⚠️ Cleanup failed but continuing with upload: $e');
+      // Continue with upload
     }
   }
 
@@ -394,35 +347,10 @@ class FirebaseStorageService {
     if (!_useFirebaseStorage) return null;
 
     try {
-      // Convert jpg extension to png since files are stored as .png
       String pngFileName = imageFile.replaceAll('.jpg', '.png');
-
-      // Tắt debug logging để tránh spam khi cache hoạt động
-      // print('🔍 Searching for image: $imageFile -> $pngFileName');
-      // print('🔍 Full path: $_imagesPath$pngFileName');
-
       final ref = _storage.ref('$_imagesPath$pngFileName');
-      final downloadUrl = await ref.getDownloadURL().timeout(
-        const Duration(seconds: 5),
-      );
-      // print('✅ Image found at: $_imagesPath$pngFileName');
-      return downloadUrl;
+      return await ref.getDownloadURL().timeout(const Duration(seconds: 5));
     } catch (e) {
-      print('❌ Error getting image URL for $imageFile: $e');
-
-      // Debug: list files in images directory (chỉ khi có lỗi)
-      try {
-        print('🔍 Listing files in images directory...');
-        final ref = _storage.ref(_imagesPath);
-        final listResult = await ref.listAll();
-        print('📁 Found ${listResult.items.length} files in images directory:');
-        for (var item in listResult.items) {
-          print('  - ${item.name}');
-        }
-      } catch (listError) {
-        print('❌ Error listing images directory: $listError');
-      }
-
       return null;
     }
   }
@@ -433,12 +361,8 @@ class FirebaseStorageService {
 
     try {
       final ref = _storage.ref('$_audioPath$audioFile');
-      final downloadUrl = await ref.getDownloadURL().timeout(
-        const Duration(seconds: 5),
-      );
-      return downloadUrl;
+      return await ref.getDownloadURL().timeout(const Duration(seconds: 5));
     } catch (e) {
-      print('❌ Error getting audio URL for $audioFile: $e');
       return null;
     }
   }

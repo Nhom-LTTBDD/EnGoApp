@@ -111,7 +111,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
         firebaseUrl = _audioUrlCache[audioUrl]!;
       } else {
         // Resolve audio URL từ Firebase Storage
-        final url = await FirebaseStorageService.getAudioDownloadUrl(audioUrl);
+        final url = await FirebaseStorageService.resolveFirebaseUrl(audioUrl);
         if (url != null) {
           firebaseUrl = url;
           _audioUrlCache[audioUrl] = url;
@@ -270,38 +270,40 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
 
         return ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: Image.network(
-            snapshot.data!,
-            width: width,
-            height: height ?? 250,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                width: width,
-                height: height ?? 250,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: getSurfaceColor(context).withOpacity(0.3),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error,
-                        color: getDisabledColor(context),
-                        size: 40,
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Lỗi tải hình',
-                        style: TextStyle(color: getTextSecondary(context)),
-                      ),
-                    ],
+          child: Center(
+            child: Image.network(
+              snapshot.data!,
+              width: width,
+              height: height ?? 250,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: width,
+                  height: height ?? 250,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: getSurfaceColor(context).withOpacity(0.3),
                   ),
-                ),
-              );
-            },
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error,
+                          color: getDisabledColor(context),
+                          size: 40,
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Lỗi tải hình',
+                          style: TextStyle(color: getTextSecondary(context)),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
         );
       },
@@ -315,13 +317,12 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
     }
 
     try {
-      final url = await FirebaseStorageService.getImageDownloadUrl(imageUrl);
+      final url = await FirebaseStorageService.resolveFirebaseUrl(imageUrl);
       if (url != null) {
         _imageUrlCache[imageUrl] = url;
       }
       return url;
     } catch (e) {
-      print('Error loading Firebase image: $e');
       return null;
     }
   }
@@ -339,6 +340,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: getBorderColor(context)),
         ),
+        alignment: Alignment.center,
         child: _buildFirebaseImage(question!.imageUrl!),
       );
     }
@@ -348,6 +350,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
       return Container(
         margin: EdgeInsets.symmetric(vertical: 10),
         height: 250,
+        alignment: Alignment.center,
         // Horizontal scrollable list cho multiple images
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
@@ -360,6 +363,7 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: getBorderColor(context)),
               ),
+              alignment: Alignment.center,
               child: _buildFirebaseImage(
                 question.imageUrls![index],
                 width: 300,
