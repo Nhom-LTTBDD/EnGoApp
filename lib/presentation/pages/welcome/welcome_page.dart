@@ -22,78 +22,74 @@ class _WelcomePageState extends State<WelcomePage>
   late Animation<Offset> _buttonSlideAnimation;
   late Animation<double> _buttonFadeAnimation;
   bool _isImageCached = false;
-  bool _hasPreCached = false;
 
   @override
   void initState() {
     super.initState();
     _initAnimations();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Precache chỉ 1 lần
-    if (!_hasPreCached) {
-      _hasPreCached = true;
+    // Precache ngay trong initState - trước khi build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _precacheAssets();
-    }
+      // Start animation sau precache
+      if (mounted && !_contentController.isAnimating) {
+        _contentController.forward();
+      }
+    });
   }
 
   Future<void> _precacheAssets() async {
-    // Precache background image - context đã available
-    await precacheImage(const AssetImage(kBackgroundJpg), context);
-    if (mounted) {
-      setState(() {
+    // Precache background image - chỉ update flag, không setState
+    try {
+      await precacheImage(const AssetImage(kBackgroundJpg), context);
+      if (mounted) {
         _isImageCached = true;
-      });
-      // Start animation sau khi image cached
-      if (!_contentController.isAnimating) {
-        _contentController.forward();
+      }
+    } catch (error) {
+      // Ignore precache errors
+      if (mounted) {
+        _isImageCached = true;
       }
     }
   }
 
   void _initAnimations() {
-    // Content animation - giảm duration để giảm load
+    // Content animation - giảm duration
     _contentController = AnimationController(
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 500),
       vsync: this,
     );
 
     // Card slide animations - giảm số lượng animation frame
+    const simpleCurve = Curves.easeOut;
     _cardSlideAnimations = List.generate(
       3,
       (index) => Tween<double>(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(
           parent: _contentController,
           curve: Interval(
-            index * 0.2,
+            index * 0.15,
             0.5 + (index * 0.15),
-            curve: Curves
-                .easeOut, // Thay Curves.easeOutCubic bằng easeOut để mượt hơn
+            curve: simpleCurve,
           ),
         ),
       ),
     );
 
-    // Button animation
+    // Button animation - giảm complexity
     _buttonSlideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
           CurvedAnimation(
             parent: _contentController,
-            curve: const Interval(0.7, 1.0, curve: Curves.easeOut),
+            curve: const Interval(0.6, 1.0, curve: simpleCurve),
           ),
         );
 
     _buttonFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _contentController,
-        curve: const Interval(0.7, 1.0, curve: Curves.easeIn),
+        curve: const Interval(0.6, 1.0, curve: simpleCurve),
       ),
     );
-
-    // Start animation CHỈ sau khi image cached (được trigger trong _precacheAssets)
   }
 
   @override
@@ -215,37 +211,34 @@ class _WelcomePageState extends State<WelcomePage>
     required Animation<double> animation,
     required String text,
   }) {
-    return RepaintBoundary(
-      child: AnimatedBuilder(
-        animation: animation,
-        builder: (context, child) {
-          final progress = animation.value.clamp(0.0, 1.0);
-          if (progress == 0.0) {
-            return const SizedBox(width: 300, height: 44);
-          }
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              widthFactor: progress,
-              child: child,
-            ),
-          );
-        },
-        child: Container(
-          width: 300,
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        final progress = animation.value;
+        if (progress < 0.01) {
+          return const SizedBox(width: 300, height: 44);
+        }
+        return Opacity(
+          opacity: progress,
+          child: Transform.translate(
+            offset: Offset((1 - progress) * 50, 0),
+            child: child,
           ),
-          child: Text(
-            text,
-            style: kBodyEmphasized,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+        );
+      },
+      child: Container(
+        width: 300,
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          text,
+          style: kBodyEmphasized,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
     );

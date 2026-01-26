@@ -21,10 +21,8 @@ class StreakProvider with ChangeNotifier {
   String? _error;
 
   StreakProvider({required StreakService streakService})
-    : _streakService = streakService {
-    // Load streak when provider is created
-    loadStreak();
-  }
+    : _streakService = streakService;
+  // Note: Streak will be loaded lazily when setUserId is called
 
   // Getters
   UserStreak? get streak => _streak;
@@ -37,33 +35,29 @@ class StreakProvider with ChangeNotifier {
   /// Set user ID và reload streak
   void setUserId(String userId) {
     if (_userId != userId) {
-      print('🔄 StreakProvider: Switching user to $userId');
       _userId = userId;
       loadStreak();
-    } else if (_streak == null) {
-      // Nếu chưa có streak data, load lại (case: user login lần đầu)
-      print('🔄 StreakProvider: No streak data, loading...');
-      loadStreak();
     }
+    // Remove duplicate load - only load when userId changes
   }
 
   /// Load streak từ service
   Future<void> loadStreak() async {
+    // Prevent concurrent loads
+    if (_isLoading) return;
+
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
 
-      print('🔄 Loading streak for user: $_userId');
       _streak = await _streakService.getStreak(_userId);
 
       _isLoading = false;
-      print('✨ Streak loaded: ${_streak?.currentStreak ?? 0} days');
       notifyListeners();
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
-      print('❌ Error loading streak: $e');
       notifyListeners();
     }
   }

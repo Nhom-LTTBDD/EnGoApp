@@ -24,6 +24,9 @@ class _SplashPageState extends State<SplashPage> {
 
   /// Kiểm tra auth status và navigate đến trang phù hợp
   Future<void> _checkAuthAndNavigate() async {
+    // Thêm delay để framework warmup và giảm startup frames
+    await Future.delayed(const Duration(milliseconds: 1000));
+
     final authProvider = context.read<AuthProvider>();
 
     // Kiểm tra auth status (silent - không trigger loading state)

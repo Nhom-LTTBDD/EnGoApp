@@ -29,10 +29,8 @@ class PersonalVocabularyProvider with ChangeNotifier {
     required DictionaryRepository dictionaryRepository,
   }) : _service = service,
        _vocabularyRepository = vocabularyRepository,
-       _dictionaryRepository = dictionaryRepository {
-    // Load personal vocabulary when provider is created
-    loadPersonalVocabulary();
-  }
+       _dictionaryRepository = dictionaryRepository;
+  // Note: Data will be loaded lazily when setUserId is called or when explicitly requested
 
   // Getters
   List<String> get bookmarkedCardIds => _bookmarkedCardIds;
@@ -50,9 +48,8 @@ class PersonalVocabularyProvider with ChangeNotifier {
       );
       _userId = userId;
       loadPersonalVocabulary();
-    } else {
-      _logInfo('PersonalVocabularyProvider: User ID already set to $userId');
     }
+    // Remove the "already set" log to reduce log spam
   }
 
   // Get current userId (for debugging)
@@ -60,9 +57,7 @@ class PersonalVocabularyProvider with ChangeNotifier {
   Future<void> loadPersonalVocabulary() async {
     // Don't load with default user - wait for real userId
     if (_userId == 'default_user') {
-      _logWarning(
-        'Skipping load with default_user - waiting for real userId',
-      );
+      _logWarning('Skipping load with default_user - waiting for real userId');
       return;
     }
 
@@ -95,7 +90,9 @@ class PersonalVocabularyProvider with ChangeNotifier {
       if (_bookmarkedCardIds.isNotEmpty) {
         for (var i = 0; i < _bookmarkedCardIds.length; i++) {
           final cardId = _bookmarkedCardIds[i];
-          _logInfo('Loading card ${i + 1}/${_bookmarkedCardIds.length}: $cardId');
+          _logInfo(
+            'Loading card ${i + 1}/${_bookmarkedCardIds.length}: $cardId',
+          );
 
           final card = await _loadAndEnrichCard(cardId);
           if (card != null) {
@@ -235,11 +232,15 @@ class PersonalVocabularyProvider with ChangeNotifier {
         final enrichedCard = await _dictionaryRepository.enrichVocabularyCard(
           card,
         );
-        _logInfo(' enriched successfully with phonetic: ${enrichedCard.phonetic ?? "N/A"}');
+        _logInfo(
+          ' enriched successfully with phonetic: ${enrichedCard.phonetic ?? "N/A"}',
+        );
         return enrichedCard;
       } catch (e) {
         // Nếu không enrich được, vẫn trả về card gốc
-        _logWarning('Could not enrich card ${card.english}, using original: $e');
+        _logWarning(
+          'Could not enrich card ${card.english}, using original: $e',
+        );
         return card;
       }
     } catch (e) {
