@@ -49,21 +49,21 @@ class ToeicPage extends StatelessWidget {
                             color: Theme.of(context).primaryColor,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.arrow_back,
-                            color: Colors.white,
+                            color: getSurfaceColor(context),
                             size: 24,
                           ),
                         ),
                       ),
-                      const Expanded(
+                      Expanded(
                         child: Center(
                           child: Text(
                             'TOEIC',
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: getSurfaceColor(context),
                             ),
                           ),
                         ),
@@ -106,10 +106,13 @@ class ToeicPage extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E90FF),
+                        color: Theme.of(context).primaryColor,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Icon(Icons.search, color: Colors.white),
+                      child: Icon(
+                        Icons.search,
+                        color: getSurfaceColor(context),
+                      ),
                     ),
                   ],
                 ),
@@ -124,19 +127,22 @@ class ToeicPage extends StatelessWidget {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     // Loading state
-                    return const Center(
+                    return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           CircularProgressIndicator(
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              Color(0xFF1E90FF),
+                              Theme.of(context).primaryColor,
                             ),
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           Text(
                             'Đang tải dữ liệu TOEIC...',
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: getTextThird(context),
+                            ),
                           ),
                         ],
                       ),
@@ -148,27 +154,27 @@ class ToeicPage extends StatelessWidget {
                         margin: const EdgeInsets.symmetric(horizontal: 20),
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
+                          color: getErrorColor(context).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.red.withOpacity(0.3),
+                            color: getErrorColor(context).withOpacity(0.3),
                           ),
                         ),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.error_outline,
-                              color: Colors.red,
+                              color: getErrorColor(context),
                               size: 48,
                             ),
                             const SizedBox(height: 16),
-                            const Text(
+                            Text(
                               'Lỗi tải dữ liệu',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.red,
+                                color: getErrorColor(context),
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -177,7 +183,7 @@ class ToeicPage extends StatelessWidget {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.grey[700],
+                                color: getTextSecondary(context),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -192,8 +198,8 @@ class ToeicPage extends StatelessWidget {
                                 );
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF1E90FF),
-                                foregroundColor: Colors.white,
+                                backgroundColor: Theme.of(context).primaryColor,
+                                foregroundColor: getSurfaceColor(context),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -295,10 +301,13 @@ class ToeicPage extends StatelessWidget {
                     );
                   } else {
                     // No data state (shouldn't happen but just in case)
-                    return const Center(
+                    return Center(
                       child: Text(
                         'Không có dữ liệu',
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: getTextThird(context),
+                        ),
                       ),
                     );
                   }
