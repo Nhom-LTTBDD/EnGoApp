@@ -25,7 +25,6 @@ class FlashcardConstants {
   static const double cardBorderRadius = 16.0;
 
   // Swipe animation
-  static const double maxSwipeDistance = 800.0;
   static const double rotationFactor = 0.0005;
   static const double opacityDivisor = 120.0;
 
