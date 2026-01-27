@@ -9,6 +9,8 @@ import '../../widgets/vocabulary_menu_item.dart';
 import '../../widgets/optimized_vocabulary_list.dart';
 import 'vocabulary_menu_manager.dart';
 
+/// Trang chính Vocabulary - Hiển thị menu các chức năng từ vựng
+/// Chức năng: Cho phép người dùng chọn học theo topics, personal collection, hoặc làm quiz
 class VocabPage extends StatefulWidget {
   const VocabPage({super.key});
 
@@ -21,6 +23,7 @@ class _VocabPageState extends State<VocabPage>
   late final VocabularyMenuManager _menuManager;
   late final List<VocabularyMenuData> _menuItems;
 
+  /// Giữ state của page khi chuyển tab để tránh rebuild không cần thiết
   @override
   bool get wantKeepAlive => true;
 
@@ -30,11 +33,15 @@ class _VocabPageState extends State<VocabPage>
     _initializeMenuManager();
   }
 
+  /// Khởi tạo menu manager và load danh sách menu items
+  /// Menu items bao gồm: Topics, Personal Collection, Quiz
   void _initializeMenuManager() {
     _menuManager = VocabularyMenuManager();
     _menuItems = _menuManager.getMenuItems();
   }
 
+  /// Xử lý khi người dùng tap vào một menu item
+  /// Thực hiện navigation hoặc action tương ứng với loại menu được chọn
   Future<void> _handleMenuTap(VocabularyMenuType menuType) async {
     try {
       await _menuManager.executeMenuAction(context, menuType);
@@ -45,6 +52,7 @@ class _VocabPageState extends State<VocabPage>
     }
   }
 
+  /// Hiển thị dialog thông báo lỗi khi có exception xảy ra
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
@@ -58,9 +66,10 @@ class _VocabPageState extends State<VocabPage>
           ),
         ],
       ),
-    );
-  }
+    );  }
 
+  /// Build UI của vocabulary page
+  /// Sử dụng OptimizedVocabularyList để hiển thị menu items với performance tối ưu
   @override
   Widget build(BuildContext context) {
     super.build(context);

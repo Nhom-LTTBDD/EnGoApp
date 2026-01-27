@@ -6,13 +6,19 @@ import '../../domain/entities/vocabulary_card.dart';
 import '../../domain/repository_interfaces/vocabulary_repository.dart';
 import '../../domain/repository_interfaces/dictionary_repository.dart';
 
-/// Provider quản lý state của Personal Vocabulary.
+/// Provider quản lý state của Personal Vocabulary (Bộ từ của bạn)
 ///
-/// **Responsibilities:**
-/// - Quản lý danh sách card đã bookmark
-/// - Load card data từ repositories
-/// - Enrich card với dictionary data
-/// - Handle UI state (loading, error)
+/// **Chức năng chính:**
+/// - Quản lý danh sách card IDs đã bookmark (lưu trong SharedPrefs + Firestore)
+/// - Load vocabulary card data từ VocabularyRepository theo card IDs
+/// - Enrich cards với dictionary data (phonetic, definitions, audio)
+/// - Handle bookmark/unbookmark operations
+/// - Manage UI state (loading, error)
+///
+/// **Dependencies:**
+/// - PersonalVocabularyService: Sync bookmarks SharedPrefs ↔ Firestore
+/// - VocabularyRepository: Load card data
+/// - DictionaryRepository: Enrich với API data
 class PersonalVocabularyProvider with ChangeNotifier {
   final PersonalVocabularyService _service;
   final VocabularyRepository _vocabularyRepository;
@@ -29,8 +35,7 @@ class PersonalVocabularyProvider with ChangeNotifier {
     required DictionaryRepository dictionaryRepository,
   }) : _service = service,
        _vocabularyRepository = vocabularyRepository,
-       _dictionaryRepository = dictionaryRepository;
-  // Note: Data will be loaded lazily when setUserId is called or when explicitly requested
+       _dictionaryRepository = dictionaryRepository;  // Note: Data will be loaded lazily when setUserId is called or when explicitly requested
 
   // Getters
   List<String> get bookmarkedCardIds => _bookmarkedCardIds;
@@ -40,7 +45,9 @@ class PersonalVocabularyProvider with ChangeNotifier {
   int get cardCount => _personalCards.length;
   bool get hasCards => _personalCards.isNotEmpty;
   int get topicCount => _personalCards.length; // Number of word sets/cards
-  // Set user ID
+  
+  /// Set user ID và trigger load personal vocabulary
+  /// Chỉ load khi userId thay đổi để tránh duplicate requests
   void setUserId(String userId) {
     if (_userId != userId) {
       _logInfo(
@@ -48,12 +55,22 @@ class PersonalVocabularyProvider with ChangeNotifier {
       );
       _userId = userId;
       loadPersonalVocabulary();
-    }
-    // Remove the "already set" log to reduce log spam
+    }    // Remove the "already set" log to reduce log spam
   }
 
   // Get current userId (for debugging)
-  String get currentUserId => _userId; // Load personal vocabulary
+  String get currentUserId => _userId; 
+  
+  /// Load personal vocabulary từ PersonalVocabularyService
+  /// 
+  /// **Flow:**
+  /// 1. Get bookmarked card IDs từ service (SharedPrefs/Firestore)
+  /// 2. Load chi tiết mỗi card từ VocabularyRepository (parallel)
+  /// 3. Enrich cards với DictionaryRepository (definitions, audio, phonetic)
+  /// 4. Update state và notify listeners
+  /// 
+  /// **Race Condition Prevention:** Skip nếu đang loading
+  /// **Performance:** Load tất cả cards parallel thay vì sequential
   Future<void> loadPersonalVocabulary() async {
     // Don't load with default user - wait for real userId
     if (_userId == 'default_user') {
@@ -128,15 +145,26 @@ class PersonalVocabularyProvider with ChangeNotifier {
       _isLoading = false;
       _isCurrentlyLoading = false;
       _logError('Error loading personal vocabulary: $e');
-      notifyListeners();
-    }
+      notifyListeners();    }
   }
 
-  // Check if card is bookmarked
+  /// Kiểm tra một card đã được bookmark chưa
+  /// Tham số: cardId - ID của card cần kiểm tra
+  /// Trả về: true nếu đã bookmark, false nếu chưa
   bool isBookmarked(String cardId) {
     return _bookmarkedCardIds.contains(cardId);
-  } // Toggle bookmark
-
+  } 
+  
+  /// Toggle bookmark cho một card (thêm nếu chưa có, xóa nếu đã có)
+  /// 
+  /// **Flow:**
+  /// 1. Call service để toggle trong SharedPrefs + Firestore
+  /// 2. Update local state (_bookmarkedCardIds, _personalCards)
+  /// 3. Notify listeners để UI update
+  /// 
+  /// **Side effects:**
+  /// - Thêm card: Load và enrich card data nếu chưa có trong _personalCards
+  /// - Xóa card: Remove khỏi _personalCards
   Future<void> toggleBookmark(String cardId) async {
     try {
       _logInfo('Toggling bookmark for card: $cardId');

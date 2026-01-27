@@ -5,13 +5,17 @@ import '../../domain/entities/vocabulary_card.dart';
 import '../../domain/usecases/vocabulary/get_vocabulary_cards.dart';
 import '../../domain/usecases/vocabulary/enrich_vocabulary_card.dart';
 
-/// Provider quản lý state của Vocabulary Cards (learning mode).
+/// Provider quản lý state của Vocabulary Cards (learning mode)
 ///
-/// **Responsibilities:**
-/// - Load vocabulary cards by topic
-/// - Enrich cards with dictionary data
-/// - Manage card navigation & flip states
-/// - Handle dots indicator logic
+/// **Chức năng chính:**
+/// - Load vocabulary cards theo topic từ repository
+/// - Enrich cards với dictionary data (definitions, audio, phonetic)
+/// - Quản lý navigation giữa các cards (swipe left/right)
+/// - Quản lý flip state của flashcards (xem mặt trước/sau)
+/// - Xử lý dots indicator logic (4-dot asymmetric system)
+///
+/// **State Management:** ChangeNotifier pattern
+/// **Use Cases:** GetVocabularyCards, EnrichVocabularyCard
 class VocabularyProvider extends ChangeNotifier {
   final GetVocabularyCards getVocabularyCards;
   final EnrichVocabularyCard enrichVocabularyCard;
@@ -60,12 +64,20 @@ class VocabularyProvider extends ChangeNotifier {
 
   /// Check if user is swiping forward (left to right)  /// Check if user is swiping forward (left to right)
   bool get isSwipingForward => _currentCardIndex > _previousCardIndex;
-
   // ============================================================================
   // PUBLIC METHODS - Load Cards
   // ============================================================================
 
-  /// Load vocabulary cards for a specific topic and enrich them with dictionary data
+  /// Load vocabulary cards cho một topic cụ thể và enrich với dictionary data
+  /// 
+  /// **Flow:**
+  /// 1. Clear old cards nếu topic thay đổi
+  /// 2. Call use case GetVocabularyCards để load từ repository
+  /// 3. Enrich mỗi card với dictionary API (definitions, audio, phonetic)
+  /// 4. Update state và notify listeners
+  /// 
+  /// **Tham số:** topicId - ID của topic (vd: 'food', 'business')
+  /// **Error handling:** Catch exception và set error state
   Future<void> loadVocabularyCards(String topicId) async {
     // If topic changed, clear old cards first
     if (_currentTopicId != null && _currentTopicId != topicId) {
@@ -101,12 +113,15 @@ class VocabularyProvider extends ChangeNotifier {
       _setLoading(false);
     }
   }
-
   // ============================================================================
   // PUBLIC METHODS - Navigation
   // ============================================================================
 
-  /// Set current card index for navigation
+  /// Set card index hiện tại để navigate giữa các cards
+  /// 
+  /// **Tham số:** index - Index của card cần hiển thị (0-based)
+  /// **Validation:** Chỉ cho phép index trong range hợp lệ
+  /// **Side effect:** Reset flip state khi chuyển card
   void setCurrentCardIndex(int index) {
     if (index >= 0 && index < _vocabularyCards.length) {
       _previousCardIndex = _currentCardIndex;
@@ -115,30 +130,30 @@ class VocabularyProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
   // ============================================================================
   // PUBLIC METHODS - Card Flip
   // ============================================================================
 
-  /// Flip current card (toggle between front and back)
+  /// Flip card hiện tại (toggle giữa mặt trước và mặt sau)
+  /// Mặt trước: Hiển thị từ tiếng Việt
+  /// Mặt sau: Hiển thị từ tiếng Anh, nghĩa, ví dụ, audio
   void flipCard() {
     _isCardFlipped = !_isCardFlipped;
     notifyListeners();
   }
-
   /// Flip specific card by index
   void flipCardAtIndex(int index) {
     _cardFlipStates[index] = !(_cardFlipStates[index] ?? false);
     notifyListeners();
   }
 
-  /// Reset card flip state  /// Reset card flip state
+  /// Reset card flip state về ban đầu (hiển thị mặt trước)
   void resetCardFlip() {
-    _isCardFlipped = false;
-    notifyListeners();
+    _isCardFlipped = false;    notifyListeners();
   }
 
-  /// Clear all vocabulary cards (useful when switching topics)
+  /// Clear tất cả vocabulary cards (sử dụng khi switch topics)
+  /// Reset tất cả state về initial values
   void clearCards() {
     _currentTopicId = null;
     _vocabularyCards = [];
@@ -150,12 +165,23 @@ class VocabularyProvider extends ChangeNotifier {
     notifyListeners();
     _logInfo('Cleared vocabulary cards');
   }
-
   // ============================================================================
   // PUBLIC METHODS - Dots Indicator
   // ============================================================================
 
-  /// Get dot index for UI indicator (4-dot system with asymmetric logic)
+  /// Tính toán dot index cho UI indicator (hệ thống 4-dot với logic bất đối xứng)
+  /// 
+  /// **Logic:**
+  /// - Nếu ≤ 4 cards: dot index = card index
+  /// - Nếu > 4 cards: Sử dụng asymmetric logic dựa trên hướng swipe
+  /// 
+  /// **Asymmetric Rules:**
+  /// - Card 0 → Dot 0 (luôn luôn)
+  /// - Card 1 → Dot 1 (luôn luôn)
+  /// - Card last → Dot 3 (luôn luôn)
+  /// - Cards giữa: Dot 2 (forward) hoặc Dot 1 (backward)
+  /// 
+  /// **Trả về:** Index của dot cần highlight (0-3)
   int getDotIndex() {
     if (_vocabularyCards.length <= 4) {
       return _currentCardIndex;

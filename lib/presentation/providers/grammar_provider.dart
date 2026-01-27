@@ -1,5 +1,24 @@
 // lib/presentation/providers/grammar_provider.dart
-// Grammar provider cho state management
+
+/// # GrammarProvider - Presentation Layer
+/// 
+/// **Purpose:** State management cho Grammar feature
+/// **Architecture Layer:** Presentation (Provider/ChangeNotifier)
+/// **Key Features:**
+/// - Load grammar topics và lessons
+/// - Track current topic/lesson
+/// - Progress tracking
+/// - Error handling
+/// 
+/// **State:**
+/// - Topics list với loading/error states
+/// - Lessons list theo topic với loading/error states
+/// - Current lesson tracking
+/// 
+/// **Dependencies:**
+/// - GetGrammarTopicsUseCase: Load topics
+/// - GetGrammarLessonsUseCase: Load lessons
+/// - GrammarRepository: Direct access cho một số operations
 
 import 'package:flutter/material.dart';
 import '../../domain/entities/grammar_lesson.dart';
@@ -54,8 +73,7 @@ class GrammarProvider extends ChangeNotifier {
   bool get hasTopics => _topics.isNotEmpty;
   bool get hasLessons => _lessons.isNotEmpty;
   bool get hasError => _topicsError != null || _lessonsError != null;
-
-  /// Get current topic info
+  /// Lấy current topic object từ topics list
   GrammarTopic? get currentTopic {
     if (_currentTopicId == null) return null;
     try {
@@ -64,8 +82,13 @@ class GrammarProvider extends ChangeNotifier {
       return null;
     }
   }
-
-  /// Load grammar topics
+  /// Load tất cả grammar topics từ repository
+  /// 
+  /// **Flow:**
+  /// 1. Set loading state
+  /// 2. Call use case để fetch topics
+  /// 3. Update state và notify listeners
+  /// 4. Handle errors
   Future<void> loadGrammarTopics() async {
     _isLoadingTopics = true;
     _topicsError = null;
@@ -82,8 +105,13 @@ class GrammarProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-  /// Load lessons by topic ID
+  /// Load lessons theo topic ID
+  /// 
+  /// **Flow:**
+  /// 1. Set currentTopicId và loading state
+  /// 2. Call use case để fetch lessons
+  /// 3. Set first available lesson làm current
+  /// 4. Update state và notify listeners
   Future<void> loadLessonsByTopic(String topicId) async {
     _currentTopicId = topicId;
     _isLoadingLessons = true;
@@ -113,7 +141,6 @@ class GrammarProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
   /// Set current lesson
   void setCurrentLesson(GrammarLesson lesson) {
     _currentLesson = lesson;
@@ -121,7 +148,7 @@ class GrammarProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Set current lesson by index
+  /// Set current lesson theo index
   void setCurrentLessonIndex(int index) {
     if (index >= 0 && index < _lessons.length) {
       _currentLessonIndex = index;
@@ -129,15 +156,14 @@ class GrammarProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-  /// Go to next lesson
+  /// Navigate đến lesson tiếp theo
   void nextLesson() {
     if (_currentLessonIndex < _lessons.length - 1) {
       setCurrentLessonIndex(_currentLessonIndex + 1);
     }
   }
 
-  /// Go to previous lesson
+  /// Navigate đến lesson trước đó
   void previousLesson() {
     if (_currentLessonIndex > 0) {
       setCurrentLessonIndex(_currentLessonIndex - 1);
@@ -149,27 +175,25 @@ class GrammarProvider extends ChangeNotifier {
 
   /// Check if can go to previous lesson
   bool get canGoPrevious => _currentLessonIndex > 0;
-
-  /// Refresh topics
+  /// Refresh topics (pull-to-refresh)
   Future<void> refreshTopics() async {
     await loadGrammarTopics();
   }
 
-  /// Refresh current lessons
+  /// Refresh lessons của current topic
   Future<void> refreshLessons() async {
     if (_currentTopicId != null) {
       await loadLessonsByTopic(_currentTopicId!);
     }
   }
-
-  /// Clear error messages
+  /// Clear tất cả error messages
   void clearErrors() {
     _topicsError = null;
     _lessonsError = null;
     notifyListeners();
   }
 
-  /// Reset state
+  /// Reset toàn bộ state về initial
   void reset() {
     _topics = [];
     _lessons = [];
