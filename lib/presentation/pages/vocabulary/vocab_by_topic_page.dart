@@ -1,4 +1,20 @@
 // lib/presentation/pages/vocabulary/vocab_by_topic_page.dart
+
+/// # VocabByTopicPage - Presentation Layer
+/// 
+/// **Purpose:** Page hiển thị danh sách topics để chọn học Flashcard hoặc Quiz
+/// **Architecture Layer:** Presentation (UI)
+/// **Key Features:**
+/// - Dual-mode: Flashcard hoặc Quiz
+/// - Hiển thị danh sách topics với ảnh từ Firebase Storage
+/// - Navigate đến flashcard hoặc quiz settings tùy mode
+/// - Loading, error, empty states
+/// 
+/// **Data Flow:**
+/// ```
+/// VocabularyRepository -> FutureBuilder -> TopicCard -> Navigation
+/// ```
+
 import 'package:en_go_app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
@@ -32,14 +48,18 @@ class VocabByTopicPage extends StatefulWidget {
 class _VocabByTopicPageState extends State<VocabByTopicPage> {
   late Future<List<VocabularyTopic>> _topicsFuture;
   final _vocabularyRepository = GetIt.instance<VocabularyRepository>();
-
   @override
   void initState() {
     super.initState();
     _topicsFuture = _vocabularyRepository.getVocabularyTopics();
   }
 
-  // Icon mapping cho các topics
+  /// Lấy emoji icon tương ứng với topic ID
+  /// 
+  /// **Tham số:**
+  /// - topicId: ID của topic
+  /// 
+  /// **Trả về:** Emoji string (mặc định là 📖)
   String _getTopicEmoji(String topicId) {
     switch (topicId) {
       case 'food':
@@ -60,7 +80,13 @@ class _VocabByTopicPageState extends State<VocabByTopicPage> {
         return '📖';
     }
   }
-
+  /// Build UI với dynamic title/subtitle tùy theo mode (Flashcard/Quiz)
+  /// 
+  /// **Flow:**
+  /// 1. Set title/subtitle khác nhau cho từng mode
+  /// 2. Load topics từ repository (FutureBuilder)
+  /// 3. Hiển thị danh sách TopicCard
+  /// 4. Navigate đến flashcard hoặc quiz settings khi tap
   @override
   Widget build(BuildContext context) {
     // Dynamic title và subtitle dựa vào mode

@@ -1,4 +1,29 @@
 // lib/presentation/pages/vocabulary/flashcard_page.dart
+
+/// # FlashcardPage - Presentation Layer
+/// 
+/// **Purpose:** Main flashcard learning page với swipe interactions
+/// **Key Features:**
+/// - Swipe left (Unknown) / Right (Known) cards
+/// - Flip animation cho card
+/// - Score tracking (known/unknown count)
+/// - Auto save progress to Firebase khi session kết thúc
+/// - Streak tracking integration
+/// - Navigate to result page khi học xong
+/// 
+/// **Dependencies:**
+/// - VocabularyProvider: Load cards và manage current index
+/// - FlashcardProvider: Track known/unknown cards
+/// - FlashcardProgressProvider: Save/load progress from Firebase
+/// - StreakProvider: Update daily streak after session
+/// 
+/// **Flow:**
+/// 1. Load vocabulary cards theo topicId
+/// 2. User swipe cards (left/right) hoặc tap buttons
+/// 3. Khi hết cards -> Save progress to Firebase
+/// 4. Update streak
+/// 5. Navigate to FlashcardResultPage
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/vocabulary_provider.dart';
@@ -45,6 +70,7 @@ class _FlashcardPageState extends State<FlashcardPage>
     _loadVocabularyCards();
   }
 
+  /// Initialize flip animation controller
   void _initializeAnimation() {
     _animationController = AnimationController(
       duration: const Duration(
@@ -60,6 +86,7 @@ class _FlashcardPageState extends State<FlashcardPage>
     );
   }
 
+  /// Load vocabulary cards và reset state providers
   void _loadVocabularyCards() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final progressProvider = context.read<FlashcardProgressProvider>();
@@ -87,6 +114,15 @@ class _FlashcardPageState extends State<FlashcardPage>
     super.dispose();
   }
 
+  /// Hiển thị result dialog và save progress to Firebase
+  /// 
+  /// **Flow:**
+  /// 1. Get userId từ FlashcardProgressProvider
+  /// 2. Get tracked card IDs (mastered/learning) từ FlashcardProvider
+  /// 3. Save to Firebase nếu user authenticated
+  /// 4. Update streak với StreakProvider
+  /// 5. Navigate to FlashcardResultPage
+  /// 6. Handle result action (go_back/study_again/continue_learning)
   void _showResultDialog() async {
     final flashcardProvider = context.read<FlashcardProvider>();
     final progressProvider = context.read<FlashcardProgressProvider>();
@@ -195,6 +231,7 @@ class _FlashcardPageState extends State<FlashcardPage>
     }
   }
 
+  /// Reset tất cả state và học lại từ đầu
   void _resetAndStudyAgain() {
     final flashcardProvider = context.read<FlashcardProvider>();
     final vocabProvider = context.read<VocabularyProvider>();

@@ -610,8 +610,14 @@ class VocabularyRepositoryImpl implements VocabularyRepository {// ========== FO
     'travel': _travelCards,
     'health': _healthCards,
     'education': _educationCards,
-    'nature': _natureCards,
-  };  @override
+    'nature': _natureCards,  };  
+  
+  /// Lấy danh sách tất cả các vocabulary topics (7 topics)
+  /// Trả về: List chứa 7 topics với dữ liệu hardcoded
+  /// Topics bao gồm: food, business, technology, travel, health, education, nature
+  /// Mỗi topic có: metadata (name, description, imageUrl) và list cards
+  /// Image URLs được lưu trên Firebase Storage
+  @override
   Future<List<VocabularyTopic>> getVocabularyTopics() async {
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 500));
@@ -687,10 +693,13 @@ class VocabularyRepositoryImpl implements VocabularyRepository {// ========== FO
         createdBy: 'system',
         createdAt: DateTime.now().subtract(const Duration(days: 18)),
         updatedAt: DateTime.now(),
-      ),
-    ];
+      ),    ];
   }
 
+  /// Lấy một vocabulary topic theo ID
+  /// Tham số: topicId - ID của topic cần tìm (vd: 'food', 'business')
+  /// Trả về: VocabularyTopic nếu tìm thấy, null nếu không tồn tại
+  /// Sử dụng firstWhere để tìm topic trong list, catch exception nếu không tìm thấy
   @override
   Future<VocabularyTopic?> getVocabularyTopicById(String topicId) async {
     await Future.delayed(const Duration(milliseconds: 300));
@@ -699,18 +708,29 @@ class VocabularyRepositoryImpl implements VocabularyRepository {// ========== FO
     try {
       return topics.firstWhere((topic) => topic.id == topicId);
     } catch (e) {
-      return null;
-    }
+      return null;    }
   }
 
+  /// Lấy danh sách vocabulary cards của một topic cụ thể
+  /// Tham số: topicId - ID của topic (vd: 'food', 'business')
+  /// Trả về: List<VocabularyCard> chứa các cards của topic đó
+  /// Nếu topicId không tồn tại, trả về list rỗng
+  /// Cards đã được enriched với audio URLs từ Google Dictionary API
   @override
   Future<List<VocabularyCard>> getVocabularyCards(String topicId) async {
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 500));
 
-    // Return cards for specific topic
+    // Return cards for specific topic    
     return _topicCardsMap[topicId] ?? [];
-  }  @override
+  }  
+  
+  /// Tìm một vocabulary card theo ID trong tất cả các topics
+  /// Tham số: cardId - ID của card cần tìm (vd: 'food_1', 'business_5')
+  /// Trả về: VocabularyCard nếu tìm thấy, null nếu không tồn tại
+  /// Tìm kiếm tuần tự qua tất cả topics cho đến khi tìm thấy card matching
+  /// Có logging để debug quá trình tìm kiếm
+  @override
   Future<VocabularyCard?> getVocabularyCardById(String cardId) async {
     await Future.delayed(const Duration(milliseconds: 300));
 
@@ -736,45 +756,73 @@ class VocabularyRepositoryImpl implements VocabularyRepository {// ========== FO
       print('❌ [REPOSITORY] Not found in topic: $topicName');
     }
     
-    print('❌ [REPOSITORY] Card NOT FOUND in any topic: $cardId');
-    return null;
+    print('❌ [REPOSITORY] Card NOT FOUND in any topic: $cardId');    return null;
   }
 
+  /// Tạo mới một vocabulary topic
+  /// Tham số: topic - VocabularyTopic object cần tạo
+  /// Chức năng: Lưu topic vào database (hiện tại chỉ là placeholder)
+  /// TODO: Implement logic lưu vào Firestore khi cần thêm custom topics
   @override
   Future<void> createVocabularyTopic(VocabularyTopic topic) async {
-    await Future.delayed(const Duration(milliseconds: 800));
-    // Implement create logic
+    await Future.delayed(const Duration(milliseconds: 800));    // Implement create logic
   }
 
+  /// Cập nhật thông tin của một topic đã tồn tại
+  /// Tham số: topic - VocabularyTopic object với dữ liệu mới
+  /// Chức năng: Update metadata topic (name, description, imageUrl)
+  /// TODO: Implement logic update Firestore document
   @override
   Future<void> updateVocabularyTopic(VocabularyTopic topic) async {
-    await Future.delayed(const Duration(milliseconds: 600));
-    // Implement update logic
+    await Future.delayed(const Duration(milliseconds: 600));    // Implement update logic
   }
 
+  /// Xóa một vocabulary topic
+  /// Tham số: topicId - ID của topic cần xóa
+  /// Chức năng: Xóa topic và tất cả cards bên trong
+  /// Cảnh báo: Thao tác này không thể hoàn tác
+  /// TODO: Implement cascade delete cho Firestore
   @override
   Future<void> deleteVocabularyTopic(String topicId) async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    // Implement delete logic
+    await Future.delayed(const Duration(milliseconds: 400));    // Implement delete logic
   }
 
+  /// Tạo mới một vocabulary card trong một topic
+  /// Tham số: 
+  ///   - topicId: ID của topic chứa card
+  ///   - card: VocabularyCard object cần tạo
+  /// Chức năng: Thêm card mới vào subcollection cards của topic
+  /// TODO: Implement logic thêm vào Firestore subcollection
   @override
   Future<void> createVocabularyCard(String topicId, VocabularyCard card) async {
-    await Future.delayed(const Duration(milliseconds: 600));
-    // Implement create card logic
+    await Future.delayed(const Duration(milliseconds: 600));    // Implement create card logic
   }
 
+  /// Cập nhật thông tin của một vocabulary card
+  /// Tham số: card - VocabularyCard object với dữ liệu mới
+  /// Chức năng: Update các trường của card (vietnamese, english, meaning, etc.)
+  /// TODO: Implement logic update Firestore document
   @override
   Future<void> updateVocabularyCard(VocabularyCard card) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    // Implement update card logic
+    await Future.delayed(const Duration(milliseconds: 500));    // Implement update card logic
   }
 
+  /// Xóa một vocabulary card
+  /// Tham số: cardId - ID của card cần xóa
+  /// Chức năng: Xóa card khỏi Firestore
+  /// Cảnh báo: Không xóa card khỏi personal vocabulary của users
+  /// TODO: Implement logic xóa Firestore document
   @override
   Future<void> deleteVocabularyCard(String cardId) async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    // Implement delete card logic
+    await Future.delayed(const Duration(milliseconds: 400));    // Implement delete card logic
   }
+  
+  /// Tìm kiếm vocabulary cards theo từ khóa
+  /// Tham số: query - Chuỗi tìm kiếm (tiếng Việt hoặc tiếng Anh)
+  /// Trả về: List<VocabularyCard> chứa các cards khớp với từ khóa
+  /// Tìm kiếm trong: vietnamese, english, meaning fields
+  /// Không phân biệt hoa thường (case-insensitive)
+  /// Tìm kiếm across tất cả topics
   @override
   Future<List<VocabularyCard>> searchVocabularyCards(String query) async {
     await Future.delayed(const Duration(milliseconds: 600));
@@ -792,10 +840,14 @@ class VocabularyRepositoryImpl implements VocabularyRepository {// ========== FO
               card.vietnamese.toLowerCase().contains(query.toLowerCase()) ||
               card.english.toLowerCase().contains(query.toLowerCase()) ||
               card.meaning.toLowerCase().contains(query.toLowerCase()),
-        )
-        .toList();
+        )        .toList();
   }
 
+  /// Tìm kiếm vocabulary topics theo từ khóa
+  /// Tham số: query - Chuỗi tìm kiếm (tên hoặc mô tả topic)
+  /// Trả về: List<VocabularyTopic> chứa các topics khớp với từ khóa
+  /// Tìm kiếm trong: name, description fields
+  /// Không phân biệt hoa thường (case-insensitive)
   @override
   Future<List<VocabularyTopic>> searchVocabularyTopics(String query) async {
     await Future.delayed(const Duration(milliseconds: 600));

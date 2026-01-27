@@ -1,5 +1,19 @@
 // lib/presentation/pages/vocabulary/personal_vocabulary_cards_page.dart
 
+/// # PersonalVocabularyCardsPage - Presentation Layer
+/// 
+/// **Purpose:** Page hiển thị danh sách cards đã bookmark của một topic cụ thể
+/// **Key Features:**
+/// - Filter personal cards theo topicId
+/// - Hiển thị cards trong vertical scrollable list
+/// - Mỗi card có flip animation và bookmark toggle
+/// - Empty state khi chưa có cards cho topic
+/// 
+/// **Data Flow:**
+/// ```
+/// PersonalVocabularyProvider -> Filter by topicId -> VocabularyCardWidget list
+/// ```
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
@@ -64,7 +78,13 @@ class _PersonalVocabularyCardsPageState
       'description': 'Từ vựng về thiên nhiên',
     },
   };
-
+  /// Build UI với Consumer để lắng nghe PersonalVocabularyProvider
+  /// 
+  /// **Flow:**
+  /// 1. Hiển thị header với topic name và emoji
+  /// 2. Filter cards theo topicId
+  /// 3. Hiển thị cards trong grid layout (2 columns)
+  /// 4. Empty state nếu chưa có cards cho topic này
   @override
   Widget build(BuildContext context) {
     final metadata = _topicMetadata[widget.topicId];
@@ -196,8 +216,9 @@ class _PersonalVocabularyCardsPageState
         ),
       ),
     );
-  }
-  /// Get all cards for the specific topic
+  }  /// Lọc cards theo topicId từ provider
+  /// 
+  /// **Logic:** Extract topic từ card.id và so sánh với topicId
   List<VocabularyCard> _getCardsForTopic(
     PersonalVocabularyProvider provider,
     String topicId,
@@ -207,8 +228,9 @@ class _PersonalVocabularyCardsPageState
       return cardTopicId == topicId;
     }).toList();
   }
-
-  /// Extract topic ID from card ID (e.g., "food_1" -> "food")
+  /// Extract topic ID từ card ID
+  /// 
+  /// **Format:** "food_1" -> "food", "technology_5" -> "technology"
   String? _extractTopicId(String cardId) {
     if (cardId.contains('_')) {
       return cardId.split('_').first;

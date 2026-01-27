@@ -39,11 +39,19 @@ class PersonalVocabularyService {
       VocabularyConstants.syncDebounceInterval;
 
   PersonalVocabularyService(this._prefs, {FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
-  // ============================================================================
+    : _firestore = firestore ?? FirebaseFirestore.instance;  // ============================================================================
   // Public API - Read Operations
   // ============================================================================
-  /// Lấy personal vocabulary với fallback strategy: Local → Cloud → Empty.
+  
+  /// Lấy personal vocabulary với fallback strategy: Local → Cloud → Empty
+  /// 
+  /// **Strategy:**
+  /// 1. Đọc từ SharedPreferences (nhanh nhất, offline-first)
+  /// 2. Nếu không có local, fallback lên Firestore (slower, requires internet)
+  /// 3. Nếu cả 2 đều fail, trả về empty model
+  /// 
+  /// **Tham số:** userId - ID của user cần load vocabulary
+  /// **Trả về:** PersonalVocabularyModel chứa list card IDs đã bookmark
   Future<PersonalVocabularyModel> getPersonalVocabulary(String userId) async {
     try {
       _logInfo('🔍 getPersonalVocabulary called for userId: $userId');
@@ -82,11 +90,18 @@ class PersonalVocabularyService {
       return PersonalVocabularyModel.empty(userId);
     }
   }
-
   // ============================================================================
   // SAVE - Hybrid: Local + Cloud
   // ============================================================================
+  
   /// Lưu personal vocabulary vào cả local và cloud
+  /// 
+  /// **Flow:**
+  /// 1. Lưu ngay vào SharedPreferences (đảm bảo không mất data)
+  /// 2. Sync lên Firestore (async, với debouncing 5s)
+  /// 
+  /// **Tham số:** model - PersonalVocabularyModel cần lưu
+  /// **Lưu ý:** Không block UI, Firestore sync chạy background
   Future<void> savePersonalVocabulary(PersonalVocabularyModel model) async {
     try {
       // 1. Lưu vào local storage (always, synchronous)

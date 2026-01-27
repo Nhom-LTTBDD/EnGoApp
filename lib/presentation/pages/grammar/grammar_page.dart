@@ -1,4 +1,15 @@
 // lib/presentation/pages/grammar/grammar_page.dart
+
+/// # GrammarPage - Presentation Layer
+/// 
+/// **Purpose:** Page hiển thị danh sách grammar topics với detailed explanations
+/// **Key Features:**
+/// - 4 topic sections: Basic Grammar, Tenses, Advanced Topics, Common Mistakes
+/// - Dialog popup với detailed explanations
+/// - Static content (không connect với repository/provider)
+/// 
+/// **Note:** Đây là mock UI, chưa tích hợp với GrammarRepository
+
 import 'package:flutter/material.dart';
 import '../../layout/main_layout.dart';
 import '../../../core/constants/app_colors.dart';
@@ -7,6 +18,7 @@ import '../../../core/theme/theme_helper.dart';
 class GrammarPage extends StatelessWidget {
   const GrammarPage({super.key});
 
+  /// Build main UI với 4 grammar topic sections
   @override
   Widget build(BuildContext context) {
     return MainLayout(
@@ -28,6 +40,7 @@ class GrammarPage extends StatelessWidget {
     );
   }
 
+  /// Build danh sách grammar topics theo 4 categories
   Widget _buildGrammarTopics(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,7 +83,7 @@ class GrammarPage extends StatelessWidget {
       ],
     );
   }
-
+  /// Build một section với title và danh sách topics
   Widget _buildTopicSection(
     BuildContext context,
     String title,
@@ -96,6 +109,7 @@ class GrammarPage extends StatelessWidget {
     );
   }
 
+  /// Build card cho mỗi grammar topic với tap action
   Widget _buildTopicCard(BuildContext context, GrammarTopic topic) {
     return Container(
       width: double.infinity,
@@ -167,6 +181,7 @@ class GrammarPage extends StatelessWidget {
     );
   }
 
+  /// Hiển thị dialog với detailed explanation cho topic
   void _showTopicDetail(BuildContext context, GrammarTopic topic) {
     showDialog(
       context: context,
@@ -196,6 +211,7 @@ class GrammarPage extends StatelessWidget {
     );
   }
 
+  /// Lấy detailed explanation text cho mỗi topic (mock content)
   String _getDetailedExplanation(String title) {
     switch (title) {
       // BASIC GRAMMAR TOPICS

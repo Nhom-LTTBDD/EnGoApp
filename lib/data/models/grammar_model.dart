@@ -1,5 +1,17 @@
 // lib/data/models/grammar_model.dart
-// Grammar models cho data layer
+
+/// # GrammarModels - Data Layer
+/// 
+/// **Purpose:** Models cho grammar data (lesson và topic) - Data Transfer Objects
+/// **Architecture Layer:** Data
+/// **Key Features:**
+/// - fromJson / toJson cho serialization
+/// - toEntity / fromEntity cho conversion Domain <-> Data
+/// - Parse enums từ string (type, level, status)
+/// 
+/// **Models:**
+/// - GrammarLessonModel: Model cho lesson
+/// - GrammarTopicModel: Model cho topic
 
 import '../../domain/entities/grammar_lesson.dart';
 import '../../domain/entities/grammar_topic.dart';
@@ -35,8 +47,7 @@ class GrammarLessonModel {
     required this.createdAt,
     required this.updatedAt,
   });
-
-  /// From JSON
+  /// Deserialize từ JSON
   factory GrammarLessonModel.fromJson(Map<String, dynamic> json) {
     return GrammarLessonModel(
       id: json['id'] ?? '',
@@ -73,8 +84,7 @@ class GrammarLessonModel {
       'updatedAt': updatedAt,
     };
   }
-
-  /// Convert to domain entity
+  /// Convert model sang domain entity
   GrammarLesson toEntity() {
     return GrammarLesson(
       id: id,
@@ -92,8 +102,7 @@ class GrammarLessonModel {
       updatedAt: DateTime.parse(updatedAt),
     );
   }
-
-  /// From domain entity
+  /// Convert domain entity sang model
   factory GrammarLessonModel.fromEntity(GrammarLesson lesson) {
     return GrammarLessonModel(
       id: lesson.id,
@@ -111,8 +120,7 @@ class GrammarLessonModel {
       updatedAt: lesson.updatedAt.toIso8601String(),
     );
   }
-
-  /// Helper methods to parse enums
+  /// Helper methods để parse enums từ string
   GrammarLessonType _parseGrammarLessonType(String type) {
     return GrammarLessonType.values.firstWhere(
       (e) => e.name == type,
@@ -173,8 +181,7 @@ class GrammarTopicModel {
       createdAt: json['createdAt'] ?? DateTime.now().toIso8601String(),
     );
   }
-
-  /// To JSON
+  /// Serialize sang JSON
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -189,7 +196,7 @@ class GrammarTopicModel {
     };
   }
 
-  /// Convert to domain entity
+  /// Convert model sang domain entity (GrammarTopic)
   GrammarTopic toEntity() {
     return GrammarTopic(
       id: id,
@@ -203,8 +210,7 @@ class GrammarTopicModel {
       createdAt: DateTime.parse(createdAt),
     );
   }
-
-  /// From domain entity
+  /// Convert domain entity sang model (GrammarTopicModel)
   factory GrammarTopicModel.fromEntity(GrammarTopic topic) {
     return GrammarTopicModel(
       id: topic.id,

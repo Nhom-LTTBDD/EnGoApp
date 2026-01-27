@@ -1,5 +1,15 @@
 // lib/domain/entities/grammar_lesson.dart
-// Grammar lesson entity cho business logic
+
+/// # GrammarLesson - Domain Entity
+/// 
+/// **Purpose:** Entity đại diện cho một grammar lesson (bài học ngữ pháp)
+/// **Architecture Layer:** Domain (Business Logic)
+/// **Key Features:**
+/// - Chỉ dùng để xem lý thuyết (view-only, không có progress tracking)
+/// - Status: locked, available, completed, inProgress
+/// - Level: beginner, intermediate, advanced
+/// - Type: tenses, verbs, nouns, adjectives, sentences, clauses
+/// - Estimated duration và tags
 
 import 'package:equatable/equatable.dart';
 
@@ -38,28 +48,12 @@ class GrammarLesson extends Equatable {
     this.imageUrl,
     this.totalItems = 0,
     this.completedItems = 0,
-    this.estimatedDuration = const Duration(minutes: 15),
-    this.tags = const [],
+    this.estimatedDuration = const Duration(minutes: 15),    this.tags = const [],
     required this.createdAt,
     required this.updatedAt,
   });
 
-  /// Calculate completion percentage
-  double get completionPercentage {
-    if (totalItems == 0) return 0.0;
-    return (completedItems / totalItems).clamp(0.0, 1.0);
-  }
-
-  /// Check if lesson is completed
-  bool get isCompleted => status == GrammarLessonStatus.completed;
-
-  /// Check if lesson is locked
-  bool get isLocked => status == GrammarLessonStatus.locked;
-
-  /// Check if lesson is available
-  bool get isAvailable => status == GrammarLessonStatus.available;
-
-  /// Copy with new values
+  /// Copy with new values để update immutable object
   GrammarLesson copyWith({
     String? id,
     String? title,

@@ -1,5 +1,15 @@
 // lib/domain/entities/grammar_topic.dart
-// Grammar topic entity cho business logic
+
+/// # GrammarTopic - Domain Entity
+/// 
+/// **Purpose:** Entity đại diện cho một grammar topic (chủ đề ngữ pháp)
+/// **Architecture Layer:** Domain (Business Logic)
+/// **Key Features:**
+/// - Chứa danh sách lessons (chỉ xem lý thuyết)
+/// - Level classification (beginner/intermediate/advanced)
+/// - Unlock status
+/// 
+/// **Note:** Không có progress tracking vì chỉ dùng để xem lý thuyết
 
 import 'package:equatable/equatable.dart';
 import 'grammar_lesson.dart';
@@ -25,31 +35,11 @@ class GrammarTopic extends Equatable {
     required this.level,
     this.lessons = const [],
     required this.totalLessons,
-    this.completedLessons = 0,
-    this.isUnlocked = true,
+    this.completedLessons = 0,    this.isUnlocked = true,
     required this.createdAt,
   });
 
-  /// Calculate topic progress percentage
-  double get progressPercentage {
-    if (totalLessons == 0) return 0.0;
-    return (completedLessons / totalLessons).clamp(0.0, 1.0);
-  }
-
-  /// Check if topic is completed
-  bool get isCompleted => completedLessons >= totalLessons;
-
-  /// Get available lessons
-  List<GrammarLesson> get availableLessons {
-    return lessons.where((lesson) => lesson.isAvailable).toList();
-  }
-
-  /// Get completed lessons  
-  List<GrammarLesson> get completedLessonsData {
-    return lessons.where((lesson) => lesson.isCompleted).toList();
-  }
-
-  /// Copy with new values
+  /// Copy with new values để update immutable object
   GrammarTopic copyWith({
     String? id,
     String? title,

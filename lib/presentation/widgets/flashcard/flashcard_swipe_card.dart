@@ -1,4 +1,5 @@
 // lib/presentation/widgets/vocabulary/flashcard_swipe_card.dart
+import 'package:en_go_app/core/constants/flashcard_constants.dart';
 import 'package:flutter/material.dart';
 import '../../../domain/entities/vocabulary_card.dart';
 import '../../../core/theme/theme_helper.dart';
@@ -42,22 +43,25 @@ class FlashcardSwipeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
+      // Chỉ thẻ hiện tại mới nhận touch events
       ignoring: !isCurrentCard,
       child: Opacity(
         opacity: isCurrentCard ? 1.0 : 0.0,
         child: AnimatedContainer(
           duration: isCurrentCard && isDragging
               ? Duration.zero
-              : const Duration(milliseconds: 300),
+              : const Duration(
+                  milliseconds: FlashcardConstants.swipeAnimationDuration,
+                ),
           curve: Curves.easeOut,
           transform: isCurrentCard
               ? (Matrix4.identity()
                   ..translate(dragOffset, dragOffsetY)
-                  ..rotateZ(dragOffset * 0.0005))
+                  ..rotateZ(dragOffset * FlashcardConstants.rotationFactor))
               : Matrix4.identity(),
           child: Container(
             width: double.infinity,
-            height: 600,
+            height: FlashcardConstants.cardHeight,
             decoration: BoxDecoration(
               color: getSurfaceColor(context),
               borderRadius: BorderRadius.circular(16),
@@ -102,14 +106,18 @@ class FlashcardSwipeCard extends StatelessWidget {
                 // Indicator màu khi quẹt
                 if (isCurrentCard &&
                     isDragging &&
-                    (dragOffset.abs() > 20 || dragOffsetY.abs() > 20))
+                    (dragOffset.abs() > FlashcardConstants.minSwipeDistance ||
+                        dragOffsetY.abs() >
+                            FlashcardConstants.minSwipeDistance))
                   _buildSwipeIndicator(context),
 
                 // Icon quẹt trái/phải
                 if (isCurrentCard &&
                     isDragging &&
                     isCommittedToSwipe &&
-                    (dragOffset.abs() > 30 || dragOffsetY.abs() > 30))
+                    (dragOffset.abs() > FlashcardConstants.iconSwipeDistance ||
+                        dragOffsetY.abs() >
+                            FlashcardConstants.iconSwipeDistance))
                   _buildSwipeIcon(),
               ],
             ),
@@ -120,11 +128,13 @@ class FlashcardSwipeCard extends StatelessWidget {
   }
 
   double _calculateOpacity() {
-    if (isDragging && (dragOffset.abs() > 20 || dragOffsetY.abs() > 20)) {
-      return (1.0 - ((dragOffset.abs() + dragOffsetY.abs()) / 120.0)).clamp(
-        0.0,
-        1.0,
-      );
+    if (isDragging &&
+        (dragOffset.abs() > FlashcardConstants.minSwipeDistance ||
+            dragOffsetY.abs() > FlashcardConstants.minSwipeDistance)) {
+      return (1.0 -
+              ((dragOffset.abs() + dragOffsetY.abs()) /
+                  FlashcardConstants.opacityDivisor))
+          .clamp(0.0, 1.0);
     }
     return 1.0;
   }
