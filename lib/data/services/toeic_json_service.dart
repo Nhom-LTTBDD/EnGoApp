@@ -1,20 +1,16 @@
-// lib/data/services/toeic_json_service.dart
+/// ToeicJsonService - Parse JSON từ Firebase → Dart objects
 
 import '../../domain/entities/toeic_question.dart';
 import '../../domain/entities/toeic_test.dart';
 import 'firebase_storage_service.dart';
 
 class ToeicJsonService {
-  /// ==============================
-  /// LOAD TEST
-  /// ==============================
+  /// Load test metadata từ Firebase
   static Future<ToeicTest> loadTest(String testId) async {
     return FirebaseStorageService.loadTest(testId);
   }
 
-  /// ==============================
-  /// LOAD QUESTIONS BY PART
-  /// ==============================
+  /// Load questions cho một part (1-7)
   static Future<List<ToeicQuestion>> loadQuestionsByPart(
     String testId,
     int partNumber,
@@ -22,35 +18,36 @@ class ToeicJsonService {
     return await _loadQuestionsFromFirebaseStorage(testId, partNumber);
   }
 
-  /// Load questions từ Firebase Storage
+  /// Internal: Load từ Firebase và parse JSON → ToeicQuestion objects
   static Future<List<ToeicQuestion>> _loadQuestionsFromFirebaseStorage(
     String testId,
     int partNumber,
   ) async {
-    // Load JSON data từ Firebase Storage
+    // Load JSON file từ Firebase Storage
     final jsonData = await FirebaseStorageService.loadJsonData();
 
-    // Parse JSON để lấy questions cho test và part cụ thể
+    // Navigate JSON: testId → parts → partNumber → questions
     final testData = jsonData[testId];
     if (testData == null) {
-      throw Exception('Test $testId not found in Firebase Storage');
+      throw Exception('Test $testId not found');
     }
 
     final parts = testData['parts'] as Map<String, dynamic>?;
     if (parts == null) {
-      throw Exception('Parts data not found for test $testId');
+      throw Exception('Parts not found');
     }
 
     final partData = parts[partNumber.toString()];
     if (partData == null) {
-      throw Exception('Part $partNumber not found for test $testId');
+      throw Exception('Part $partNumber not found');
     }
 
     final questionsData = partData['questions'] as List<dynamic>?;
     if (questionsData == null) {
-      throw Exception('Questions data not found for part $partNumber');
+      throw Exception('Questions not found');
     }
 
+    // Convert từng JSON → ToeicQuestion entity
     final questions = <ToeicQuestion>[];
     for (final q in questionsData) {
       questions.add(
@@ -61,9 +58,7 @@ class ToeicJsonService {
     return questions;
   }
 
-  /// ==============================
-  /// LOAD ALL QUESTIONS (PART 1 → 7)
-  /// ==============================
+  /// Load tất cả 200 questions (Part 1-7)
   static Future<List<ToeicQuestion>> loadAllQuestions(String testId) async {
     final allQuestions = <ToeicQuestion>[];
 
@@ -77,15 +72,14 @@ class ToeicJsonService {
     return allQuestions;
   }
 
-  /// ==============================
-  /// JSON → ENTITY
-  /// ==============================
+  /// Convert JSON object → ToeicQuestion entity
+  /// Xử lý: images, audio, field mapping
   static ToeicQuestion _mapJsonToQuestion(
     String testId,
     int partNumber,
     Map<String, dynamic> json,
   ) {
-    // image - sử dụng Firebase Storage reference
+    // Handle images: single (imageFile) hoặc multiple (imageFiles)
     String? imageUrl;
     List<String>? imageUrls;
 
@@ -102,9 +96,10 @@ class ToeicJsonService {
       }
     }
 
-    // audio - sử dụng Firebase Storage reference
+    // Handle audio
     final audioUrl = _getAudioPath(testId, json['audioFile']);
 
+    // Create entity
     return ToeicQuestion(
       id: 'q${json['questionNumber']}',
       testId: testId,
@@ -125,26 +120,21 @@ class ToeicJsonService {
     );
   }
 
-  /// ==============================
-  /// PATH HELPERS
-  /// ==============================
+  /// Convert image filename → firebase_image:FILENAME format
+  /// (Will be resolved to download URL later)
   static String? _getImagePath(String testId, String? imageFile) {
     if (imageFile == null) return null;
-
-    // Return Firebase Storage path - sẽ được convert thành download URL khi cần
     return 'firebase_image:$imageFile';
   }
 
+  /// Convert audio filename → firebase_audio:FILENAME format
+  /// (Will be resolved to download URL later)
   static String? _getAudioPath(String testId, String? audioFile) {
     if (audioFile == null) return null;
-
-    // Return Firebase Storage path - sẽ được convert thành download URL khi cần
     return 'firebase_audio:$audioFile';
   }
 
-  /// ==============================
-  /// GROUP BY PART
-  /// ==============================
+  /// Group questions by part
   static Map<String, List<ToeicQuestion>> groupQuestionsByPart(
     List<ToeicQuestion> questions,
   ) {

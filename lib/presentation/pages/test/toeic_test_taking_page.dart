@@ -1,87 +1,74 @@
 // lib/presentation/pages/test/toeic_test_taking_page.dart
-// Trang chính để thực hiện bài test TOEIC
-// Hỗ trợ: full test, test theo parts, audio player, timer, navigation
 
-// Debug utilities
 import 'package:flutter/foundation.dart';
-// Flutter core widgets
 import 'package:flutter/material.dart';
-// State management
 import 'package:provider/provider.dart';
-// Provider quản lý state của TOEIC test
 import '../../providers/toeic_test_provider.dart';
-// Layout chính của app
 import '../../layout/main_layout.dart';
-// Domain entities
 import '../../../domain/entities/toeic_question.dart';
 import '../../../domain/entities/toeic_test_session.dart';
-// Data source để load questions
 import '../../../data/datasources/toeic_sample_data.dart';
-// Firebase Storage service để handle images/audio
 import '../../../data/services/firebase_storage_service.dart';
-// App routing
 import '../../../routes/app_routes.dart';
-// Theme helpers
 import 'package:en_go_app/core/theme/theme_helper.dart';
-// Translation helper widget
 import '../../widgets/test/translation_helper_dialog.dart';
-// Shared audio player widget
 import '../../widgets/toeic/shared_audio_player_widget.dart';
-// Quiz summary widget
 import '../../widgets/test/toeic_quiz_summary_widget.dart';
-// Question display widget
 import '../../widgets/toeic/toeic_question_display_widget.dart';
 
-// StatefulWidget cho trang làm bài test TOEIC
-// Hỗ trợ cả full test (7 parts) và test riêng lẻ theo parts
+/// ToeicTestTakingPage - Trang chính làm bài test TOEIC
+///
+/// Hỗ trợ:
+/// - Full test (all 7 parts) hoặc Practice (selected parts)
+/// - Timer với giới hạn thời gian tuỳ chọn
+/// - Audio player cho listening parts
+/// - Question display (single/group/image questions)
+/// - Navigation giữa các câu hỏi
+/// - Finish test & navigate to results page
 class ToeicTestTakingPage extends StatefulWidget {
-  // ID của test
-  final String testId;
-  // Tên hiển thị của test
-  final String testName;
-  // Flag xác định có phải full test không
-  final bool isFullTest;
-  // Danh sách parts được chọn để test
-  final List<int> selectedParts;
-  // Giới hạn thời gian (seconds), null = không giới hạn
-  final int? timeLimit;
-  // Questions có sẵn (optional, sẽ load từ data source nếu null)
-  final List<ToeicQuestion>? questions;
+  final String testId; // Test ID
+  final String testName; // Test name hiển thị
+  final bool isFullTest; // true = full test (all 7 parts), false = practice
+  final List<int> selectedParts; // Parts user chọn (e.g., [1,2,3])
+  final int? timeLimit; // Thời gian giới hạn (phút), null = unlimited
+  final List<ToeicQuestion>? questions; // Pre-loaded questions (optional)
 
-  // Constructor với tất cả parameters cần thiết
   const ToeicTestTakingPage({
     super.key,
-    required this.testId, // Test ID bắt buộc
-    required this.testName, // Tên test bắt buộc
-    required this.isFullTest, // Flag full test bắt buộc
-    required this.selectedParts, // Parts được chọn bắt buộc
-    this.timeLimit, // Thời gian tùy chọn
-    this.questions, // Questions tùy chọn
+    required this.testId,
+    required this.testName,
+    required this.isFullTest,
+    required this.selectedParts,
+    this.timeLimit,
+    this.questions,
   });
 
   @override
   State<ToeicTestTakingPage> createState() => _ToeicTestTakingPageState();
 }
 
-// State class quản lý UI và logic của test taking page
+/// State class quản lý UI, timer, question navigation, và answer selection
 class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
-  // Cache cho Firebase image URLs để tránh load liên tục
+  /// Cache Firebase image URLs để tránh reload liên tục
   static final Map<String, String?> _imageUrlCache = {};
-  // Keys cho widgets để tránh rebuild không cần thiết
+
+  /// Widget keys để optimize rebuild, tránh re-render images
   final Map<String, ValueKey> _imageWidgetKeys = {};
 
-  // Lifecycle method được gọi khi widget được khởi tạo
+  /// Lifecycle: Load test data sau frame đầu tiên render
+  /// Tránh setState() trong build process
   @override
   void initState() {
     super.initState();
-    // Đợi frame đầu tiên render xong rồi mới load test
-    // Tránh setState trong build process
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadTest(); // Load test data và khởi tạo session
+      _loadTest();
     });
   }
 
-  // Method chính để load test data và khởi tạo test session
+  /// Load questions từ data source & khởi tạo test session với provider
+  /// - Lấy questions từ parameter hoặc load từ JSON theo selected parts
+  /// - Gọi provider.startTest() để khởi tạo session
+  /// - Setup timer callback (onTimeUp → navigate to results)
   Future<void> _loadTest() async {
     final provider = context.read<ToeicTestProvider>();
 
@@ -160,19 +147,21 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     }
   }
 
-  // Main build method - tạo UI chính cho trang test
+  /// Build main UI: Header (timer, finish button) + Question display + Navigation
+  /// - Displays current question with options
+  /// - Uses Selector to optimize rebuilds (only re-render when question changes)
+  /// - ToeicQuestionDisplayWidget handles single/group/image question types
   @override
   Widget build(BuildContext context) {
     return MainLayout(
-      title: widget.testName, // Hiển thị tên test trên header
-      currentIndex: -1, // Không highlight bottom nav item nào
-      showBottomNav: false, // Ẩn bottom navigation trong test
+      title: widget.testName,
+      currentIndex: -1,
+      showBottomNav: false,
       child: Consumer<ToeicTestProvider>(
         builder: (context, provider, child) {
           final session = provider.session;
           final question = provider.currentQuestion;
 
-          // Hiển thị loading spinner nếu chưa sẵn sàng
           if (session == null || question == null) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -184,8 +173,6 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                 _buildHeader(context, session, provider),
                 Expanded(
                   child: Selector<ToeicTestProvider, ToeicQuestion?>(
-                    // Chỉ select question, không select session
-                    // Để tránh rebuild khi selectAnswer() thay đổi session
                     selector: (context, provider) => provider.currentQuestion,
                     builder: (context, currentQuestion, child) {
                       if (currentQuestion == null) {
@@ -202,7 +189,6 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Question display widget - handles both single and group questions
                             ToeicQuestionDisplayWidget(
                               imageWidgetKeys: _imageWidgetKeys,
                               imageUrlCache: _imageUrlCache,
@@ -220,12 +206,9 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                                   ),
                             ),
 
-                            // Navigation buttons
                             _buildNavigationButtons(provider),
 
-                            const SizedBox(
-                              height: 16,
-                            ), // Spacing before navigation
+                            const SizedBox(height: 16),
                           ],
                         ),
                       );
@@ -240,8 +223,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     );
   }
 
-  /// NOTE: _buildSingleQuestion has been moved to ToeicQuestionDisplayWidget
-  /// Keep this method for backward compatibility
+  /// Deprecated: Moved to ToeicQuestionDisplayWidget for refactoring
   @Deprecated('Use ToeicQuestionDisplayWidget instead')
   Widget _buildSingleQuestion(
     BuildContext context,
@@ -251,8 +233,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     return Container();
   }
 
-  /// NOTE: _buildGroupQuestions has been moved to ToeicQuestionDisplayWidget
-  /// Keep this method for backward compatibility
+  /// Deprecated: Moved to ToeicQuestionDisplayWidget for refactoring
   @Deprecated('Use ToeicQuestionDisplayWidget instead')
   Widget _buildGroupQuestions(
     BuildContext context,
@@ -261,6 +242,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     return Container();
   }
 
+  /// Build header with timer (turns red when <5 min), finish button, question counter
   Widget _buildHeader(
     BuildContext context,
     ToeicTestSession session,
@@ -326,8 +308,8 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
   /// Build audio player widget for listening parts
   /// Tạo audio player widget cho các part nghe (Part 1-4)
   ///
-  /// [provider] - ToeicTestProvider để quản lý trạng thái audio
-  /// [audioUrl] - Đường dẫn tới file audio cần phát
+  /// Build audio player widget using SharedAudioPlayerWidget
+  /// Phát audio cho listening parts
   Widget _buildAudioPlayer(ToeicTestProvider provider, String audioUrl) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -335,42 +317,38 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     );
   }
 
-  /// Build question header widget
-  /// Tạo header cho từng câu hỏi hiển thị thông tin cơ bản
-  ///
-  /// [question] - Object ToeicQuestion chứa thông tin câu hỏi
+  /// Build question header: Q number + Part number
+  /// Displays top info section for each question
   Widget _buildQuestionHeader(ToeicQuestion question) {
     return Container(
-      padding: const EdgeInsets.all(10), // Padding bên trong container
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).primaryColor.withOpacity(0.1), // Màu nền xanh nhạt
-        borderRadius: BorderRadius.circular(8), // Bo góc
+        color: Theme.of(context).primaryColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8), // Padding cho number container
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor, // Màu xanh dương
-              borderRadius: BorderRadius.circular(8), // Bo góc
+              color: Theme.of(context).primaryColor,
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              'Q${question.questionNumber}', // Hiển thị số câu hỏi
+              'Q${question.questionNumber}',
               style: TextStyle(
-                color: getSurfaceColor(context), // Màu chữ trắng
-                fontWeight: FontWeight.bold, // Font weight đậm
+                color: getSurfaceColor(context),
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
-          const SizedBox(width: 10), // Khoảng cách giữa number và part info
+          const SizedBox(width: 10),
           Text(
-            'Part ${question.partNumber}', // Hiển thị số part
+            'Part ${question.partNumber}',
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w600, // Font weight semibold
-              color: Theme.of(context).primaryColor, // Màu xanh dương
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).primaryColor,
             ),
           ),
         ],
@@ -378,13 +356,11 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     );
   }
 
-  /// Build question image widget
-  /// Tạo widget hiển thị hình ảnh câu hỏi
-  ///
-  /// [imageUrl] - Đường dẫn tới file hình ảnh
+  /// Build question image widget with height 250
+  /// Displays images for Part 1-4 (Listening parts)
   Widget _buildQuestionImage(String imageUrl) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 15), // Margin trên dưới
+      margin: const EdgeInsets.symmetric(vertical: 15),
       height: 250,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
@@ -393,6 +369,8 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     );
   }
 
+  /// Build passage text widget for reading questions
+  /// Displays passage text with grey background
   Widget _buildPassage(String passage) {
     return Container(
       padding: const EdgeInsets.all(15),
@@ -422,6 +400,10 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     );
   }
 
+  /// Build answer options (A, B, C, D) with full text
+  /// - Displays checkbox + option letter + option text
+  /// - Highlight selected option
+  /// - Call provider.selectAnswer() on tap
   Widget _buildOptions(
     BuildContext context,
     ToeicTestProvider provider,
@@ -432,7 +414,7 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     return Column(
       children: question.options.asMap().entries.map<Widget>((entry) {
         final index = entry.key;
-        final optionLetter = String.fromCharCode(65 + index); // A, B, C, D
+        final optionLetter = String.fromCharCode(65 + index);
         final optionText = entry.value;
         final isSelected = userAnswer == optionLetter;
 
@@ -452,9 +434,8 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isSelected
-                        ? Theme.of(context)
-                              .primaryColor // Màu xanh dương khi chọn
-                        : getDisabledColor(context), // Màu xám khi không chọn
+                        ? Theme.of(context).primaryColor
+                        : getDisabledColor(context),
                   ),
                   child: isSelected
                       ? Icon(
@@ -496,7 +477,9 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     );
   }
 
-  // Build simple A,B,C,D options for Part 1 and 2 (no text content)
+  /// Build simple A, B, C, D buttons (no text) for Part 1-2 listening
+  /// - Only letter shown (option text is shown separately)
+  /// - Grid layout (2 columns)
   Widget _buildSimpleOptions(
     ToeicTestProvider provider,
     ToeicQuestion question,
@@ -568,12 +551,12 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Translation Helper Button
+        // Translation Helper Button - Hiển thị modal dialog với tính năng dịch
         Container(
           width: 50,
           height: 50,
           decoration: BoxDecoration(
-            color: getSuccessColor(context), // Green color for translation
+            color: getSuccessColor(context),
             borderRadius: BorderRadius.circular(8),
           ),
           child: IconButton(
@@ -594,7 +577,10 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
           ),
         ),
 
-        // Next/Finish Button
+        /// Next/Finish Button - Navigate to next question or finish test
+        /// - Group questions: Jump to next group
+        /// - Regular questions: Move to next question
+        /// - Last question: Show finish confirmation
         Container(
           width: 50,
           height: 50,
@@ -605,7 +591,6 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
           child: IconButton(
             onPressed: () {
               if (isGroupQuestion) {
-                // For group questions (Part 3, 6, 7), jump to next group
                 _moveToNextGroup(provider);
               } else if (provider.hasNextQuestion) {
                 provider.nextQuestion();
@@ -624,11 +609,13 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     );
   }
 
+  /// Jump to next question group (for Part 3, 6, 7)
+  /// - Finds all questions in current group
+  /// - Moves to first question after the group
   void _moveToNextGroup(ToeicTestProvider provider) {
     final currentQuestion = provider.currentQuestion;
     if (currentQuestion == null) return;
 
-    // Find all questions in current group (for any part with groups)
     final currentGroupQuestions =
         provider.questions
             .where(
@@ -648,13 +635,11 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
       return;
     }
 
-    // Find the index of the last question in this group
     final lastQuestionInGroup = currentGroupQuestions.last;
     final lastQuestionIndex = provider.questions.indexWhere(
       (q) => q.questionNumber == lastQuestionInGroup.questionNumber,
     );
 
-    // Move to next question after the group (or finish if no more questions)
     if (lastQuestionIndex >= 0 &&
         lastQuestionIndex < provider.questions.length - 1) {
       provider.goToQuestion(lastQuestionIndex + 1);
@@ -663,14 +648,15 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     }
   }
 
-  /// Build question grid widget - Tạo lưới hiển thị tất cả câu hỏi
-  /// NOTE: Đã tách ra thành ToeicQuizSummaryWidget trong file toeic_quiz_summary_widget.dart
-  /// Hãy sử dụng widget đó thay vì method này
+  /// Deprecated: Moved to ToeicQuizSummaryWidget
   @Deprecated('Use ToeicQuizSummaryWidget instead')
   Widget _buildQuestionGrid(ToeicTestProvider provider) {
     return const ToeicQuizSummaryWidget();
   }
 
+  /// Format duration to MM:SS or HH:MM:SS format
+  /// - Returns MM:SS if less than 1 hour
+  /// - Returns HH:MM:SS if 1 hour or more
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final hours = duration.inHours;
@@ -684,6 +670,8 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     }
   }
 
+  /// Show exit confirmation dialog
+  /// Warns user that progress will be lost
   void _showExitConfirmation(BuildContext context) {
     showDialog(
       context: context,
@@ -710,6 +698,9 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     );
   }
 
+  /// Show finish test confirmation dialog
+  /// - Warns about unanswered questions
+  /// - User can review (cancel) or submit
   void _showFinishConfirmation(
     BuildContext context,
     ToeicTestProvider provider,
@@ -737,14 +728,11 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
             onPressed: () {
               Navigator.pop(context);
               try {
-                // Lấy results và session data trước khi clear
                 final result = provider.finishTestAndGetResults();
                 final session = provider.session;
-                // QUAN TRỌNG: Navigate trước khi finishTest() để giữ data
                 if (mounted) {
                   _navigateToResults(context, result, session);
                 }
-                // Clear test state sau khi đã navigate
                 provider.finishTest();
               } catch (e) {
                 // Ignore errors when finishing test
@@ -757,6 +745,10 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
     );
   }
 
+  /// Navigate to results page with test results
+  /// - Saves questions & user answers before navigating
+  /// - Passes all score data & session info to results page
+  /// - Removes test page from navigation stack
   void _navigateToResults(
     BuildContext context,
     Map<String, dynamic> result,
@@ -766,10 +758,8 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
 
     final provider = context.read<ToeicTestProvider>();
 
-    // IMPORTANT: Lưu dữ liệu TRƯỚC KHI provider.finishTest() clear hết!
     final questions = List<ToeicQuestion>.from(provider.questions);
 
-    // Lưu tất cả user answers vào Map để truyền sang results page
     final userAnswers = <int, String>{};
     for (final question in questions) {
       final answer = provider.getAnswer(question.questionNumber);
@@ -796,15 +786,15 @@ class _ToeicTestTakingPageState extends State<ToeicTestTakingPage> {
         'readingUnanswered': result['readingUnanswered'] ?? 0,
         'listeningTotal': result['listeningTotal'] ?? 100,
         'readingTotal': result['readingTotal'] ?? 100,
-        'questions': questions, // Sử dụng dữ liệu đã lưu
-        'userAnswers': userAnswers, // Sử dụng dữ liệu đã lưu
+        'questions': questions,
+        'userAnswers': userAnswers,
         'sessionLog': [],
       },
     );
   }
 
-  /// Helper widget để hiển thị image từ Firebase Storage hoặc local assets
-  /// Tự động detect và handle Firebase Storage references
+  /// Helper widget to display image from Firebase Storage or local assets
+  /// Auto-detects Firebase references
   Widget _buildImageWidget(
     String? imageUrl, {
     double? width,
@@ -867,8 +857,10 @@ class ImageContainerWidget extends StatelessWidget {
   }
 }
 
-/// Widget riêng để hiển thị image - isolate image khỏi rebuild của page
-/// Mục đích: Tránh rebuild _buildImageWidget khi question selection thay đổi
+/// Stateful widget to display images from Firebase or local
+/// - Isolates image rendering to prevent page rebuilds
+/// - Handles Firebase Storage URL conversion
+/// - Caches resolved URLs
 class ImageDisplayWidget extends StatefulWidget {
   final String? imageUrl;
   final double? width;
@@ -892,6 +884,7 @@ class ImageDisplayWidget extends StatefulWidget {
 }
 
 class _ImageDisplayWidgetState extends State<ImageDisplayWidget> {
+  /// Future to resolve Firebase image URL
   late Future<String?> _urlFuture;
 
   @override
@@ -900,6 +893,7 @@ class _ImageDisplayWidgetState extends State<ImageDisplayWidget> {
     _urlFuture = _getCachedFirebaseUrl(widget.imageUrl ?? '');
   }
 
+  /// Re-resolve URL if imageUrl changes
   @override
   void didUpdateWidget(ImageDisplayWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -1018,6 +1012,10 @@ class _ImageDisplayWidgetState extends State<ImageDisplayWidget> {
     );
   }
 
+  /// Get Firebase image URL from cache or resolve from FirebaseStorageService
+  /// - Returns cached URL if available
+  /// - Otherwise resolves URL and caches it
+  /// - Returns null if resolution fails
   Future<String?> _getCachedFirebaseUrl(String imageUrl) async {
     if (widget.imageUrlCache.containsKey(imageUrl)) {
       final cachedUrl = widget.imageUrlCache[imageUrl];

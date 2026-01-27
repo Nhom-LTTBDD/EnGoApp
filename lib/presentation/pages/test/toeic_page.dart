@@ -136,14 +136,6 @@ class ToeicPage extends StatelessWidget {
                               Theme.of(context).primaryColor,
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Đang tải dữ liệu TOEIC...',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: getSurfaceColor(context),
-                            ),
-                          ),
                         ],
                       ),
                     );

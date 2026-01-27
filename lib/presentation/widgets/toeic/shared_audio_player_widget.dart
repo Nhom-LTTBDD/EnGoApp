@@ -1,3 +1,69 @@
+// lib/presentation/widgets/toeic/shared_audio_player_widget.dart
+
+/// LOGIC THANH PROGRESS BAR - CHI TIẾT HOẠT ĐỘNG:
+/// ====================================================
+///
+/// 1. CẤU TRÚC THANH PROGRESS:
+///    - Sử dụng LinearProgressIndicator (thanh tiến độ tuyến tính)
+///    - Hiển thị trực quan quá trình phát audio từ đầu đến cuối
+///    - Chiều cao cố định: 8px
+///    - Chiếm toàn bộ chiều rộng khi có khoảng trống
+///
+/// 2. GIỚI HẠN GIÁ TRỊ (0.0 - 1.0):
+///    - value = audioPosition.inSeconds / totalDuration.inSeconds
+///    - 0.0 = Chưa phát (vị trí ban đầu)
+///    - 0.5 = Phát được 50% audio
+///    - 1.0 = Phát hết (kết thúc audio)
+///    - Nếu totalDuration = 0 (audio chưa load), gán value = 0.0 để tránh division by zero
+///
+/// 3. CẬP NHẬT LIÊN TỤC:
+///    - AudioPlayer phát ra 2 event stream:
+///      * onDurationChanged: Gọi khi audio load xong, cập nhật totalDuration
+///      * onPositionChanged: Gọi liên tục mỗi 100ms, cập nhật currentPosition
+///    - Mỗi khi nhận event, setState() được gọi để rebuild UI
+///    - Progress bar tự động cập nhật vị trí con trỏ
+///
+/// 4. MÀUY SẮC THANH PROGRESS:
+///    - backgroundColor (nền): getBorderColor(context) - màu xám nhạt
+///      * Hiển thị phần audio chưa được phát
+///    - valueColor (tiến độ): getSuccessColor(context) - màu xanh lá
+///      * Hiển thị phần audio đã phát xong
+///      * Tạo hình ảnh trực quan và dễ theo dõi
+///
+/// 5. HAI CHẾ ĐỘ HOẠT ĐỘNG:
+///    A. PROVIDER MODE (useProvider = true):
+///       - Sử dụng ToeicTestProvider để quản lý state audio
+///       - Consumer<ToeicTestProvider> tự động rebuild khi state thay đổi
+///       - value = provider.audioPosition / provider.audioDuration
+///       - Ưu điểm: Quản lý tập trung, chia sẻ state giữa nhiều widget
+///
+///    B. STANDALONE MODE (useProvider = false):
+///       - Widget tự tạo AudioPlayer() riêng
+///       - Lắng nghe sự kiện từ audioPlayer trực tiếp
+///       - value = currentPosition / totalDuration
+///       - Ưu điểm: Độc lập, không cần Provider, dùng ở review_page
+///
+/// 6. FLOW CỬ CHỈ:
+///    - Bước 1: AudioPlayer load audio → onDurationChanged gọi
+///    - Bước 2: Thời gian phát càng kéo dài, onPositionChanged gọi nhiều lần
+///    - Bước 3: Mỗi lần onPositionChanged, currentPosition được cập nhật
+///    - Bước 4: value = currentPosition / totalDuration được tính lại
+///    - Bước 5: LinearProgressIndicator render lại với giá trị mới
+///    - Bước 6: Con trỏ xanh trên thanh progress di chuyển theo vị trí phát
+///
+/// 7. TÍNH NĂNG SAFE GUARDS:
+///    - Kiểm tra mounted trước setState() để tránh lỗi khi widget unmounted
+///    - Kiểm tra totalDuration > 0 trước khi chia để tránh lỗi infinity
+///    - Kiểm tra firebaseUrl != null trước khi phát
+///    - Try-catch trong playAudio() để xử lý lỗi phát audio
+///
+/// 8. VÍ DỤ HOẠT ĐỘNG THỰC TẾ:
+///    - Audio dài 2 phút (120 giây)
+///    - Sau 30 giây: value = 30/120 = 0.25 → Progress bar hiển thị 25%
+///    - Sau 60 giây: value = 60/120 = 0.5 → Progress bar hiển thị 50%
+///    - Sau 120 giây: value = 120/120 = 1.0 → Progress bar hiển thị 100% (phát xong)
+///
+
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:provider/provider.dart';

@@ -3,7 +3,7 @@
 class ToeicScoreCalculator {
   /// Calculate TOEIC listening score based on correct answers
   /// TOEIC Listening has 100 questions, scored from 5-495
-  /// Mỗi câu đúng = ~4.9 điểm, nhưng cần 97/100 để đạt 495 (max)
+  /// Mỗi câu đúng = 5 điểm, nhưng cần 97/100 để đạt 495 (max)
   /// 0/100 = 5 điểm (minimum)
   static int calculateListeningScore(int correctAnswers, int totalQuestions) {
     if (totalQuestions == 0) return 5;
@@ -22,7 +22,7 @@ class ToeicScoreCalculator {
 
   /// Calculate TOEIC reading score based on correct answers
   /// TOEIC Reading has 100 questions, scored from 5-495
-  /// Mỗi câu đúng = 4.9 điểm, cần 100/100 để đạt 495 (max)
+  /// Mỗi câu đúng = 5 điểm, cần 100/100 để đạt 495 (max)
   /// 0/100 = 5 điểm (minimum)
   static int calculateReadingScore(int correctAnswers, int totalQuestions) {
     if (totalQuestions == 0) return 5;

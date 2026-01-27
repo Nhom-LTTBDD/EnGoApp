@@ -191,8 +191,15 @@ class ToeicTestProvider extends ChangeNotifier {
     return _session?.userAnswers[questionNumber];
   }
 
+  /// Go to next question
+  /// - Stops current audio before switching (fixes overlapping audio bug)
+  /// - Auto-play audio for listening questions (practice mode only)
   void nextQuestion() {
     if (_session == null || !hasNextQuestion) return;
+    
+    // Stop current audio before moving to next question
+    stopAudio();
+    
     _session = _session!.copyWith(
       currentQuestionIndex: _session!.currentQuestionIndex + 1,
     );
@@ -210,16 +217,29 @@ class ToeicTestProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Go to previous question
+  /// - Stops audio when switching questions
   void previousQuestion() {
     if (_session == null || !hasPreviousQuestion) return;
+    
+    // Stop audio to prevent overlapping playback
+    stopAudio();
+    
     _session = _session!.copyWith(
       currentQuestionIndex: _session!.currentQuestionIndex - 1,
     );
     notifyListeners();
   }
 
+  /// Jump to specific question by index
+  /// - Stops current audio before switching (fixes UX bug)
+  /// - Updates session index
   void goToQuestion(int index) {
     if (_session == null || index < 0 || index >= totalQuestions) return;
+    
+    // Stop audio when jumping to prevent overlapping audio playback
+    stopAudio();
+    
     _session = _session!.copyWith(currentQuestionIndex: index);
     notifyListeners();
   }

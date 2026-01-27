@@ -1,16 +1,19 @@
-// lib/data/datasources/toeic_sample_data.dart
-// Data source class cung cấp dữ liệu TOEIC cho ứng dụng
-// Bao gồm: thông tin test, parts, và questions từ JSON/Firebase
-
-// Import entities để định nghĩa cấu trúc dữ liệu
+/// ToeicSampleData - Data Source cho TOEIC
+/// MỤC ĐÍCH:
+/// - Cung cấp dữ liệu TOEIC: tests, questions, parts info
+/// - Là bridge giữa UI (presentation) và dữ liệu thực (services)
+/// - Xử lý lỗi khi load dữ liệu từ Firebase/JSON
+/// - Trả về fallback data nếu load fails (app không crash)
 import '../../domain/entities/toeic_question.dart';
 import '../../domain/entities/toeic_test.dart';
-// Import service để load dữ liệu từ JSON/Firebase
 import '../services/toeic_json_service.dart';
 
-// Class chứa các static methods để cung cấp dữ liệu TOEIC
+/// Class chứa các static methods để cung cấp dữ liệu TOEIC
+/// Tất cả methods đều return Future (async) vì load dữ liệu từ Firebase
 class ToeicSampleData {
-  // Method load thông tin test (metadata) từ JSON service
+  /// Gọi ToeicJsonService.loadTest() để fetch dữ liệu từ Firebase Storage
+  /// Firebase path: toeic_data/test_1_2026/questions.json
+  /// - Fallback data không chính xác nhưng app vẫn chạy
   static Future<ToeicTest> getPracticeTest1() async {
     try {
       // Gọi service để load test từ Firebase/local JSON
@@ -18,109 +21,140 @@ class ToeicSampleData {
     } catch (e) {
       // Nếu load fails, trả về default test data để app không crash
       return ToeicTest(
-        id: 'test1', // ID định danh test
-        name: 'TOEIC Practice Test 1', // Tên hiển thị
-        description: 'TOEIC Practice Test', // Mô tả test
-        totalQuestions: 200, // Tổng số câu hỏi (standard TOEIC)
-        listeningQuestions: 100, // Số câu Listening (Part 1-4)
-        readingQuestions: 100, // Số câu Reading (Part 5-7)
-        duration: 120, // Thời gian làm bài (phút)
-        createdAt: DateTime.now(), // Thời gian tạo
-        updatedAt: DateTime.now(), // Thời gian cập nhật
-        isActive: true, // Trạng thái active của test
-        year: 2026, // Năm của test
+        id: 'test1',
+        name: 'TOEIC Practice Test 1',
+        description: 'TOEIC Practice Test',
+        totalQuestions: 200,
+        listeningQuestions: 100,
+        readingQuestions: 100,
+        duration: 120,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        isActive: true,
+        year: 2026,
       );
     }
   }
 
-  // Static data định nghĩa cấu trúc 7 parts của TOEIC
-  // Được sử dụng cho navigation và hiển thị thông tin parts
+  /// Static data định nghĩa cấu trúc 7 parts của TOEIC
+  /// Dùng để:
+  /// - Hiển thị tên part trên UI
+  /// - Hiển thị số câu hỏi
+  /// - Navigation giữa các part
   static final List<Map<String, dynamic>> parts = [
-    // LISTENING SECTION (Parts 1-4)
-    {
-      'number': 1, // Số thứ tự part
-      'name': 'Part 1', // Tên hiển thị
-      'questionCount': 6, // Số câu hỏi trong part này
-      'type': 'Photographs', // Loại câu hỏi (mô tả hình ảnh)
-    },
+    {'number': 1, 'name': 'Part 1', 'questionCount': 6, 'type': 'Photographs'},
     {
       'number': 2,
       'name': 'Part 2',
       'questionCount': 25,
-      'type': 'Question-Response', // Câu hỏi - phản hồi
+      'type': 'Question-Response',
     },
     {
       'number': 3,
       'name': 'Part 3',
       'questionCount': 39,
-      'type': 'Conversations', // Đoạn hội thoại
+      'type': 'Conversations',
     },
-    {
-      'number': 4,
-      'name': 'Part 4',
-      'questionCount': 30,
-      'type': 'Talks', // Đoạn nói chuyện
-    },
-    // READING SECTION (Parts 5-7)
+    {'number': 4, 'name': 'Part 4', 'questionCount': 30, 'type': 'Talks'},
     {
       'number': 5,
       'name': 'Part 5',
       'questionCount': 30,
-      'type': 'Incomplete Sentences', // Câu chưa hoàn chỉnh
+      'type': 'Incomplete Sentences',
     },
     {
       'number': 6,
       'name': 'Part 6',
       'questionCount': 16,
-      'type': 'Text Completion', // Hoàn thành đoạn văn
+      'type': 'Text Completion',
     },
     {
       'number': 7,
       'name': 'Part 7',
       'questionCount': 54,
-      'type': 'Reading Comprehension', // Đọc hiểu
+      'type': 'Reading Comprehension',
     },
   ];
 
-  // Method load questions cho một part cụ thể
-  // Input: partNumber (1-7)
-  // Output: List<ToeicQuestion> hoặc empty list nếu lỗi
+  /// Load questions cho một part cụ thể (1-7)
+  ///
+  /// Parameters:
+  /// - partNumber: Số part cần load (1-7)
+  ///
+  /// Return:
+  /// - List<ToeicQuestion>: Danh sách câu hỏi của part đó
+  /// - Empty list [] nếu lỗi hoặc không có data
+  ///
+  /// Flow:
+  /// 1. Gọi ToeicJsonService.loadQuestionsByPart('test1', partNumber)
+  /// 2. Service load từ Firebase Storage:
+  ///    - Firebase path: toeic_data/test_1_2026/questions.json
+  ///    - Parse JSON → Lọc câu theo part
+  /// 3. Return List<ToeicQuestion>
+  ///
+  /// Error handling:
+  /// - Nếu Firebase fails → Catch exception
+  /// - Trả về empty list [] thay vì crash app
+  /// - UI có thể handle empty list gracefully (hiển thị "No questions")
   static Future<List<ToeicQuestion>> getQuestionsByPart(int partNumber) async {
     try {
       // Gọi ToeicJsonService để load questions từ Firebase
+      // Service sẽ:
+      // 1. Resolve Firebase URL
+      // 2. Download JSON file
+      // 3. Parse JSON thành ToeicQuestion objects
+      // 4. Filter theo partNumber
       final questions = await ToeicJsonService.loadQuestionsByPart(
-        'test1', // Test ID
-        partNumber, // Part number (1-7)
+        'test1',
+        partNumber,
       );
-
-      // Kiểm tra nếu không có questions được load
       if (questions.isEmpty) {
         // Trả về empty list thay vì throw exception để tránh crash app
         return [];
       }
-
       return questions;
     } catch (e) {
-      // Error handling: log lỗi nhưng không crash app
-      // Trả về empty list để UI có thể handle gracefully
+      // Error handling: Catch bất kỳ exception nào
+      // Có thể là:
+      // - Firebase connection error
+      // - JSON parsing error
+      // - Network error
+      // Không log hay throw, chỉ trả về empty list
+      // Làm này tránh app crash, UI vẫn render được (just hiển thị rỗng)
       return [];
     }
   }
 
-  // Method load tất cả questions từ test (all 7 parts)
-  // Được sử dụng khi cần load full test hoặc tính toán tổng thể
+  /// Load tất cả questions từ test (all 7 parts) một lúc
+  /// Flow:
+  /// 1. Gọi ToeicJsonService.loadAllQuestions('test1')
+  /// 2. Service load JSON từ Firebase
+  /// 3. Parse tất cả 200 câu (không filter part)
+  /// 4. Return List<ToeicQuestion> (length = 200)
+  ///
+  /// Performance:
+  /// - Load tất cả 200 câu cùng lúc
+  /// - Chậm hơn getQuestionsByPart (chỉ load 1 part)
+  ///
+  /// Ví dụ:
+  ///   final allQuestions = await ToeicSampleData.getAllQuestions();
+  ///   print(allQuestions.length); // 200
   static Future<List<ToeicQuestion>> getAllQuestions() async {
     try {
       // Gọi service để load tất cả questions của test
+      // Service sẽ load JSON file từ Firebase + parse tất cả
       final questions = await ToeicJsonService.loadAllQuestions('test1');
 
       // Kiểm tra và trả về kết quả
       if (questions.isEmpty) {
-        return []; // Trả về empty list nếu không có data
+        // Trả về empty list nếu không có data
+        return [];
       }
+      // Trả về 200 câu hỏi
       return questions;
     } catch (e) {
       // Error handling: trả về empty list thay vì crash
+      // Tránh app crash khi load dữ liệu fails
       return [];
     }
   }

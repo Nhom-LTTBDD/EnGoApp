@@ -5,11 +5,18 @@ import '../../../domain/entities/toeic_test.dart';
 import 'package:en_go_app/core/theme/theme_helper.dart';
 import 'package:en_go_app/core/theme/app_theme.dart';
 
+/// ToeicDetailPage - Trang chi tiết bài thi & chọn Part/chế độ
+///
+/// Cho phép user:
+/// - Chọn Practice mode (từng part) hoặc Full test (all 7 parts)
+/// - Select parts để practice (Part 1-7)
+/// - Chọn time limit (55', 75', 120', 135', hoặc unlimited)
+/// - Bắt đầu bài thi - toeic_test_taking_page
 class ToeicDetailPage extends StatefulWidget {
-  final String testId;
-  final String testName;
-  final ToeicTest? test;
-  final int? partNumber;
+  final String testId; // ID của bài thi
+  final String testName; // Tên bài thi
+  final ToeicTest? test; // Test object (optional)
+  final int? partNumber; // Part cụ thể (nếu từ Part Selection page)
 
   const ToeicDetailPage({
     Key? key,
@@ -24,9 +31,9 @@ class ToeicDetailPage extends StatefulWidget {
 }
 
 class _ToeicDetailPageState extends State<ToeicDetailPage> {
-  bool isPracticeMode = true;
-  Set<int> selectedParts = {};
-  int selectedTime = 120;
+  bool isPracticeMode = true; // true = Practice, false = Full test
+  Set<int> selectedParts = {}; // Danh sách parts được chọn
+  int selectedTime = 120; // Giới hạn thời gian (phút), 0 = unlimited
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +58,7 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
         ),
         child: Column(
           children: [
-            // Header
+            // Header - Nút back + tiêu đề
             Container(
               padding: const EdgeInsets.all(15),
               child: Row(
@@ -86,7 +93,7 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
               ),
             ),
 
-            // Content
+            // Content - Mode selection + Part buttons + Time buttons
             Expanded(
               child: Container(
                 padding: const EdgeInsets.all(15),
@@ -94,7 +101,7 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Mode Selection
+                      // Mode Selection - Practice vs Full Test
                       Row(
                         children: [
                           Expanded(
@@ -157,7 +164,7 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
                       ),
                       const SizedBox(height: 15),
 
-                      // Listening Section (only show in practice mode)
+                      // Listening Section - Chỉ hiển thị khi Practice mode
                       if (isPracticeMode) ...[
                         Text(
                           'Listening',
@@ -206,7 +213,7 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
                         _buildPartButton(7),
                         const SizedBox(height: 15),
 
-                        // Time Selection
+                        // Time Selection - 5 time limit options
                         Text(
                           'Time',
                           style: TextStyle(
@@ -229,11 +236,11 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
                         const SizedBox(height: 15),
                       ],
 
-                      // Start Test Button
+                      // Start Test Button - Validates selections & navigates to test_taking_page
                       Center(
                         child: ElevatedButton(
                           onPressed: () {
-                            // Validate selection in practice mode
+                            // Validate: Practice mode phải có ≥1 part selected
                             if (isPracticeMode && selectedParts.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -246,14 +253,17 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
                               return;
                             }
 
-                            // Navigate to test taking page
+                            // Navigate sang toeic_test_taking_page với selection arguments
+                            // selectedParts: parts user chọn (practice) hoặc all 7 (full test)
+                            // timeLimit: thời gian giới hạn (null = unlimited)
                             Navigator.pushNamed(
                               context,
                               AppRoutes.toeicTestTaking,
                               arguments: {
                                 'testId': widget.testId,
                                 'testName': widget.testName,
-                                'isFullTest': !isPracticeMode,
+                                'isFullTest':
+                                    !isPracticeMode, // true = full test, false = practice
                                 'selectedParts': widget.partNumber != null
                                     ? [widget.partNumber!]
                                     : (isPracticeMode
@@ -306,6 +316,9 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
     );
   }
 
+  /// Build button cho mỗi Part (1-7)
+  /// Toggle selected state + update selectedParts Set
+  /// Highlight nếu part đã selected
   Widget _buildPartButton(int partNumber) {
     final isSelected = selectedParts.contains(partNumber);
     return GestureDetector(
@@ -349,6 +362,8 @@ class _ToeicDetailPageState extends State<ToeicDetailPage> {
     );
   }
 
+  /// Build button cho time limit (X/unlimited, 55', 75', 120', 135')
+  /// Update selectedTime khi tap
   Widget _buildTimeButton(int? minutes, String label) {
     final isSelected = selectedTime == minutes;
     return GestureDetector(
