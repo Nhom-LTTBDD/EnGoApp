@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/core/constants/app_spacing.dart';
 import 'package:en_go_app/core/theme/theme_helper.dart';
+import 'package:en_go_app/core/utils/isolate_helpers.dart';
 import '../../widgets/topic_card.dart';
 import '../../providers/personal_vocabulary_provider.dart';
 
@@ -20,6 +21,9 @@ class PersonalVocabularyByTopicPage extends StatefulWidget {
 
 class _PersonalVocabularyByTopicPageState
     extends State<PersonalVocabularyByTopicPage> {
+  Map<String, int>? _cachedCardsByTopic; // Cache kết quả
+  bool _isGrouping = false; // Flag để tránh compute nhiều lần
+
   // Topic metadata - Sử dụng Firebase Storage URLs giống vocab_by_topic_page
   final Map<String, Map<String, String>> _topicMetadata = {
     'food': {
@@ -188,41 +192,60 @@ class _PersonalVocabularyByTopicPageState
                     );
                   }
 
-                  // Group cards by topic
-                  final cardsByTopic = _groupCardsByTopic(provider);
+                  // Group cards by topic using FutureBuilder để compute trong isolate
+                  return FutureBuilder<Map<String, int>>(
+                    future: _getCardsByTopic(provider),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: spaceMd,
-                      vertical: spaceSm,
-                    ),
-                    itemCount: cardsByTopic.length,
-                    itemBuilder: (context, index) {
-                      final topicEntry = cardsByTopic.entries.elementAt(index);
-                      final topicId = topicEntry.key;
-                      final cardCount = topicEntry.value;
-                      final metadata = _topicMetadata[topicId];
+                      if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      }
 
-                      if (metadata == null) return const SizedBox.shrink();
+                      final cardsByTopic = snapshot.data ?? {};
 
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: spaceMd),
-                        child: TopicCard(
-                          title: metadata['name']!,
-                          subtitle: metadata['description']!,
-                          cardCount: cardCount,
-                          emoji: metadata['emoji']!,
-                          // Sử dụng imageUrl cho Firebase Storage (giống vocab_by_topic_page)
-                          imageUrl: metadata['image']!,
-                          onTap: () {
-                            // Navigate to personal vocab cards by topic
-                            Navigator.pushNamed(
-                              context,
-                              AppRoutes.personalVocabCards,
-                              arguments: {'topicId': topicId},
-                            );
-                          },
+                      if (cardsByTopic.isEmpty) {
+                        return const Center(child: Text('Không có dữ liệu'));
+                      }
+
+                      return ListView.builder(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: spaceMd,
+                          vertical: spaceSm,
                         ),
+                        itemCount: cardsByTopic.length,
+                        itemBuilder: (context, index) {
+                          final topicEntry = cardsByTopic.entries.elementAt(
+                            index,
+                          );
+                          final topicId = topicEntry.key;
+                          final cardCount = topicEntry.value;
+                          final metadata = _topicMetadata[topicId];
+
+                          if (metadata == null) return const SizedBox.shrink();
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: spaceMd),
+                            child: TopicCard(
+                              title: metadata['name']!,
+                              subtitle: metadata['description']!,
+                              cardCount: cardCount,
+                              emoji: metadata['emoji']!,
+                              // Sử dụng imageUrl cho Firebase Storage (giống vocab_by_topic_page)
+                              imageUrl: metadata['image']!,
+                              onTap: () {
+                                // Navigate to personal vocab cards by topic
+                                Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.personalVocabCards,
+                                  arguments: {'topicId': topicId},
+                                );
+                              },
+                            ),
+                          );
+                        },
                       );
                     },
                   );
@@ -235,30 +258,29 @@ class _PersonalVocabularyByTopicPageState
     );
   }
 
-  /// Group personal cards by their topic ID
-  Map<String, int> _groupCardsByTopic(PersonalVocabularyProvider provider) {
-    final cardsByTopic = <String, int>{};
-
-    for (final card in provider.personalCards) {
-      // Extract topic ID from card ID (format: topicId_number)
-      final topicId = _extractTopicId(card.id);
-      if (topicId != null) {
-        cardsByTopic[topicId] = (cardsByTopic[topicId] ?? 0) + 1;
-      }
+  /// Get cards grouped by topic - sử dụng compute để tránh blocking UI
+  Future<Map<String, int>> _getCardsByTopic(
+    PersonalVocabularyProvider provider,
+  ) async {
+    // Return cached nếu có và không đang grouping
+    if (_cachedCardsByTopic != null && !_isGrouping) {
+      return _cachedCardsByTopic!;
     }
 
-    // Sort by card count (descending)
-    final sortedEntries = cardsByTopic.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-
-    return Map.fromEntries(sortedEntries);
-  }
-
-  /// Extract topic ID from card ID (e.g., "food_1" -> "food")
-  String? _extractTopicId(String cardId) {
-    if (cardId.contains('_')) {
-      return cardId.split('_').first;
+    // Avoid multiple concurrent compute calls
+    if (_isGrouping) {
+      return _cachedCardsByTopic ?? {};
     }
-    return null;
+
+    _isGrouping = true;
+
+    try {
+      // Chạy grouping trong isolate
+      final result = await groupCardsByTopic(provider.personalCards);
+      _cachedCardsByTopic = result;
+      return result;
+    } finally {
+      _isGrouping = false;
+    }
   }
 }
