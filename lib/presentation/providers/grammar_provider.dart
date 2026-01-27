@@ -104,13 +104,12 @@ class GrammarProvider extends ChangeNotifier {
       _isLoadingTopics = false;
       notifyListeners();
     }
-  }
-  /// Load lessons theo topic ID
+  }  /// Load lessons theo topic ID
   /// 
   /// **Flow:**
   /// 1. Set currentTopicId và loading state
   /// 2. Call use case để fetch lessons
-  /// 3. Set first available lesson làm current
+  /// 3. Set first lesson làm current
   /// 4. Update state và notify listeners
   Future<void> loadLessonsByTopic(String topicId) async {
     _currentTopicId = topicId;
@@ -123,14 +122,10 @@ class GrammarProvider extends ChangeNotifier {
       _lessons = await _getGrammarLessonsUseCase(topicId);
       _lessonsError = null;
 
-      // Set first available lesson as current
+      // Set first lesson as current
       if (_lessons.isNotEmpty) {
-        final availableLesson = _lessons.firstWhere(
-          (lesson) => lesson.isAvailable,
-          orElse: () => _lessons.first,
-        );
-        _currentLesson = availableLesson;
-        _currentLessonIndex = _lessons.indexOf(availableLesson);
+        _currentLesson = _lessons.first;
+        _currentLessonIndex = 0;
       }
     } catch (e) {
       _lessonsError = e.toString();
@@ -216,20 +211,19 @@ class GrammarProvider extends ChangeNotifier {
   List<GrammarTopic> get availableTopics {
     return _topics.where((topic) => topic.isUnlocked).toList();
   }
-
   /// Get completed topics
   List<GrammarTopic> get completedTopics {
-    return _topics.where((topic) => topic.isCompleted).toList();
+    return _topics.where((topic) => topic.completedLessons >= topic.totalLessons).toList();
   }
 
-  /// Get available lessons
+  /// Get all lessons (không filter)
   List<GrammarLesson> get availableLessons {
-    return _lessons.where((lesson) => lesson.isAvailable).toList();
+    return _lessons;
   }
 
-  /// Get completed lessons
+  /// Get all lessons (không filter)
   List<GrammarLesson> get completedLessons {
-    return _lessons.where((lesson) => lesson.isCompleted).toList();
+    return _lessons;
   }
 
   /// Get lesson by ID

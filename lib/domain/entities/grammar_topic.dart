@@ -5,16 +5,11 @@
 /// **Purpose:** Entity đại diện cho một grammar topic (chủ đề ngữ pháp)
 /// **Architecture Layer:** Domain (Business Logic)
 /// **Key Features:**
-/// - Chứa danh sách lessons
-/// - Progress tracking (totalLessons, completedLessons)
+/// - Chứa danh sách lessons (chỉ xem lý thuyết)
 /// - Level classification (beginner/intermediate/advanced)
 /// - Unlock status
 /// 
-/// **Computed Properties:**
-/// - progressPercentage: Tính % hoàn thành topic
-/// - isCompleted: Check topic đã hoàn thành
-/// - availableLessons: Filter lessons available
-/// - completedLessonsData: Filter lessons completed
+/// **Note:** Không có progress tracking vì chỉ dùng để xem lý thuyết
 
 import 'package:equatable/equatable.dart';
 import 'grammar_lesson.dart';
@@ -40,27 +35,9 @@ class GrammarTopic extends Equatable {
     required this.level,
     this.lessons = const [],
     required this.totalLessons,
-    this.completedLessons = 0,
-    this.isUnlocked = true,
+    this.completedLessons = 0,    this.isUnlocked = true,
     required this.createdAt,
   });
-  /// Tính phần trăm hoàn thành topic (0.0 - 1.0)
-  double get progressPercentage {
-    if (totalLessons == 0) return 0.0;
-    return (completedLessons / totalLessons).clamp(0.0, 1.0);
-  }
-  /// Kiểm tra topic đã hoàn thành chưa
-  bool get isCompleted => completedLessons >= totalLessons;
-
-  /// Lấy danh sách lessons có thể học (status = available)
-  List<GrammarLesson> get availableLessons {
-    return lessons.where((lesson) => lesson.isAvailable).toList();
-  }
-
-  /// Lấy danh sách lessons đã hoàn thành  
-  List<GrammarLesson> get completedLessonsData {
-    return lessons.where((lesson) => lesson.isCompleted).toList();
-  }
 
   /// Copy with new values để update immutable object
   GrammarTopic copyWith({

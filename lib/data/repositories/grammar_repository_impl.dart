@@ -258,12 +258,13 @@ class GrammarRepositoryImpl implements GrammarRepository {
     final lessons = await getLessonsByTopicId('1');
     return lessons.take(3).toList();
   }
-
+  /// Lấy recommended lessons dựa trên user progress (mock - beginner lessons)
+  /// **TODO:** Implement AI-based recommendations với Firestore + ML
   @override
   Future<List<GrammarLesson>> getRecommendedLessons() async {
     // Mock recommended lessons based on user progress
     await Future.delayed(const Duration(milliseconds: 200));
     final lessons = await getLessonsByLevel(GrammarLevel.beginner);
-    return lessons.where((lesson) => lesson.isAvailable).take(5).toList();
+    return lessons.take(5).toList();
   }
 }

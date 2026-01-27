@@ -9,29 +9,20 @@ class GetGrammarLessonsUseCase {
   final GrammarRepository _grammarRepository;
 
   GetGrammarLessonsUseCase(this._grammarRepository);
-
-  /// Execute use case to get lessons by topic ID
+  /// Execute use case để lấy lessons theo topic ID
+  /// 
+  /// **Flow:**
+  /// 1. Fetch lessons từ repository
+  /// 2. Sort lessons theo level (beginner -> intermediate -> advanced)
+  /// 3. Return sorted list
+  /// 
+  /// **Note:** Grammar chỉ xem lý thuyết nên không sort theo status
   Future<List<GrammarLesson>> call(String topicId) async {
     try {
       final lessons = await _grammarRepository.getLessonsByTopicId(topicId);
 
-      // Sort lessons by status and difficulty
-      lessons.sort((a, b) {
-        // Prioritize available lessons
-        if (a.isAvailable && !b.isAvailable) return -1;
-        if (!a.isAvailable && b.isAvailable) return 1;
-
-        // Then prioritize in-progress lessons
-        if (a.status == GrammarLessonStatus.inProgress &&
-            b.status != GrammarLessonStatus.inProgress)
-          return -1;
-        if (a.status != GrammarLessonStatus.inProgress &&
-            b.status == GrammarLessonStatus.inProgress)
-          return 1;
-
-        // Finally sort by level
-        return a.level.index.compareTo(b.level.index);
-      });
+      // Sort lessons theo level (beginner -> intermediate -> advanced)
+      lessons.sort((a, b) => a.level.index.compareTo(b.level.index));
 
       return lessons;
     } catch (e) {

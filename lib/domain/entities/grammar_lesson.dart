@@ -5,15 +5,11 @@
 /// **Purpose:** Entity đại diện cho một grammar lesson (bài học ngữ pháp)
 /// **Architecture Layer:** Domain (Business Logic)
 /// **Key Features:**
-/// - Progress tracking (totalItems, completedItems)
+/// - Chỉ dùng để xem lý thuyết (view-only, không có progress tracking)
 /// - Status: locked, available, completed, inProgress
 /// - Level: beginner, intermediate, advanced
 /// - Type: tenses, verbs, nouns, adjectives, sentences, clauses
 /// - Estimated duration và tags
-/// 
-/// **Computed Properties:**
-/// - completionPercentage: Tính % hoàn thành
-/// - isCompleted, isLocked, isAvailable: Status checks
 
 import 'package:equatable/equatable.dart';
 
@@ -52,24 +48,10 @@ class GrammarLesson extends Equatable {
     this.imageUrl,
     this.totalItems = 0,
     this.completedItems = 0,
-    this.estimatedDuration = const Duration(minutes: 15),
-    this.tags = const [],
+    this.estimatedDuration = const Duration(minutes: 15),    this.tags = const [],
     required this.createdAt,
     required this.updatedAt,
   });
-  /// Tính phần trăm hoàn thành (0.0 - 1.0)
-  double get completionPercentage {
-    if (totalItems == 0) return 0.0;
-    return (completedItems / totalItems).clamp(0.0, 1.0);
-  }
-  /// Kiểm tra lesson đã hoàn thành chưa
-  bool get isCompleted => status == GrammarLessonStatus.completed;
-
-  /// Kiểm tra lesson có bị lock không
-  bool get isLocked => status == GrammarLessonStatus.locked;
-
-  /// Kiểm tra lesson có available để học không
-  bool get isAvailable => status == GrammarLessonStatus.available;
 
   /// Copy with new values để update immutable object
   GrammarLesson copyWith({
