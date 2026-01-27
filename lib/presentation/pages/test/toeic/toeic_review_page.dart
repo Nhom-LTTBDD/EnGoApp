@@ -564,9 +564,6 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                     decoration: BoxDecoration(
                       color: Theme.of(context).primaryColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Theme.of(context).primaryColor.withOpacity(0.4),
-                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -606,13 +603,6 @@ class _ToeicReviewPageState extends State<ToeicReviewPage> {
                   if (question.questionText != null &&
                       question.questionText!.isNotEmpty) ...[
                     Container(
-                      margin: EdgeInsets.symmetric(vertical: 10),
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: getSurfaceColor(context),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: getBorderColor(context)),
-                      ),
                       child: Text(
                         question.questionText!,
                         style: TextStyle(
