@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:en_go_app/presentation/layout/main_layout.dart';
 import 'package:en_go_app/routes/app_routes.dart';
 import '../../../core/theme/theme_helper.dart';
+import '../../../core/utils/isolate_helpers.dart';
 import '../../../domain/entities/toeic_test_session.dart';
 import '../../../domain/entities/toeic_question.dart';
 import '../../../domain/entities/test_history.dart';
@@ -73,37 +74,22 @@ class _ToeicResultPageState extends State<ToeicResultPage> {
 
       print('Saving test history...');
 
-      // Calculate incorrect questions
-      final incorrectQuestions = <int>[];
-      final correctAnswersMap = <int, String>{};
+      // Serialize questions để có thể pass vào isolate
+      final serializedQuestions = widget.questions!
+          .map(
+            (q) => {
+              'questionNumber': q.questionNumber,
+              'correctAnswer': q.correctAnswer,
+              'partNumber': q.partNumber,
+            },
+          )
+          .toList();
 
-      for (final question in widget.questions!) {
-        correctAnswersMap[question.questionNumber] = question.correctAnswer;
-        final userAnswer = widget.userAnswers![question.questionNumber] ?? '';
-        if (userAnswer != question.correctAnswer) {
-          incorrectQuestions.add(question.questionNumber);
-        }
-      }
-
-      // Calculate part scores
-      final partScores = <String, dynamic>{};
-      for (int part = 1; part <= 7; part++) {
-        final partQuestions = widget.questions!
-            .where((q) => q.partNumber == part)
-            .toList();
-        final partCorrect = partQuestions
-            .where(
-              (q) => widget.userAnswers![q.questionNumber] == q.correctAnswer,
-            )
-            .length;
-        partScores['part$part'] = {
-          'correct': partCorrect,
-          'total': partQuestions.length,
-          'percentage': partQuestions.isEmpty
-              ? 0.0
-              : (partCorrect / partQuestions.length) * 100,
-        };
-      }
+      // Calculate test history data trong isolate
+      final historyData = await calculateTestHistory(
+        questions: serializedQuestions,
+        userAnswers: widget.userAnswers!,
+      );
 
       // Get actual user ID from AuthProvider
       final userId = context.read<AuthProvider>().currentUser?.id;
@@ -125,10 +111,10 @@ class _ToeicResultPageState extends State<ToeicResultPage> {
         readingScore: widget.readingScore,
         totalScore: widget.totalScore,
         userAnswers: widget.userAnswers!,
-        correctAnswersMap: correctAnswersMap,
-        incorrectQuestions: incorrectQuestions,
+        correctAnswersMap: historyData.correctAnswersMap,
+        incorrectQuestions: historyData.incorrectQuestions,
         timeSpent: 7200, // TODO: Calculate actual time spent
-        partScores: partScores,
+        partScores: historyData.partScores,
       );
 
       // Save to Firestore

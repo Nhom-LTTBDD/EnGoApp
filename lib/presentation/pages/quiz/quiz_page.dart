@@ -1,9 +1,9 @@
 // lib/presentation/pages/vocabulary/quiz_page.dart
-import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../layout/main_layout.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/theme/theme_helper.dart';
+import '../../../core/utils/isolate_helpers.dart';
 import '../../../domain/entities/quiz_config.dart';
 import '../../../domain/entities/quiz_question.dart';
 import '../../../domain/entities/quiz_answer.dart';
@@ -56,7 +56,7 @@ class _QuizPageState extends State<QuizPage> {
           debugPrint(
             '[QUIZ] Loaded ${cards.length} cards, generating questions...',
           );
-          _generateQuestions(cards);
+          await _generateQuestionsInIsolate(cards);
         } else {
           debugPrint('[QUIZ] Cannot generate - cards empty or unmounted');
         }
@@ -66,98 +66,39 @@ class _QuizPageState extends State<QuizPage> {
     });
   }
 
-  /// Generate quiz questions from vocabulary cards
-  void _generateQuestions(List<VocabularyCard> cards) {
-    if (cards.length < 4) {
-      debugPrint('[QUIZ] Not enough cards (need 4, got ${cards.length})');
+  /// Generate quiz questions using isolate (compute) để tránh skip frame
+  Future<void> _generateQuestionsInIsolate(List<VocabularyCard> cards) async {
+    if (cards.length < widget.config.questionType.answerCount) {
+      debugPrint(
+        '[QUIZ] Not enough cards (need ${widget.config.questionType.answerCount}, got ${cards.length})',
+      );
       return;
     }
 
-    final random = Random();
-    final shuffledCards = List<VocabularyCard>.from(cards)..shuffle(random);
-    final questionCount = min(
-      widget.config.questionCount,
-      shuffledCards.length,
+    debugPrint('[QUIZ] Starting isolate computation...');
+    final startTime = DateTime.now();
+
+    // Chạy trong isolate bằng compute
+    final simpleQuestions = await generateQuizQuestions(
+      cards: cards,
+      questionCount: widget.config.questionCount,
+      answerCount: widget.config.questionType.answerCount,
+      languageMode: widget.config.answerLanguage,
     );
 
-    final List<QuizQuestion> questions = [];
+    final duration = DateTime.now().difference(startTime);
+    debugPrint('[QUIZ] Isolate completed in ${duration.inMilliseconds}ms');
 
-    for (int i = 0; i < questionCount; i++) {
-      final correctCard = shuffledCards[i];
-
-      // Generate wrong answers from other cards
-      final wrongCards =
-          shuffledCards.where((card) => card.id != correctCard.id).toList()
-            ..shuffle(random);
-
-      final wrongAnswersCount = widget.config.questionType.answerCount - 1;
-      final selectedWrongCards = wrongCards.take(wrongAnswersCount).toList();
-
-      // Determine question text and answers based on language mode
-      String questionText;
-      List<QuizAnswer> answers = [];
-
-      if (widget.config.answerLanguage ==
-          QuizLanguageMode.vietnameseToEnglish) {
-        // Hỏi tiếng Việt → Trả lời tiếng Anh
-        questionText = correctCard.vietnamese;
-
-        // Correct answer
-        answers.add(
-          QuizAnswer(
-            text: correctCard.english,
-            isCorrect: true,
-            cardId: correctCard.id,
-          ),
-        );
-
-        // Wrong answers
-        for (var wrongCard in selectedWrongCards) {
-          answers.add(
-            QuizAnswer(
-              text: wrongCard.english,
-              isCorrect: false,
-              cardId: wrongCard.id,
-            ),
-          );
-        }
-      } else {
-        // Hỏi tiếng Anh → Trả lời tiếng Việt
-        questionText = correctCard.english;
-
-        // Correct answer
-        answers.add(
-          QuizAnswer(
-            text: correctCard.vietnamese,
-            isCorrect: true,
-            cardId: correctCard.id,
-          ),
-        );
-
-        // Wrong answers
-        for (var wrongCard in selectedWrongCards) {
-          answers.add(
-            QuizAnswer(
-              text: wrongCard.vietnamese,
-              isCorrect: false,
-              cardId: wrongCard.id,
-            ),
-          );
-        }
-      }
-
-      // Shuffle answers
-      answers.shuffle(random);
-
-      questions.add(
-        QuizQuestion(
-          questionText: questionText,
-          correctCard: correctCard,
-          answers: answers,
-          questionNumber: i + 1,
-        ),
+    // Convert SimpleQuizQuestion to QuizQuestion with correct card reference
+    final questions = simpleQuestions.map((sq) {
+      final correctCard = cards.firstWhere((c) => c.id == sq.correctCardId);
+      return QuizQuestion(
+        questionText: sq.questionText,
+        correctCard: correctCard,
+        answers: sq.answers,
+        questionNumber: sq.questionNumber,
       );
-    }
+    }).toList();
 
     // Update state
     if (mounted) {
