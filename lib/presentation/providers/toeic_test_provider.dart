@@ -196,10 +196,10 @@ class ToeicTestProvider extends ChangeNotifier {
   /// - Auto-play audio for listening questions (practice mode only)
   void nextQuestion() {
     if (_session == null || !hasNextQuestion) return;
-    
+
     // Stop current audio before moving to next question
     stopAudio();
-    
+
     _session = _session!.copyWith(
       currentQuestionIndex: _session!.currentQuestionIndex + 1,
     );
@@ -221,10 +221,10 @@ class ToeicTestProvider extends ChangeNotifier {
   /// - Stops audio when switching questions
   void previousQuestion() {
     if (_session == null || !hasPreviousQuestion) return;
-    
+
     // Stop audio to prevent overlapping playback
     stopAudio();
-    
+
     _session = _session!.copyWith(
       currentQuestionIndex: _session!.currentQuestionIndex - 1,
     );
@@ -236,10 +236,10 @@ class ToeicTestProvider extends ChangeNotifier {
   /// - Updates session index
   void goToQuestion(int index) {
     if (_session == null || index < 0 || index >= totalQuestions) return;
-    
+
     // Stop audio when jumping to prevent overlapping audio playback
     stopAudio();
-    
+
     _session = _session!.copyWith(currentQuestionIndex: index);
     notifyListeners();
   }
